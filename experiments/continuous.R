@@ -17,7 +17,7 @@ parabolic <- function(n, sigma, indep) {
   list(X=X, Y=Y)
 }
 
-sinsusoidal <- function(n, sigma, indep) {
+sinusoidal <- function(n, sigma, indep) {
   X <- runif(n, 0, 2*pi)
   Y <- (1-indep)*2*sin(3*X) + rnorm(n, 0, sigma)
   list(X=X, Y=Y)
@@ -43,11 +43,11 @@ checkerboard <- function(n, sigma, indep) {
 ##############################################
 get_data <- function(n) {
   sigma <- runif(1, 1, 2.5)
-  indep <- sample(c(0, 1, 1, 1), 1)
+  indep <- sample(c(0, 1), 1)
   res <- sample(c(
     linear,
     parabolic,
-    sinsusoidal,
+    sinusoidal,
     circular,
     checkerboard
   ), 1)[[1]](n, sigma, indep)
@@ -61,7 +61,7 @@ get_results <- function(n, m){
     data <- get_data(n)
     return(data.frame(true=data$true,
                       cor=cor.test(data$X, data$Y)$p.value,
-                      # splineGCM=splineGCM(1, 2, c(), cbind(data$X, data$Y)),
+                      splineGCM=splineGCM(1, 2, c(), cbind(data$X, data$Y)),
                       RCoT=RCoT(data$X, data$Y)$p,
                       # RCIT=RCIT(data$X, data$Y)$p,
                       Bayes=bayes.UCItest(data$X, data$Y, verbose=FALSE)$p_H0))
@@ -76,30 +76,11 @@ cores <- detectCores()
 cl <- makeForkCluster(cores[1]-1)
 registerDoParallel(cl)
 
-results <- get_results(200, 500)
+results <- get_results(200, 200)
 
 stopCluster(cl)
 
 
-# Process output
+# Process results
 ##############################################
-roc_data <- c()
-for (i in 2:ncol(results)) {
-  pred <- prediction(results[,i], results[,1])
-  res <- performance(pred, "tpr", "fpr")
-  auc <- round(performance(pred, "auc")@y.values[[1]], 3)
-  x <- res@x.values[[1]]
-  y <- res@y.values[[1]]
-  name <- colnames(results)[i]
-  roc_data[[name]] <- list(data=data.frame(x=x, y=y), auc=auc, name=name)
-}
-
-plt <- ggplot() +
-  labs(x="False positive rate", y="True positive rate") +
-  theme(legend.title = element_blank())
-for (roc in roc_data) {
-  c <- paste(roc$name, ' (auc: ', roc$auc, ')', sep="")
-  plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
-}
-
-plot(plt)
+plot(pplot_roc(results[,1], results[,-1]))

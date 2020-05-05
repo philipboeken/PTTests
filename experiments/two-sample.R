@@ -78,32 +78,13 @@ cores <- detectCores()
 cl <- makeForkCluster(cores[1]-1)
 registerDoParallel(cl)
 
-results <- get_results(100, 500)
+results <- get_results(100, 200)
 
 stopCluster(cl)
 
 
-# Process output
+# Process results
 ##############################################
-roc_data <- c()
-for (i in 2:ncol(results)) {
-  pred <- prediction(results[,i], results[,1])
-  res <- performance(pred, "tpr", "fpr")
-  auc <- round(performance(pred, "auc")@y.values[[1]], 3)
-  x <- res@x.values[[1]]
-  y <- res@y.values[[1]]
-  name <- colnames(results)[i]
-  roc_data[[name]] <- list(data=data.frame(x=x, y=y), auc=auc, name=name)
-}
-
-plt <- ggplot() + 
-  labs(x="False positive rate", y="True positive rate") +
-  theme(legend.title = element_blank())
-for (roc in roc_data) {
-  c <- paste(roc$name, ' (auc: ', roc$auc, ')', sep="")
-  plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
-}
-
-plot(plt)
+plot(pplot_roc(results[,1], results[,-1]))
 
 

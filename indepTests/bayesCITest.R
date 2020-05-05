@@ -4,7 +4,7 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
 
   if (is.null(Z)) {
     if (verbose) {
-      cat('Redirecting to UCI test')
+      cat('Redirecting to UCI test\n')
     }
     return(bayes.UCItest(X, Y, c, max_depth, qdist, verbose))
   }
@@ -17,7 +17,7 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
   if (length(unique(Y)) == 2) {
 
     if (verbose) {
-      cat('Performing two-sample test')
+      cat('Performing two-sample test\n')
     }
 
     XYZ <- cbind(scale(X), Y, scale(Z))
