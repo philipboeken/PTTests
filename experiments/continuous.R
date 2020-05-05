@@ -1,0 +1,106 @@
+source('init.R', chdir=TRUE)
+library(foreach)
+library(doParallel)
+library(ROCR)
+
+# Define datasets
+##############################################
+lin <- function(n, sigma, indep) {
+  # Linear
+  X <- rnorm(n)
+  Y <- (1-indep)*2*X / 3 + rnorm(n, 0, sigma)
+  list(X=X, Y=Y)
+}
+par <- function(n, sigma, indep) {
+  # Parabolic
+  X <- rnorm(n)
+  Y <- (1-indep)*2*X^2 / 3 + rnorm(n, 0, sigma)
+  list(X=X, Y=Y)
+}
+sins <- function(n, sigma, indep) {
+  # Sinusoidal
+  X <- runif(n, 0, 2*pi)
+  Y <- (1-indep)*2*sin(3*X) + rnorm(n, 0, sigma)
+  list(X=X, Y=Y)
+}
+circ <- function(n, sigma, indep) {
+  # Circular
+  theta <- runif(n, 0, 2*pi)
+  X <- (1-indep)*10*cos(theta) + rnorm(n, 0, sigma)
+  Y <- 10*sin(theta) + rnorm(n, 0, sigma)
+  list(X=X, Y=Y)
+}
+check <- function(n, sigma, indep) {
+  # Checkerboard
+  i_x <- sample(c(1,2,3,4), n, replace=TRUE)
+  i_y <- (i_x - rep(1, n)) %% 2 + sample(c(1,3), n, replace=TRUE)
+  X <- (1-indep)*10*(i_x + runif(n, 0, 1)) + rnorm(n, 0, sigma)
+  Y <- 10*(i_y + runif(n, 0, 1)) + rnorm(n, 0, sigma)
+  list(X=X, Y=Y)
+}
+
+
+# Setup test
+##############################################
+get_data <- function(n) {
+  sigma <- runif(1, 1, 2.5)
+  indep <- sample(c(0, 1, 1, 1), 1)
+  res <- sample(c(
+    lin,
+    par,
+    sins,
+    circ,
+    check
+  ), 1)[[1]](n, sigma, indep)
+  
+  return(list(X=res$X, Y=res$Y, true=indep))
+  
+}
+
+get_results <- function(n, m){
+  result <- foreach(i=1:m, .combine=rbind) %dopar% {
+    data <- get_data(n)
+    return(data.frame(true=data$true,
+                      cor=cor.test(data$X, data$Y)$p.value,
+                      # splineGCM(1, 2, c(), cbind(data$X, data$Y)),
+                      RCoT=RCoT(data$X, data$Y)$p,
+                      # RCIT(data$X, data$Y)$p,
+                      Bayes=bayes.UCItest(data$X, data$Y, verbose=FALSE)$p_H0))
+  }
+  return(result)
+}
+
+
+# Do test
+##############################################
+cores <- detectCores()
+cl <- makeForkCluster(cores[1]-1)
+registerDoParallel(cl)
+
+results <- get_results(200, 500)
+
+stopCluster(cl)
+
+
+# Process output
+##############################################
+roc_data <- c()
+for (i in 2:ncol(results)) {
+  pred <- prediction(results[,i], results[,1])
+  res <- performance(pred, "tpr", "fpr")
+  auc <- round(performance(pred, "auc")@y.values[[1]], 3)
+  x <- res@x.values[[1]]
+  y <- res@y.values[[1]]
+  name <- colnames(results)[i]
+  roc_data[[name]] <- list(data=data.frame(x=x, y=y), auc=auc, name=name)
+}
+
+plt <- ggplot() +
+  labs(x="False positive rate", y="True positive rate") +
+  theme(legend.title = element_blank())
+for (roc in roc_data) {
+  c <- paste(roc$name, ' (auc: ', roc$auc, ')', sep="")
+  plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
+}
+
+plot(plt)
