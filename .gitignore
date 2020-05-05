@@ -2,3 +2,4 @@
 .Rhistory
 .DS_Store
 bayesian-lcd.Rproj
+experiments/output/*
