@@ -52,7 +52,7 @@ scale_lin <- function(X) {
   return((X - min(X)) / (max(X) - min(X)))
 }
 
-pplot_roc <- function(labels, predictions) {
+pplot_roc <- function(labels, predictions, title=NULL) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
@@ -66,10 +66,11 @@ pplot_roc <- function(labels, predictions) {
   }
   
   plt <- ggplot() + 
-    labs(x="False positive rate", y="True positive rate") +
-    theme(legend.title = element_blank())
+    labs(x="False positive rate", y="True positive rate", title=title) +
+    theme(legend.title = element_blank(),
+          plot.title = element_text(size=12, hjust=0.5))
   for (roc in roc_data) {
-    c <- paste(roc$name, ' (auc: ', roc$auc, ')', sep="")
+    c <- paste(roc$name, ' (', roc$auc, ')', sep="")
     plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
   }
   

@@ -1,7 +1,6 @@
 source('init.R', chdir=TRUE)
 library(foreach)
 library(doParallel)
-library(ROCR)
 
 # Define datasets
 ##############################################

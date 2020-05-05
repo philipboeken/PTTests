@@ -1,8 +1,6 @@
 source('init.R', chdir=TRUE)
 library(foreach)
 library(doParallel)
-library(ROCR)
-library(mgcv)
 
 # Define mappings
 ##############################################
@@ -112,10 +110,8 @@ get_results <- function(n, m){
     suffStat<-list(data=cbind(data$X, data$C, data$Z),
                    contextVars=c(2),verbose=FALSE,removeNAs=FALSE)
     return(data.frame(label=data$label,
-                      # pcor=pcor.test(data$X, data$C, data$Z)$p.value,
-                      # gaussCIsincontest=gaussCIsincontest(1, 2, c(3), suffStat),
-                      # gaussCIcontexttest=gaussCIcontexttest(1, 2, c(3), suffStat),
-                      # splineGCM=splineGCM(1, 2, c(3), cbind(data$X, data$C, data$Z)),
+                      pcor=pcor.test(data$X, data$C, data$Z)$p.value,
+                      splineGCM=splineGCM(1, 2, c(3), cbind(data$X, data$C, data$Z)),
                       RCoT=RCoT(data$X, data$C, data$Z)$p,
                       # RCIT=RCIT(data$X, data$C, data$Z)$p,
                       bayes.CItest=bayes.CItest(data$X, data$C, data$Z, verbose=FALSE)$p_H0))
@@ -130,7 +126,7 @@ cores <- detectCores()
 cl <- makeForkCluster(cores[1]-1)
 registerDoParallel(cl)
 
-results <- get_results(600, 400)
+results <- get_results(300, 400)
 
 stopCluster(cl)
 
