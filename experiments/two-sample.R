@@ -4,6 +4,9 @@ library(doParallel)
 library(distr)
 library(ROCR)
 
+
+# Define datasets
+##############################################
 gms <- function(n, C, theta) {
   # Gaussian mean shift
   (1-C) * rnorm(n) + C * rnorm(n, theta, 1)
@@ -31,19 +34,21 @@ lvs <- function(n, C, theta) {
   (1-C) * rlnorm(n) + C * rlnorm(n, 0, 1+theta)
 }
 
-get_two_sample_data <- function(n) {
+
+# Setup test
+##############################################
+get_data <- function(n) {
   theta <- sample(0:3, 1)
-  p <- runif(1, 0.05, 0.95)
+  p <- runif(1, 0.45, 0.65)
   C <- rbinom(n, 1, p)
-  opts <- c(
+  X <- sample(c(
     gms,
     gvs,
     gm,
     t
     # lms
     # lvs
-  )
-  X <- sample(opts, 1)[[1]](n, C, theta)
+  ), 1)[[1]](n, C, theta)
   
   data <- cbind(X, C)
   X1 <- data[data[,2] == 0, 1]
@@ -54,7 +59,7 @@ get_two_sample_data <- function(n) {
 
 get_results <- function(n, m){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
-    data <- get_two_sample_data(n)
+    data <- get_data(n)
     return(data.frame(true=data$true,
              cor=cor.test(data$C, data$X)$p.value,
              # ks.test(data$X1, data$X2)$p.value,
@@ -67,12 +72,20 @@ get_results <- function(n, m){
   return(result)
 }
 
+
+# Do test
+##############################################
 cores <- detectCores()
 cl <- makeForkCluster(cores[1]-1)
 registerDoParallel(cl)
-results <- get_results(500, 500)
+
+results <- get_results(200, 500)
+
 stopCluster(cl)
 
+
+# Process output
+##############################################
 roc_data <- c()
 for (i in 2:ncol(results)) {
   pred <- prediction(results[,i], results[,1])
@@ -84,7 +97,9 @@ for (i in 2:ncol(results)) {
   roc_data[[name]] <- list(data=data.frame(x=x, y=y), auc=auc, name=name)
 }
 
-plt <- ggplot()
+plt <- ggplot() + 
+  labs(x="False positive rate", y="True positive rate") +
+  theme(legend.title = element_blank())
 for (roc in roc_data) {
   c <- paste(roc$name, ' (auc: ', roc$auc, ')', sep="")
   plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
