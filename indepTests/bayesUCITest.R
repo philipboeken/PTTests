@@ -7,7 +7,7 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
 
   if (length(unique(Y)) == 2) {
     if (verbose) {
-      cat('Performing two-sample test')
+      cat('Performing two-sample test\n')
     }
 
     data <- cbind(X, Y)

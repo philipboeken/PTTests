@@ -1,11 +1,11 @@
 suppressMessages(library(ggplot2))
 suppressMessages(library(plotly))
 
-pplot <- function(x, y, count=FALSE, method='pt') {
+pplot <- function(x, y, count=FALSE) {
   if (count) {
     ggplot(data.frame(y,x), aes(x, y)) + geom_count()
   } else {
-    result <- bayes.UCItest(x, y, method=method)
+    result <- bayes.UCItest(x, y)
     cat("\nBF(H0, H1):\t", result$bf, "\nP(H1 | XY):\t", result$p_H1, "\n")
     ggplot(data.frame(y,x), aes(x, y)) + geom_point() +
       labs(x = substitute(x), y = substitute(y))
@@ -34,10 +34,10 @@ pplot3d <- function(X,Y,Z) {
   fig
 }
 
-pplotcs <- function(X, Y, Z, Z_min, Z_max, method='pt') {
+pplotcs <- function(X, Y, Z, Z_min, Z_max) {
   XYZ <- cbind(X, Y, Z)
   data <- as.matrix(XYZ[Z_min < XYZ[,3] & XYZ[,3] < Z_max, c(1, 2)])
-  pplot(data[,1], data[,2], method=method) +
+  pplot(data[,1], data[,2]) +
     labs(x = substitute(X), y = substitute(Y))
 }
 
