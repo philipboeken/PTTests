@@ -52,14 +52,14 @@ get_data <- function(n) {
   data <- cbind(X, C)
   X1 <- data[data[,2] == 0, 1]
   X2 <- data[data[,2] == 1, 1]
-  return(list(p=p, C=C, X=X, X1=X1, X2=X2, true=as.numeric(theta==0)))
+  return(list(p=p, C=C, X=X, X1=X1, X2=X2, label=as.numeric(theta==0)))
   
 }
 
 get_results <- function(n, m){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
     data <- get_data(n)
-    return(data.frame(true=data$true,
+    return(data.frame(label=data$label,
              cor=cor.test(data$C, data$X)$p.value,
              # ks=ks.test(data$X1, data$X2)$p.value,
              # kruskal=kruskal.test(list(data$X1, data$X2))$p.value,

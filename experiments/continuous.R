@@ -52,14 +52,14 @@ get_data <- function(n) {
     checkerboard
   ), 1)[[1]](n, sigma, indep)
   
-  return(list(X=res$X, Y=res$Y, true=indep))
+  return(list(X=res$X, Y=res$Y, label=indep))
   
 }
 
 get_results <- function(n, m){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
     data <- get_data(n)
-    return(data.frame(true=data$true,
+    return(data.frame(label=data$label,
                       cor=cor.test(data$X, data$Y)$p.value,
                       splineGCM=splineGCM(1, 2, c(), cbind(data$X, data$Y)),
                       RCoT=RCoT(data$X, data$Y)$p,
