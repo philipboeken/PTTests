@@ -7,30 +7,29 @@ library(ROCR)
 
 # Define datasets
 ##############################################
-gms <- function(n, C, theta) {
-  # Gaussian mean shift
+gauss_mean_shift <- function(n, C, theta) {
   (1-C) * rnorm(n) + C * rnorm(n, theta, 1)
 }
-gvs <- function(n, C, theta) {
-  # Gaussian variance shift
+
+gauss_variance_shift <- function(n, C, theta) {
   (1-C) * rnorm(n) + C * rnorm(n, 0, 1+theta)
 }
-gm <- function(n, C, theta) {
-  # Gaussian mixture
+
+gauss_mixture <- function(n, C, theta) {
   (1-C) * rnorm(n) + C * r(UnivarMixingDistribution(Norm(mean=-theta, sd=1), 
                                                     Norm(mean=theta, sd=1),
                                                     mixCoeff=c(0.5, 0.5)))(n)
 }
-t <- function(n, C, theta) {
-  # Tails
-  (1-C) * rnorm(n) + C * rt(n, 10^theta)
+
+tails <- function(n, C, theta) {
+  (1-C) * rnorm(n) + C * ((theta != 0) * rt(n, 10^theta) + (theta == 0) * rnorm(n))
 }
-lms <- function(n, C, theta) {
-  # Lognormal mean shift
+
+log_mean_shift <- function(n, C, theta) {
   (1-C) * rlnorm(n) + C * rlnorm(n, theta, 1)
 }
-lvs <- function(n, C, theta) {
-  # Lognormal variance shift
+
+log_variance_shift <- function(n, C, theta) {
   (1-C) * rlnorm(n) + C * rlnorm(n, 0, 1+theta)
 }
 
@@ -42,12 +41,12 @@ get_data <- function(n) {
   p <- runif(1, 0.45, 0.65)
   C <- rbinom(n, 1, p)
   X <- sample(c(
-    gms,
-    gvs,
-    gm,
-    t
-    # lms
-    # lvs
+    gauss_mean_shift,
+    gauss_variance_shift,
+    gauss_mixture,
+    tails
+    # log_mean_shift
+    # log_variance_shift
   ), 1)[[1]](n, C, theta)
   
   data <- cbind(X, C)
@@ -62,11 +61,11 @@ get_results <- function(n, m){
     data <- get_data(n)
     return(data.frame(true=data$true,
              cor=cor.test(data$C, data$X)$p.value,
-             # ks.test(data$X1, data$X2)$p.value,
-             # kruskal.test(list(data$X1, data$X2))$p.value,
-             # splineGCM(1, 2, c(), cbind(data$C, data$X)),
+             # ks=ks.test(data$X1, data$X2)$p.value,
+             # kruskal=kruskal.test(list(data$X1, data$X2))$p.value,
+             # splineGCM=splineGCM(1, 2, c(), cbind(data$C, data$X)),
              RCoT=RCoT(data$C, data$X)$p,
-             # RCIT(data$C, data$X)$p,
+             # RCIT=RCIT(data$C, data$X)$p,
              BayesTS=bayes.UCItest(data$X, data$C, verbose=FALSE)$p_H0))
   }
   return(result)
@@ -79,7 +78,7 @@ cores <- detectCores()
 cl <- makeForkCluster(cores[1]-1)
 registerDoParallel(cl)
 
-results <- get_results(200, 500)
+results <- get_results(100, 500)
 
 stopCluster(cl)
 

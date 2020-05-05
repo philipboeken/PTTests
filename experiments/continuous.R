@@ -5,33 +5,32 @@ library(ROCR)
 
 # Define datasets
 ##############################################
-lin <- function(n, sigma, indep) {
-  # Linear
+linear <- function(n, sigma, indep) {
   X <- rnorm(n)
   Y <- (1-indep)*2*X / 3 + rnorm(n, 0, sigma)
   list(X=X, Y=Y)
 }
-par <- function(n, sigma, indep) {
-  # Parabolic
+
+parabolic <- function(n, sigma, indep) {
   X <- rnorm(n)
   Y <- (1-indep)*2*X^2 / 3 + rnorm(n, 0, sigma)
   list(X=X, Y=Y)
 }
-sins <- function(n, sigma, indep) {
-  # Sinusoidal
+
+sinsusoidal <- function(n, sigma, indep) {
   X <- runif(n, 0, 2*pi)
   Y <- (1-indep)*2*sin(3*X) + rnorm(n, 0, sigma)
   list(X=X, Y=Y)
 }
-circ <- function(n, sigma, indep) {
-  # Circular
+
+circular <- function(n, sigma, indep) {
   theta <- runif(n, 0, 2*pi)
   X <- (1-indep)*10*cos(theta) + rnorm(n, 0, sigma)
   Y <- 10*sin(theta) + rnorm(n, 0, sigma)
   list(X=X, Y=Y)
 }
-check <- function(n, sigma, indep) {
-  # Checkerboard
+
+checkerboard <- function(n, sigma, indep) {
   i_x <- sample(c(1,2,3,4), n, replace=TRUE)
   i_y <- (i_x - rep(1, n)) %% 2 + sample(c(1,3), n, replace=TRUE)
   X <- (1-indep)*10*(i_x + runif(n, 0, 1)) + rnorm(n, 0, sigma)
@@ -46,11 +45,11 @@ get_data <- function(n) {
   sigma <- runif(1, 1, 2.5)
   indep <- sample(c(0, 1, 1, 1), 1)
   res <- sample(c(
-    lin,
-    par,
-    sins,
-    circ,
-    check
+    linear,
+    parabolic,
+    sinsusoidal,
+    circular,
+    checkerboard
   ), 1)[[1]](n, sigma, indep)
   
   return(list(X=res$X, Y=res$Y, true=indep))
@@ -62,9 +61,9 @@ get_results <- function(n, m){
     data <- get_data(n)
     return(data.frame(true=data$true,
                       cor=cor.test(data$X, data$Y)$p.value,
-                      # splineGCM(1, 2, c(), cbind(data$X, data$Y)),
+                      # splineGCM=splineGCM(1, 2, c(), cbind(data$X, data$Y)),
                       RCoT=RCoT(data$X, data$Y)$p,
-                      # RCIT(data$X, data$Y)$p,
+                      # RCIT=RCIT(data$X, data$Y)$p,
                       Bayes=bayes.UCItest(data$X, data$Y, verbose=FALSE)$p_H0))
   }
   return(result)
