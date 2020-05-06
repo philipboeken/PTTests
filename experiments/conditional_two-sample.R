@@ -1,100 +1,59 @@
-source('init.R', chdir=TRUE)
+source('experiments/test_helpers.R')
 library(foreach)
 library(doParallel)
-
-# Define mappings
-##############################################
-mean_shift <- function(base, C) {
-  theta <- sample(1:3, 1)
-  (1-C) * base + C * (base + theta)
-}
-
-variance_shift <- function(base, C) {
-  theta <- sample(1:3, 1)
-  (1-C) * base + C * (1+theta) * base
-}
-
-mixture <- function(base, C) {
-  theta <- sample(1:3, 1)
-  idx <- sample(c(-1,1), length(C), replace = TRUE)
-  (1-C) * base + C * (base + idx*theta)
-}
-
-do_intervention <- function (base, C) {
-  mapping <- sample(c(
-    mean_shift,
-    variance_shift,
-    mixture
-  ), 1)[[1]]
-  return(mapping(base, C))
-}
-
-linear <- function(X) {
-  2*X / 3
-}
-
-parabolic <- function(X) {
-  2*X^2 / 3
-}
-
-sinusoidal <- function(X) {
-  2*sin(3*X)
-}
-
-partial <- function(X) {
-  b <- rbinom(length(X), 1, 0.1)
-  b*X + (1-b)*rnorm(length(X))
-}
-
-nonlin <- function(X) {
-  mapping <- sample(c(
-    linear,
-    parabolic,
-    sinusoidal,
-    partial
-  ), 1)[[1]]
-  return(mapping(X))
-}
 
 
 # Setup test
 ##############################################
-get_data <- function(n) {
-  p <- runif(1, 0.45, 0.65)
-  C <- rbinom(n, 1, p)
+n <- 300
+m <- 200
+
+p_link <- 1
+
+err_sd <- 0.1
+nonlin_options <- c(linear, parabolic, sinusoidal, partial)
+
+p_two_sample <- runif(1, 0.45, 0.65)
+interv_options <- c(mean_shift, variance_shift, mixture, tails)
+
+p_ci <- 0.5
+
+
+get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options) {
+  C <- rbinom(n, 1, p_two_sample)
   
-  cond_indep <- sample(c(0, 1), 1)
+  cond_indep <- rbinom(1, 1, p_ci)
   if (cond_indep) { # C -> Z -> X
-    intervene <- sample(c(1,1), 1) # NB: is always equal to 1
-    Z <- intervene * do_intervention(rnorm(n), C) + (1-intervene) * rnorm(n)
+    intervene <- rbinom(1, 1, p_link)
+    Z <- intervene * do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
     
-    link_nonlin <- sample(c(1,1), 1) # NB: is always equal to 1
-    errs <- rnorm(n, 0, runif(1, 1, 2.5))
-    X <- link_nonlin * nonlin(Z) + errs
+    link_nonlin <- rbinom(1, 1, p_link)
+    X <- link_nonlin * nonlin(nonlin_options, Z)
+    X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
   } else {
     if (runif(1) <= 0) { # C -> Z <- X
       X <- rnorm(n)
       
-      link_nonlin <- sample(c(1,1), 1) # NB: is always equal to 1
-      errs <- rnorm(n, 0, runif(1, 1, 1.5))
-      Z <- link_nonlin * nonlin(X) + errs
+      link_nonlin <- rbinom(1, 1, p_link)
+      Z <- link_nonlin * nonlin(nonlin_options, X)
+      Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
       
-      intervene <- sample(c(1,1), 1) # NB: is always equal to 1
-      Z <- intervene * do_intervention(Z, C) + (1-intervene) * Z
+      intervene <- rbinom(1, 1, p_link)
+      Z <- intervene * do_intervention(interv_options, Z, C) + (1-intervene) * Z
     } else { # C -> Z <- L -> X
       L <- rnorm(n)
-
-      link_nonlin1 <- sample(c(1,1), 1) # NB: is always equal to 1
-      errs <- rnorm(n, 0, runif(1, 1, 2.5))
-      X <- link_nonlin1 * nonlin(L) + errs
-
-      link_nonlin2 <- sample(c(1,1), 1) # NB: is always equal to 1
-      errs <- rnorm(n, 0, runif(1, 1, 2.5))
-      Z <- link_nonlin2 * nonlin(L) + errs
-
-      intervene <- sample(c(1,1), 1) # NB: is always equal to 1
-      Z <- intervene * do_intervention(Z, C) + (1-intervene) * Z
-
+      
+      link_nonlin1 <- rbinom(1, 1, p_link)
+      X <- link_nonlin1 * nonlin(nonlin_options, L)
+      X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
+      
+      link_nonlin2 <- rbinom(1, 1, p_link)
+      Z <- link_nonlin2 * nonlin(nonlin_options, L)
+      Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
+      
+      intervene <- rbinom(1, 1, p_link)
+      Z <- intervene * do_intervention(interv_options, Z, C) + (1-intervene) * Z
+      
       link_nonlin <- link_nonlin1 & link_nonlin2
     }
   }
@@ -104,9 +63,9 @@ get_data <- function(n) {
   return(list(C=C, Z=Z, X=X, label=cond_indep))
 }
 
-get_results <- function(n, m){
+get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
-    data <- get_data(n)
+    data <- get_data(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options)
     suffStat<-list(data=cbind(data$X, data$C, data$Z),
                    contextVars=c(2),verbose=FALSE,removeNAs=FALSE)
     return(data.frame(label=data$label,
@@ -126,7 +85,7 @@ cores <- detectCores()
 cl <- makeForkCluster(cores[1]-1)
 registerDoParallel(cl)
 
-results <- get_results(300, 400)
+results <- get_results(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options)
 
 stopCluster(cl)
 

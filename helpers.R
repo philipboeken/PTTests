@@ -1,5 +1,6 @@
 suppressMessages(library(ggplot2))
 suppressMessages(library(plotly))
+suppressMessages(library(ROCR))
 
 pplot <- function(x, y, count=FALSE) {
   if (count) {
@@ -66,8 +67,9 @@ pplot_roc <- function(labels, predictions, title=NULL) {
   }
   
   plt <- ggplot() + 
-    labs(x="False positive rate", y="True positive rate", title=title) +
+    labs(x="False Positive Rate", y="True Positive Rate", title=title) +
     theme(legend.title = element_blank(),
+          legend.position = c(0.8, 0.2),
           plot.title = element_text(size=12, hjust=0.5))
   for (roc in roc_data) {
     c <- paste(roc$name, ' (', roc$auc, ')', sep="")
