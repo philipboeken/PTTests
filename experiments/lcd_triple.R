@@ -6,12 +6,12 @@ library(cowplot)
 
 # Input parameters
 ##############################################
-n <- 500
+n <- 300
 m <- 400
 
 p_link <- 0.9
 
-err_sd <- 0.5
+err_sd <- 0.1
 nonlin_options <- c(
   linear,
   parabolic,
@@ -85,8 +85,8 @@ get_results <- function(dataset, test){
     ci <- test(data$X, data$C, data$Z)
     uci <- test(data$X, data$Z)
     ts <- test(data$Z, data$C)
-    # lcd <- min((1 - ts), (1 - uci), ci)
-    lcd <- (1 - ts) * (1 - uci) * ci
+    lcd <- min((1 - ts), (1 - uci), ci)
+    # lcd <- (1 - ts) * (1 - uci) * ci
     label_lcd <- as.numeric(!data$label_uci & !data$label_ts & data$label_ci)
     return(data.frame(label_ci=data$label_ci,
                       label_uci=data$label_uci,
