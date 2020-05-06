@@ -1,26 +1,37 @@
-source('init.R', chdir=TRUE)
 source('experiments/test_helpers.R')
 library(foreach)
 library(doParallel)
 library(cowplot)
 
 
-# Setup test
+# Input parameters
 ##############################################
-n <- 300
-m <- 200
+n <- 500
+m <- 400
 
 p_link <- 0.9
 
-err_sd <- 0.1
-nonlin_options <- c(linear, parabolic, sinusoidal, partial)
+err_sd <- 0.5
+nonlin_options <- c(
+  linear,
+  parabolic,
+  sinusoidal,
+  partial
+)
 
-p_two_sample <- runif(1, 0.45, 0.65)
-interv_options <- c(mean_shift, variance_shift, mixture, tails)
+p_two_sample <- 0.5
+interv_options <- c(
+  mean_shift,
+  variance_shift,
+  mixture
+  # tails
+)
 
 p_ci <- 0.8
 
 
+# Setup test
+##############################################
 get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options) {
   C <- rbinom(n, 1, p_two_sample)
   
@@ -33,7 +44,7 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
     X <- link_nonlin * nonlin(nonlin_options, Z)
     X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
   } else {
-    if (runif(1) <= 0) { # C -> Z <- X
+    if (runif(1) <= 0.5) { # C -> Z <- X
       X <- rnorm(n)
       
       link_nonlin <- rbinom(1, 1, p_link)
@@ -74,7 +85,8 @@ get_results <- function(dataset, test){
     ci <- test(data$X, data$C, data$Z)
     uci <- test(data$X, data$Z)
     ts <- test(data$Z, data$C)
-    lcd <- min((1 - ts), (1 - uci), ci)
+    # lcd <- min((1 - ts), (1 - uci), ci)
+    lcd <- (1 - ts) * (1 - uci) * ci
     label_lcd <- as.numeric(!data$label_uci & !data$label_ts & data$label_ci)
     return(data.frame(label_ci=data$label_ci,
                       label_uci=data$label_uci,
@@ -100,7 +112,7 @@ data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci,
 results <- list(
   pcor=get_results(data, pcor_wrapper),
   bayes=get_results(data, bayes_ci_wrapper),
-  # gcm=get_results(data, gcm_wrapper),
+  gcm=get_results(data, gcm_wrapper),
   rcot=get_results(data, rcot_wrapper)
 )
 
@@ -112,7 +124,7 @@ stopCluster(cl)
 uci_results <- data.frame(
   pcor=results$pcor[,'uci'],
   bayes=results$bayes[,'uci'],
-  # gcm=results$gcm[,'uci'],
+  gcm=results$gcm[,'uci'],
   rcot=results$rcot[,'uci']
 )
 uci_label <- results$bayes[,'label_uci']
@@ -120,7 +132,7 @@ uci_label <- results$bayes[,'label_uci']
 ci_results <- data.frame(
   pcor=results$pcor[,'ci'],
   bayes=results$bayes[,'ci'],
-  # gcm=results$gcm[,'ci'],
+  gcm=results$gcm[,'ci'],
   rcot=results$rcot[,'ci']
 )
 ci_label <- results$bayes[,'label_ci']
@@ -128,7 +140,7 @@ ci_label <- results$bayes[,'label_ci']
 ts_results <- data.frame(
   pcor=results$pcor[,'ts'],
   bayes=results$bayes[,'ts'],
-  # gcm=results$gcm[,'ts'],
+  gcm=results$gcm[,'ts'],
   rcot=results$rcot[,'ts']
 )
 ts_label <- results$bayes[,'label_ts']
@@ -136,7 +148,7 @@ ts_label <- results$bayes[,'label_ts']
 lcd_results <- data.frame(
   pcor=results$pcor[,'lcd'],
   bayes=results$bayes[,'lcd'],
-  # gcm=results$gcm[,'lcd'],
+  gcm=results$gcm[,'lcd'],
   rcot=results$rcot[,'lcd']
 )
 lcd_label <- results$bayes[,'label_lcd']
@@ -146,7 +158,7 @@ uci_plot <- pplot_roc(uci_label, uci_results, '!X_||_Z')
 ci_plot <- pplot_roc(ci_label, ci_results, 'X_||_C|Z')
 lcd_plot <- pplot_roc(lcd_label, lcd_results, 'LCD: Z -> X')
 
-grid <- plot_grid(ts_plot, uci_plot, ci_plot, lcd_plot, nrow=1)
+grid <- plot_grid(ts_plot, uci_plot, ci_plot, lcd_plot, nrow=2)
 plot(grid)
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
@@ -157,12 +169,10 @@ ggsave(
   paste('experiments/output/lcd-roc-tests_', timestamp, ".pdf", sep=""),
   plot = grid,
   scale = 1,
-  width = 30,
-  # height = 15,
-  height = 10,
+  width = 20,
+  height = 20,
+  # height = 7.5,
   units = "cm",
   dpi = 300,
   limitsize = TRUE
 )
-
-

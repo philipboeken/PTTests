@@ -55,7 +55,7 @@ tails <- function(base, C) {
   # Fatter tails than base, when base is standard normal
   theta <- sample(1:3, 1)
   n <- length(C)
-  (1-C) * rnorm(n) + C * rt(n, 10^theta)
+  (1-C) * base + C * rt(n, 10^theta)
 }
 
 log_mean_shift <- function(base, C) {

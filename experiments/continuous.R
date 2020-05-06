@@ -1,9 +1,9 @@
-source('init.R', chdir=TRUE)
+source('experiments/test_helpers.R')
 library(foreach)
 library(doParallel)
 
 
-# Setup test
+# Input parameters
 ##############################################
 n <- 300
 m <- 200
@@ -21,6 +21,8 @@ nonlin_options <- c(
 )
 
 
+# Setup test
+##############################################
 get_data <- function(n, p_link, nonlin_options, err_sd) {
   link_nonlin <- rbinom(1, 1, p_link)
   

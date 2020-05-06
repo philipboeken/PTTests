@@ -3,7 +3,7 @@ library(foreach)
 library(doParallel)
 
 
-# Setup test
+# Input parameters
 ##############################################
 n <- 300
 m <- 200
@@ -11,14 +11,26 @@ m <- 200
 p_link <- 1
 
 err_sd <- 0.1
-nonlin_options <- c(linear, parabolic, sinusoidal, partial)
+nonlin_options <- c(
+  linear,
+  parabolic,
+  sinusoidal,
+  partial
+)
 
 p_two_sample <- runif(1, 0.45, 0.65)
-interv_options <- c(mean_shift, variance_shift, mixture, tails)
+interv_options <- c(
+  mean_shift,
+  variance_shift,
+  mixture
+  # tails
+)
 
 p_ci <- 0.5
 
 
+# Setup test
+##############################################
 get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options) {
   C <- rbinom(n, 1, p_two_sample)
   
@@ -31,7 +43,7 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
     X <- link_nonlin * nonlin(nonlin_options, Z)
     X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
   } else {
-    if (runif(1) <= 0) { # C -> Z <- X
+    if (runif(1) <= 0.5) { # C -> Z <- X
       X <- rnorm(n)
       
       link_nonlin <- rbinom(1, 1, p_link)

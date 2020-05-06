@@ -3,7 +3,7 @@ library(foreach)
 library(doParallel)
 
 
-# Setup test
+# Input parameters
 ##############################################
 n <- 300
 m <- 200
@@ -21,6 +21,8 @@ interv_options <- c(
 )
 
 
+# Setup test
+##############################################
 get_data <- function(n, p_two_sample, p_link, interv_options) {
   C <- rbinom(n, 1, p_two_sample)
   intervene <- rbinom(1, 1, p_link)
