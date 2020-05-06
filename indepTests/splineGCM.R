@@ -9,8 +9,10 @@ splineGCM <- function(x, y, S, data, verbose=FALSE) {
   stopifnot(length(intersect(union(x,y),S)) == 0)
   
   if( is.null(S) || length(S)==0 ) {
-    if (all(data[,x] %in% 0:1) | all(data[,y] %in% 0:1)) {
-      pval <- cor.test(data[,x],data[,y])$p.value
+    if (all(data[,x] %in% 0:1)) {
+      pval <- summary(gam(data[,x] ~ s(data[,y]), method = "REML", familiy='binomial'))$s.pv
+    } else if (all(data[,y] %in% 0:1)) {
+      pval <- summary(gam(data[,y] ~ s(data[,x]), method = "REML", familiy='binomial'))$s.pv
     } else {
       pval <- min(
         summary(gam(data[,y] ~ s(data[,x]), method = "REML"))$s.pv,
