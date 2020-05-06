@@ -1,17 +1,17 @@
 splineGCM <- function(x, y, S, data, verbose=FALSE) {
   suppressMessages(library(mgcv))
-
+  
   if( verbose ) {
     cat( 'Testing ', x, '_||_', y, '|', S, '\n' )
   }
   stopifnot(length(x) == 1 && length(y) == 1)
   stopifnot(length(intersect(x,y)) == 0)
   stopifnot(length(intersect(union(x,y),S)) == 0)
-
+  
   if( is.null(S) || length(S)==0 ) {
-    if (all(data[,x] %in% 0:1)) {
+    if (all(data[,x] %in% 0:1) | all(data[,y] %in% 0:1)) {
       pval <- cor.test(data[,x],data[,y])$p.value
-    } else{
+    } else {
       pval <- min(
         summary(gam(data[,y] ~ s(data[,x]), method = "REML"))$s.pv,
         summary(gam(data[,x] ~ s(data[,y]), method = "REML"))$s.pv
@@ -25,7 +25,11 @@ splineGCM <- function(x, y, S, data, verbose=FALSE) {
     } else {
       x_hat <- predict(gam(data[,x] ~ s(data[,S]), method = "REML"))
     }
-    y_hat <- predict(gam(data[,y] ~ s(data[,S]), method = "REML"))
+    if (all(data[,y] %in% 0:1)) {
+      y_hat <- predict(gam(data[,y] ~ s(data[,S]), method = "REML", familiy='binomial'))
+    } else {
+      y_hat <- predict(gam(data[,y] ~ s(data[,S]), method = "REML"))
+    }
     pval <- gcm(x_hat, x, y_hat, y)$p.value
   }
   pval
