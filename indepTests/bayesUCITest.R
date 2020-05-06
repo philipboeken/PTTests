@@ -6,6 +6,7 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
   options(expressions = max(max_depth, old_expressions))
 
   if (length(unique(Y)) == 2) {
+    
     if (verbose) {
       cat('Performing two-sample test\n')
     }
@@ -20,7 +21,9 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
     p_y <- pt_logl(Y, low=0, up=1, c=c, depth=1, max_depth, qdist)
 
     bf <- exp(p_xy - p_x - p_y)
+    
   } else {
+    
     X <- scale(X)
     Y <- scale(Y)
     XY <- cbind(X, Y)
@@ -30,6 +33,7 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
     p_xy <- pt_logl(XY, low=c(0, 0), up=c(1, 1), c=c, depth=1, max_depth, qdist)
 
     bf <- exp(p_x + p_y - p_xy)
+    
   }
 
   options(expressions = old_expressions)
@@ -37,13 +41,9 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
   return(list(bf=bf, p_H0=1-1/(1+bf), p_H1=1/(1+bf), X=X, Y=Y))
 }
 
-#########################################
-# Helpers for PT
 
 pt_logl <- function(data, low, up, c, depth, max_depth, qdist) {
-  # if ((max_depth && depth == max_depth) || (!max_depth && length(data) < length(low))) {
   if (depth == max_depth || length(data) < length(low)) {
-  # if (depth == max_depth) {
     return(0)
   }
 
@@ -95,29 +95,3 @@ lmbeta <- function(...) {
   return(sum(lgamma(c(...)))-lgamma(sum(c(...))))
 }
 
-#########################################
-# Helpers for TPT
-
-# tpt_likelihood <- function(data, c, max_depth) {
-#   if (nrow(data) <= 1) {
-#     return(1)
-#   }
-#   likelihood <- 1
-#   for (i in 2:nrow(data)) {
-#     n_js <- c(i, sapply(1:max_depth, function (j) n_j(data, i, j)))
-#     for (j in 1:max_depth) {
-#       likelihood <- likelihood *
-#         (2^ncol(data) * c * j^2 + 2^ncol(data) * n_js[j+1]) /
-#         (2^ncol(data) * c * j^2 + n_js[j])
-#     }
-#   }
-#   return(likelihood)
-# }
-#
-# n_j <- function(data, i, j) {
-#   up_bounds <- sapply(data[i,], function(x) ceiling(x*2^j)/2^j)
-#   low_bounds <- sapply(data[i,], function(x) floor(x*2^j)/2^j)
-#   idxs <- apply(as.matrix(data[1:i-1,]), 1,
-#                 function(row) all(low_bounds < row) & all(row < up_bounds))
-#   return(sum(idxs, na.rm = TRUE))
-# }
