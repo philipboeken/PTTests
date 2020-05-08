@@ -10,4 +10,4 @@ suppressWarnings(library(RCIT))
 suppressWarnings(library(reticulate))
 use_python('/usr/local/bin/python3')
 .ccit <- import('CCIT')
-.ccit <- ccit$CCIT$CCIT
+.ccit <- .ccit$CCIT$CCIT
