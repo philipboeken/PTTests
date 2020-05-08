@@ -35,11 +35,11 @@ get_results <- function(n, m, p_two_sample, p_link, interv_options){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
     data <- get_data(n, p_two_sample, p_link, interv_options)
     return(data.frame(label=data$label,
-                      cor=cor.test(data$C, data$X)$p.value,
-                      splineGCM=splineGCM(1, 2, c(), cbind(data$C, data$X)),
-                      RCoT=RCoT(data$C, data$X)$p,
-                      # RCIT=RCIT(data$C, data$X)$p,
-                      BayesTS=bayes.UCItest(data$X, data$C, verbose=FALSE)$p_H0))
+                      cor=.pcor_wrapper(data$X, data$C),
+                      splineGCM=.gcm_wrapper(data$X, data$C),
+                      RCoT=.rcot_wrapper(data$X, data$C),
+                      CCIT=.ccit_wrapper(data$X, data$C),
+                      Bayes=.bayes_wrapper(data$X, data$C)))
   }
   return(result)
 }
@@ -47,13 +47,13 @@ get_results <- function(n, m, p_two_sample, p_link, interv_options){
 
 # Do test
 ##############################################
-cores <- detectCores()
-cl <- makeForkCluster(cores[1]-1)
-registerDoParallel(cl)
+.cores <- detectCores()
+.cl <- makeForkCluster(.cores[1]-1)
+registerDoParallel(.cl)
 
 results <- get_results(n, m, p_two_sample, p_link, interv_options)
 
-stopCluster(cl)
+stopCluster(.cl)
 
 
 # Process results

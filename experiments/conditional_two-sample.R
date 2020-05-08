@@ -81,11 +81,11 @@ get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options
     suffStat<-list(data=cbind(data$X, data$C, data$Z),
                    contextVars=c(2),verbose=FALSE,removeNAs=FALSE)
     return(data.frame(label=data$label,
-                      pcor=pcor.test(data$X, data$C, data$Z)$p.value,
-                      splineGCM=splineGCM(1, 2, c(3), cbind(data$X, data$C, data$Z)),
-                      RCoT=RCoT(data$X, data$C, data$Z)$p,
-                      # RCIT=RCIT(data$X, data$C, data$Z)$p,
-                      bayes.CItest=bayes.CItest(data$X, data$C, data$Z, verbose=FALSE)$p_H0))
+                      pcor=.pcor_wrapper(data$X, data$Y, data$Z),
+                      splineGCM=.gcm_wrapper(data$X, data$Y, data$Z),
+                      RCoT=.rcot_wrapper(data$X, data$Y, data$Z),
+                      CCIT=.ccit_wrapper(data$X, data$Y, data$Z),
+                      Bayes=.bayes_wrapper(data$X, data$Y, data$Z)))
   }
   return(result)
 }

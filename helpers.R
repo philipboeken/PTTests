@@ -2,7 +2,7 @@ suppressMessages(library(ggplot2))
 suppressMessages(library(plotly))
 suppressMessages(library(ROCR))
 
-pplot <- function(x, y, count=FALSE) {
+.pplot <- function(x, y, count=FALSE) {
   if (count) {
     ggplot(data.frame(y,x), aes(x, y)) + geom_count()
   } else {
@@ -13,18 +13,18 @@ pplot <- function(x, y, count=FALSE) {
   }
 }
 
-hhist <- function(x) {
+.hhist <- function(x) {
   ggplot(data.frame(x), aes(x)) + geom_histogram(bins=length(x)/50)
 }
 
-gamplot <- function(x, y, binomial=FALSE) {
+.gamplot <- function(x, y, binomial=FALSE) {
   if (binomial)
     ggplot(data.frame(y,x), aes(x, y)) + geom_point() + geom_smooth(method = "gam", formula = y ~ s(x), method.args = list(family = "binomial"))
   else
     ggplot(data.frame(y,x), aes(x, y)) + geom_point() + geom_smooth(method = "gam", formula = y ~ s(x))
 }
 
-pplot3d <- function(X,Y,Z) {
+.pplot3d <- function(X,Y,Z) {
   scene <- list(
     xaxis = list(title = substitute(X)),
     yaxis = list(title = substitute(Y)),
@@ -35,18 +35,18 @@ pplot3d <- function(X,Y,Z) {
   fig
 }
 
-pplotcs <- function(X, Y, Z, Z_min, Z_max) {
+.pplotcs <- function(X, Y, Z, Z_min, Z_max) {
   XYZ <- cbind(X, Y, Z)
   data <- as.matrix(XYZ[Z_min < XYZ[,3] & XYZ[,3] < Z_max, c(1, 2)])
   pplot(data[,1], data[,2]) +
     labs(x = substitute(X), y = substitute(Y))
 }
 
-scale_norm <- function(X) {
+.scale_norm <- function(X) {
   return(pnorm(X, mean=mean(X), sd=sd(X)))
 }
 
-scale_lin <- function(X) {
+.scale_lin <- function(X) {
   if (ncol(as.matrix(X)) > 1) {
     X <- apply(X, 2, scale_lin)
   }

@@ -104,19 +104,20 @@ get_results <- function(dataset, test){
 
 # Do test
 ##############################################
-cores <- detectCores()
-cl <- makeForkCluster(cores[1]-1)
-registerDoParallel(cl)
+.cores <- detectCores()
+.cl <- makeForkCluster(.cores[1]-1)
+registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci, 
                                           err_sd, nonlin_options, interv_options))
 results <- list(
-  pcor=get_results(data, pcor_wrapper),
-  bayes=get_results(data, bayes_ci_wrapper),
-  gcm=get_results(data, gcm_wrapper),
-  rcot=get_results(data, rcot_wrapper)
+  pcor=get_results(data, .pcor_wrapper),
+  bayes=get_results(data, .bayes_wrapper),
+  gcm=get_results(data, .gcm_wrapper),
+  rcot=get_results(data, .rcot_wrapper),
+  ccit=get_results(data, .ccit_wrapper)
 )
 
-stopCluster(cl)
+stopCluster(.cl)
 
 
 # Process results
@@ -125,7 +126,8 @@ uci_results <- data.frame(
   pcor=results$pcor[,'uci'],
   bayes=results$bayes[,'uci'],
   gcm=results$gcm[,'uci'],
-  rcot=results$rcot[,'uci']
+  rcot=results$rcot[,'uci'],
+  ccit=results$ccit[,'uci']
 )
 uci_label <- results$bayes[,'label_uci']
 
@@ -133,7 +135,8 @@ ci_results <- data.frame(
   pcor=results$pcor[,'ci'],
   bayes=results$bayes[,'ci'],
   gcm=results$gcm[,'ci'],
-  rcot=results$rcot[,'ci']
+  rcot=results$rcot[,'ci'],
+  ccit=results$ccit[,'ci']
 )
 ci_label <- results$bayes[,'label_ci']
 
@@ -141,7 +144,8 @@ ts_results <- data.frame(
   pcor=results$pcor[,'ts'],
   bayes=results$bayes[,'ts'],
   gcm=results$gcm[,'ts'],
-  rcot=results$rcot[,'ts']
+  rcot=results$rcot[,'ts'],
+  ccit=results$ccit[,'ts']
 )
 ts_label <- results$bayes[,'label_ts']
 
@@ -149,14 +153,15 @@ lcd_results <- data.frame(
   pcor=results$pcor[,'lcd'],
   bayes=results$bayes[,'lcd'],
   gcm=results$gcm[,'lcd'],
-  rcot=results$rcot[,'lcd']
+  rcot=results$rcot[,'lcd'],
+  ccit=results$ccit[,'lcd']
 )
 lcd_label <- results$bayes[,'label_lcd']
 
-ts_plot <- pplot_roc(ts_label, ts_results, '!Z_||_C')
-uci_plot <- pplot_roc(uci_label, uci_results, '!X_||_Z')
-ci_plot <- pplot_roc(ci_label, ci_results, 'X_||_C|Z')
-lcd_plot <- pplot_roc(lcd_label, lcd_results, 'LCD: Z -> X')
+ts_plot <- pplot_roc(ts_label, ts_results, 'Two-sample test')
+uci_plot <- pplot_roc(uci_label, uci_results, 'Continuous independence test')
+ci_plot <- pplot_roc(ci_label, ci_results, 'Conditional two-sample test')
+lcd_plot <- pplot_roc(lcd_label, lcd_results, 'LCD ensemble')
 
 grid <- plot_grid(ts_plot, uci_plot, ci_plot, lcd_plot, nrow=2)
 plot(grid)
