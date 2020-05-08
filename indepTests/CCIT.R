@@ -11,5 +11,3 @@ CCIT <- function (X, Y, Z = NULL) {
   
   return(suppressWarnings(ccit(matrix(X, ncol=1), matrix(Y, ncol=1), matrix(Z, ncol=1))))
 }
-
-pvalue <- CCIT(rnorm(100), rnorm(100), rnorm(100))
