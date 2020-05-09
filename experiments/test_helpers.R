@@ -40,18 +40,22 @@ source('init.R', chdir=TRUE)
 
 mean_shift <- function(base, C) {
   theta <- sample(1:3, 1)
-  theta <- 2
-  (1-C) * base + C * (base + theta)
+  (1-C) * base + C * (base + 2*theta)
 }
 
 variance_shift <- function(base, C) {
   theta <- sample(1:3, 1)
-  (1-C) * base + C * (1+theta) * base
+  (1-C) * base + C * (1+2*theta) * base
+}
+
+fixed_point <- function(base, C) {
+  theta <- sample(1:3, 1)
+  (1-C) * base + C * (10^(-2*theta) * base + sd(base))
 }
 
 mixture <- function(base, C) {
   theta <- sample(1:3, 1)
-  idx <- sample(c(-1,1), length(C), replace = TRUE)
+  idx <- sample(c(-1,2), length(C), replace = TRUE)
   (1-C) * base + C * (base + idx*theta)
 }
 
@@ -88,7 +92,7 @@ linear <- function(X=NULL, n=NULL) {
     X_new <- runif(n, 0, 2*pi)
   }
   
-  Y <- 2 * X_new / 3
+  Y <- X_new
   
   if (is.null(X)) {
     return(list(X=X_new, Y=Y))
@@ -103,7 +107,7 @@ parabolic <- function(X=NULL, n=NULL) {
     X_new <- runif(n, 0, 2*pi)
   }
   
-  Y <- 2 * X_new^2 / 3
+  Y <- X_new^2
   
   if (is.null(X)) {
     return(list(X=X_new, Y=Y))
@@ -117,7 +121,7 @@ sinusoidal <- function(X=NULL, n=NULL) {
     X_new <- runif(n, 0, 2*pi)
   }
   
-  Y <- 2*sin(3*X_new)
+  Y <- sin(6*2*pi*X_new / (max(X_new)-min(X_new)))
   
   if (is.null(X)) {
     return(list(X=X_new, Y=Y))
@@ -131,7 +135,7 @@ partial <- function(X=NULL, n=NULL) {
     X_new <- rnorm(n)
   }
   
-  b <- rbinom(length(X_new), 1, 0.1)
+  b <- rbinom(length(X_new), 1, 0.2)
   Y <- b*X_new + (1-b)*rnorm(length(X_new))
   
   if (is.null(X)) {

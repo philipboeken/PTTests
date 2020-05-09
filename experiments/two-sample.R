@@ -14,6 +14,7 @@ p_link <- 0.5
 interv_options <- c(
   mean_shift,
   variance_shift,
+  fixed_point,
   mixture,
   tails
   # log_mean_shift,
