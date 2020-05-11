@@ -9,7 +9,7 @@ library(cowplot)
 n <- 300
 m <- 500
 
-err_sd <- 0.5
+err_sd <- 0.1
 
 p_ci <- 0.6
 p_link <- 0.8

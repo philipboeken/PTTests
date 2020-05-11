@@ -1,7 +1,7 @@
 # source conditional independence tests
-source('indepTests/splineGCM.R')
-source('indepTests/bayesCITest.R')
-source('indepTests/CCIT.R')
+source('independence_tests/splineGCM.R')
+source('independence_tests/bayesCITest.R')
+source('independence_tests/CCIT.R')
 
 source('helpers.R')
 
