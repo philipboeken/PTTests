@@ -37,12 +37,14 @@ get_data <- function(n, p_two_sample, p_link, interv_options) {
 get_results <- function(n, m, p_two_sample, p_link, interv_options){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
     data <- get_data(n, p_two_sample, p_link, interv_options)
-    return(data.frame(label=data$label,
-                      cor=.pcor_wrapper(data$X, data$C),
-                      splineGCM=.gcm_wrapper(data$X, data$C),
-                      RCoT=.rcot_wrapper(data$X, data$C),
-                      CCIT=.ccit_wrapper(data$X, data$C),
-                      Bayes=.bayes_wrapper(data$X, data$C)))
+    return(data.frame(
+      label=data$label,
+      cor=.pcor_wrapper(data$C, data$X),
+      splineGCM=.gcm_wrapper(data$C, data$X),
+      RCoT=.rcot_wrapper(data$C, data$X),
+      CCIT=.ccit_wrapper(data$C, data$X),
+      Bayes=.bayes_wrapper(data$C, data$X)
+    ))
   }
   return(result)
 }

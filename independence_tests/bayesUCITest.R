@@ -5,20 +5,28 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
 
-  if (length(unique(Y)) == 2) {
+  if (length(unique(X)) == 2 || length(unique(Y)) == 2) {
     
     if (verbose) {
       cat('Performing two-sample test\n')
     }
+    
+    if (length(unique(X)) == 2) {
+      bin <- X
+      cont <- Y
+    } else {
+      cont <- X
+      bin <- Y
+    }
 
-    data <- cbind(X, Y)
-    XY <- scale(X)
-    X <- data[data[,2] == 0, 1]
-    Y <- data[data[,2] == 1, 1]
+    data <- cbind(scale(cont), bin)
+    X <- data[, 1]
+    X1 <- data[data[,2] == 0, 1]
+    X2 <- data[data[,2] == 1, 1]
 
-    p_xy <- .pt_logl(XY, low=0, up=1, c=c, depth=1, max_depth, qdist)
-    p_x <- .pt_logl(X, low=0, up=1, c=c, depth=1, max_depth, qdist)
-    p_y <- .pt_logl(Y, low=0, up=1, c=c, depth=1, max_depth, qdist)
+    p_xy <- .pt_logl(X, low=0, up=1, c=c, depth=1, max_depth, qdist)
+    p_x <- .pt_logl(X1, low=0, up=1, c=c, depth=1, max_depth, qdist)
+    p_y <- .pt_logl(X2, low=0, up=1, c=c, depth=1, max_depth, qdist)
 
     bf <- exp(p_xy - p_x - p_y)
     
@@ -38,7 +46,7 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
 
   options(expressions = old_expressions)
 
-  return(list(bf=bf, p_H0=1-1/(1+bf), p_H1=1/(1+bf), X=X, Y=Y))
+  return(list(bf=bf, p_H0=1-1/(1+bf), p_H1=1/(1+bf)))
 }
 
 

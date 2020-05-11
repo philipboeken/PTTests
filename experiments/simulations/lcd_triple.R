@@ -1,9 +1,9 @@
 source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
-library(foreach)
-library(doParallel)
-library(cowplot)
+suppressWarnings(library(foreach))
+suppressWarnings(library(doParallel))
+suppressWarnings(library(cowplot))
 
 
 # Input parameters
@@ -83,20 +83,21 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
 get_results <- function(dataset, test){
   result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
     data <- dataset[[i]]
-    ci <- test(data$X, data$C, data$Z)
-    uci <- test(data$X, data$Z)
-    ts <- test(data$Z, data$C)
+    ts <- test(data$C, data$Z)
+    uci <- test(data$Z, data$X)
+    ci <- test(data$C, data$X, data$Z)
     # lcd <- min((1 - ts), (1 - uci), ci)
     lcd <- (1 - ts) * (1 - uci) * ci
     label_lcd <- as.numeric(!data$label_uci & !data$label_ts & data$label_ci)
-    return(data.frame(label_ci=data$label_ci,
-                      label_uci=data$label_uci,
-                      label_ts=data$label_ts,
-                      label_lcd=label_lcd,
-                      ci=ci,
-                      uci=uci,
-                      ts=ts,
-                      lcd=lcd
+    return(data.frame(
+      label_ts=data$label_ts,
+      label_uci=data$label_uci,
+      label_ci=data$label_ci,
+      label_lcd=label_lcd,
+      ts=ts,
+      uci=uci,
+      ci=ci,
+      lcd=lcd
     ))
   }
   return(result)

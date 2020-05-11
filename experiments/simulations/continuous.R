@@ -1,8 +1,8 @@
 source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
-library(foreach)
-library(doParallel)
+suppressWarnings(library(foreach))
+suppressWarnings(library(doParallel))
 
 
 # Input parameters
