@@ -34,7 +34,8 @@ p_ci <- 0.5
 
 # Setup test
 ##############################################
-get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options) {
+get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, 
+                     nonlin_options, interv_options) {
   C <- rbinom(n, 1, p_two_sample)
   
   cond_indep <- rbinom(1, 1, p_ci)
@@ -75,10 +76,11 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
   
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   
-  return(list(C=C, Z=Z, X=X, label=cond_indep))
+  return(list(C=C, X=X, Z=Z, label=cond_indep))
 }
 
-get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options){
+get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd,
+                        nonlin_options, interv_options){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
     data <- get_data(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options)
     return(data.frame(
@@ -100,7 +102,8 @@ get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options
 .cl <- makeForkCluster(.cores[1]-1)
 registerDoParallel(.cl)
 
-results <- get_results(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options)
+results <- get_results(n, m, p_two_sample, p_link, p_ci, err_sd,
+                       nonlin_options, interv_options)
 
 stopCluster(.cl)
 
