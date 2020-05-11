@@ -1,4 +1,6 @@
-source('experiments/test_helpers.R')
+source('independence_tests/test_wrappers.R')
+source('experiments/simulations/maps.R')
+source('helpers.R')
 library(foreach)
 library(doParallel)
 
@@ -8,7 +10,7 @@ library(doParallel)
 n <- 300
 m <- 200
 
-p_link <- 1
+p_link <- 0.5
 
 err_sd <- 0.1
 nonlin_options <- c(
@@ -18,10 +20,11 @@ nonlin_options <- c(
   partial
 )
 
-p_two_sample <- runif(1, 0.45, 0.65)
+p_two_sample <- 0.5
 interv_options <- c(
   mean_shift,
   variance_shift,
+  fixed_point,
   mixture
   # tails
 )
@@ -60,7 +63,7 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
       X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       link_nonlin2 <- rbinom(1, 1, p_link)
-      Z <- link_nonlin2 * nonlin(nonlin_options, L)
+      Z <- link_nonlin2 * L
       Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
@@ -78,14 +81,12 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
 get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
     data <- get_data(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options)
-    suffStat<-list(data=cbind(data$X, data$C, data$Z),
-                   contextVars=c(2),verbose=FALSE,removeNAs=FALSE)
     return(data.frame(label=data$label,
-                      pcor=.pcor_wrapper(data$X, data$Y, data$Z),
-                      splineGCM=.gcm_wrapper(data$X, data$Y, data$Z),
-                      RCoT=.rcot_wrapper(data$X, data$Y, data$Z),
-                      CCIT=.ccit_wrapper(data$X, data$Y, data$Z),
-                      Bayes=.bayes_wrapper(data$X, data$Y, data$Z)))
+                      pcor=.pcor_wrapper(data$X, data$C, data$Z),
+                      splineGCM=.gcm_wrapper(data$X, data$C, data$Z),
+                      RCoT=.rcot_wrapper(data$X, data$C, data$Z),
+                      CCIT=.ccit_wrapper(data$X, data$C, data$Z),
+                      Bayes=.bayes_wrapper(data$X, data$C, data$Z)))
   }
   return(result)
 }
@@ -93,13 +94,13 @@ get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options
 
 # Do test
 ##############################################
-cores <- detectCores()
-cl <- makeForkCluster(cores[1]-1)
-registerDoParallel(cl)
+.cores <- detectCores()
+.cl <- makeForkCluster(.cores[1]-1)
+registerDoParallel(.cl)
 
 results <- get_results(n, m, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options)
 
-stopCluster(cl)
+stopCluster(.cl)
 
 
 # Process results

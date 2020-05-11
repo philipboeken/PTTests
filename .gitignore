@@ -2,4 +2,4 @@
 .Rhistory
 .DS_Store
 bayesian-lcd.Rproj
-experiments/sachs/sachs-data-pooled.csv
+experiments/sachs/sachs_data_pooled.csv

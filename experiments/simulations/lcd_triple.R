@@ -1,4 +1,6 @@
-source('experiments/test_helpers.R')
+source('independence_tests/test_wrappers.R')
+source('experiments/simulations/maps.R')
+source('helpers.R')
 library(foreach)
 library(doParallel)
 library(cowplot)
@@ -135,24 +137,20 @@ uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
 lcd_results <- .get_results_by_type(results, 'lcd')
 
-.ts_plot <- pplot_roc(ts_results$label, subset(ts_results, select=-c(label)), 
-                      'Two-sample test')
-.uci_plot <- pplot_roc(uci_results$label, subset(uci_results, select=-c(label)), 
-                       'Continuous independence test')
-.ci_plot <- pplot_roc(ci_results$label, subset(ci_results, select=-c(label)), 
-                      'Conditional two-sample test')
-.lcd_plot <- pplot_roc(lcd_results$label, subset(lcd_results, select=-c(label)), 
-                       'LCD ensemble')
+.ts_plot <- pplot_roc(ts_results[,1], ts_results[,-1], 'Two-sample test')
+.uci_plot <- pplot_roc(uci_results[,1], uci_results[,-1], 'Continuous independence test')
+.ci_plot <- pplot_roc(ci_results[,1], ci_results[,-1], 'Conditional two-sample test')
+.lcd_plot <- pplot_roc(lcd_results[,1], lcd_results[,-1], 'LCD ensemble')
 
 grid <- plot_grid(.ts_plot, .uci_plot, .ci_plot, .lcd_plot, nrow=2)
 plot(grid)
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
-save.image(file=paste('experiments/output/lcd-roc-tests_', timestamp, ".Rdata", sep=""))
+save.image(file=paste('experiments/simulations/output/lcd-roc-tests_', timestamp, ".Rdata", sep=""))
 
 ggsave(
-  paste('experiments/output/lcd-roc-tests_', timestamp, ".pdf", sep=""),
+  paste('experiments/simulations/output/lcd-roc-tests_', timestamp, ".pdf", sep=""),
   plot = grid,
   scale = 1,
   width = 20,

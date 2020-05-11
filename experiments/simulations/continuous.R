@@ -1,4 +1,6 @@
-source('experiments/test_helpers.R')
+source('independence_tests/test_wrappers.R')
+source('experiments/simulations/maps.R')
+source('helpers.R')
 library(foreach)
 library(doParallel)
 
