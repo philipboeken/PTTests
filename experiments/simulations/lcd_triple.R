@@ -1,3 +1,7 @@
+# Clear workspace
+rm(list = ls(all.names = TRUE))
+
+# Imports
 source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
@@ -74,10 +78,10 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
   
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   
-  return(list(C=C, Z=Z, X=X,
-              label_ci=cond_indep,
+  return(list(C=C, X=X, Z=Z,
               label_ts=as.numeric(!intervene),
-              label_uci=as.numeric(!link_nonlin)))
+              label_uci=as.numeric(!link_nonlin),
+              label_ci=cond_indep))
 }
 
 get_results <- function(dataset, test){
@@ -86,8 +90,7 @@ get_results <- function(dataset, test){
     ts <- test(data$C, data$Z)
     uci <- test(data$Z, data$X)
     ci <- test(data$C, data$X, data$Z)
-    # lcd <- min((1 - ts), (1 - uci), ci)
-    lcd <- (1 - ts) * (1 - uci) * ci
+    lcd <- min((1 - ts), (1 - uci), ci)
     label_lcd <- as.numeric(!data$label_uci & !data$label_ts & data$label_ci)
     return(data.frame(
       label_ts=data$label_ts,
@@ -148,7 +151,8 @@ plot(grid)
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
-save.image(file=paste('experiments/simulations/output/lcd-roc-tests_', timestamp, ".Rdata", sep=""))
+save.image(file=paste('experiments/simulations/output/lcd-roc-tests_',
+                      timestamp, ".Rdata", sep=""))
 
 ggsave(
   paste('experiments/simulations/output/lcd-roc-tests_', timestamp, ".pdf", sep=""),
