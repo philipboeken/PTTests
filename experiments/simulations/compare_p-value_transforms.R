@@ -3,7 +3,7 @@ rm(list = ls(all.names = TRUE))
 
 # Imports
 source('independence_tests/test_wrappers.R')
-source('independence_tests/bcor.R')
+source('independence_tests/RhoBFP.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
 suppressWarnings(library(foreach))
@@ -13,12 +13,10 @@ suppressWarnings(library(cowplot))
 
 # Input parameters
 ##############################################
-.save_output <- TRUE
+n <- 300
+m <- 500
 
-n <- 1500
-m <- 400
-
-err_sd <- 0.5
+err_sd <- 0.1
 
 p_ci <- 0.6
 p_link <- 0.8
@@ -95,8 +93,10 @@ get_results <- function(dataset, test){
       f <- .pcor_wrapper
     } else if (test == 'bayes') {
       f <- .bayes_wrapper
+    } else if (test == 'bcor-approx') {
+      f <- .bcor_approx_wrapper
     } else {
-      f <- .bayes_pcor_wrapper
+      f <- .bcor_wrapper
     }
     
     ts <- f(data$C, data$Z)
@@ -109,30 +109,18 @@ get_results <- function(dataset, test){
     
     if (test == 'pcor') {
       return(data.frame(label=label, 
-                        # cx=1-CX,
-                        # ci=ci,
                         cx_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (1-CX),
-                        ci_cond1=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * ci,
-                        ci_cond2=(ts < 1/sqrt(10*n)) * (uci < 1/sqrt(10*n)) * ci,
-                        ci_cond3=(ts < 1/sqrt(25*n)) * (uci < 1/sqrt(25*n)) * ci,
+                        ci_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * ci,
                         min=min(1 - ts, 1 - uci, ci)))
     } else if (test == 'pcor-log') {
       return(data.frame(label=-log(1-label), 
-                        # log_cx=-log(CX),
-                        # log_ci=-log(1-ci),
                         log_cx_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (-log(CX)),
-                        log_ci_cond1=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (-log(1-ci)),
-                        log_ci_cond2=(ts < 1/sqrt(10*n)) * (uci < 1/sqrt(10*n)) * (-log(1-ci)),
-                        log_ci_cond3=(ts < 1/sqrt(25*n)) * (uci < 1/sqrt(25*n)) * (-log(1-ci)),
+                        log_ci_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (-log(1-ci)),
                         log_min=-log(1-min(1 - ts, 1 - uci, ci))))
-    } else if (test == 'bayes' || test == 'bcor') {
+    } else if (test == 'bayes' || test == 'bcor' || test == 'bcor-approx') {
       return(data.frame(label=label, 
-                        # cx=1-CX,
-                        # ci=ci,
                         cx_cond=(ts < 1/2) * (uci < 1/2) * (ci >= 1/2) * (1-CX),
-                        ci_cond1=(ts < 1/2) * (uci < 1/2) * ci,
-                        ci_cond2=(ts < 3/4) * (uci < 3/4) * ci,
-                        ci_cond3=(ts < 7/8) * (uci < 7/8) * ci,
+                        ci_cond=(ts < 1/2) * (uci < 1/2) * ci,
                         min=min(1 - ts, 1 - uci, ci)))
     }
   }
@@ -150,6 +138,7 @@ data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci,
 pcor_results <- get_results(data, 'pcor')
 pcor_log_results <- get_results(data, 'pcor-log')
 bcor_results <- get_results(data, 'bcor')
+bcor_approx_results <- get_results(data, 'bcor-approx')
 bayes_results <- get_results(data, 'bayes')
 
 stopCluster(.cl)
@@ -161,25 +150,24 @@ stopCluster(.cl)
 .pcor_plot <- pplot_roc(pcor_results[,1], pcor_results[,-1], 'pcor')
 .pcor_log_plot <- pplot_roc(pcor_log_results[,1], pcor_log_results[,-1], 'pcor-log')
 .bcor_plot <- pplot_roc(bcor_results[,1], bcor_results[,-1], 'bcor')
+.bcor_approx_plot <- pplot_roc(bcor_approx_results[,1], bcor_approx_results[,-1], 'bcor-approx')
 .bayes_plot <- pplot_roc(bayes_results[,1], bayes_results[,-1], 'bayes')
 
 grid <- plot_grid(.pcor_plot, .pcor_log_plot, .bcor_plot, .bayes_plot, nrow=1)
 plot(grid)
 
-if (.save_output) {
-  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-  
-  save.image(file=paste('experiments/simulations/output/pval-tests/pval_test_',
-                        timestamp, ".Rdata", sep=""))
-  
-  ggsave(
-    paste('experiments/simulations/output/pval-tests/pval_test_', timestamp, ".pdf", sep=""),
-    plot = grid,
-    scale = 1,
-    width = 35,
-    height = 10,
-    units = "cm",
-    dpi = 300,
-    limitsize = TRUE
-  )
-}
+timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+
+save.image(file=paste('experiments/simulations/output/pval-tests/pval_test_',
+                      timestamp, ".Rdata", sep=""))
+
+ggsave(
+  paste('experiments/simulations/output/pval-tests/pval_test_', timestamp, ".pdf", sep=""),
+  plot = grid,
+  scale = 1,
+  width = 35,
+  height = 10,
+  units = "cm",
+  dpi = 300,
+  limitsize = TRUE
+)

@@ -3,6 +3,7 @@ rm(list = ls(all.names = TRUE))
 
 # Imports
 source('independence_tests/test_wrappers.R')
+# source('independence_tests/RhoBFP.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
 suppressWarnings(library(foreach))
@@ -117,6 +118,9 @@ data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci,
 results <- list(
   pcor=get_results(data, .pcor_wrapper),
   bayes=get_results(data, .bayes_wrapper),
+  bcor=get_results(data, .bcor_wrapper),
+  # bcor_approx=get_results(data, .bcor_approx_wrapper),
+  # bcor_full=get_results(data, .bcor_full_wrapper),
   gcm=get_results(data, .gcm_wrapper),
   ccit=get_results(data, .ccit_wrapper),
   rcot=get_results(data, .rcot_wrapper)
