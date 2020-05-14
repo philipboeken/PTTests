@@ -14,7 +14,7 @@ suppressMessages(library(ROCR))
 }
 
 .hhist <- function(x) {
-  ggplot(data.frame(x), aes(x)) + geom_histogram(bins=length(x)/50)
+  ggplot(data.frame(x), aes(x)) + geom_histogram(bins=length(x)/10)
 }
 
 .gamplot <- function(x, y, binomial=FALSE) {
@@ -79,3 +79,39 @@ pplot_roc <- function(labels, predictions, title=NULL) {
   return(plt)
 }
 
+# pplot_roc_custom <- function(labels, tests, title=NULL) {
+#   tests <- as.matrix(tests)
+#   pred <- .custom_lcd_prediction(labels, tests)
+#   # res <- performance(pred, "tpr", "fpr")
+#   # auc <- round(performance(pred, "auc")@y.values[[1]], 3)
+#   x <- pred$fpr
+#   y <- pred$tpr
+  
+#   plt <- ggplot() + 
+#     labs(x="False Positive Rate", y="True Positive Rate", title=title) +
+#     theme(legend.title = element_blank(),
+#           legend.position = c(0.78, 0.25),
+#           plot.title = element_text(size=12, hjust=0.5)) +
+#     geom_line(data=data.frame(x=x,y=y), aes(x, y))
+  
+#   return(plt)
+# }
+
+# .custom_lcd_prediction <- function(labels, tests, method='freq') {
+#   ts <- tests[,1]
+#   uci <- tests[,2]
+#   ci <- tests[,3]
+#   score <- tests[,4]
+#   alphas <- seq(0, 1, 1/(2*length(ts)-1))
+#   fpr <- c(0, 1)
+#   tpr <- c(0, 1)
+#   false <- which(labels == 0)
+#   true <- which(labels == 1)
+#   for (alpha in alphas) {
+#     # idx <- intersect(c(which(ts <= alpha), which(uci <= alpha)), which(ci >= 1-alpha))
+#     cond <- which(score > alpha)
+#     tpr <- c(tpr, length(intersect(cond, true)) / length(true))
+#     fpr <- c(fpr, length(intersect(cond, false)) / length(ts))
+#   }
+#   return(list(tpr=tpr, fpr=fpr))
+# }

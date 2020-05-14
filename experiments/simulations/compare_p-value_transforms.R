@@ -108,17 +108,17 @@ get_results <- function(dataset, test){
     n <- length(data$C)
     
     if (test == 'pcor') {
-      return(data.frame(label=label, 
+      return(data.frame(label=label,
                         cx_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (1-CX),
                         ci_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * ci,
                         min=min(1 - ts, 1 - uci, ci)))
     } else if (test == 'pcor-log') {
-      return(data.frame(label=-log(1-label), 
+      return(data.frame(label=-log(1-label),
                         log_cx_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (-log(CX)),
                         log_ci_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (-log(1-ci)),
                         log_min=-log(1-min(1 - ts, 1 - uci, ci))))
     } else if (test == 'bayes' || test == 'bcor' || test == 'bcor-approx') {
-      return(data.frame(label=label, 
+      return(data.frame(label=label,
                         cx_cond=(ts < 1/2) * (uci < 1/2) * (ci >= 1/2) * (1-CX),
                         ci_cond=(ts < 1/2) * (uci < 1/2) * ci,
                         min=min(1 - ts, 1 - uci, ci)))
@@ -153,7 +153,7 @@ stopCluster(.cl)
 .bcor_approx_plot <- pplot_roc(bcor_approx_results[,1], bcor_approx_results[,-1], 'bcor-approx')
 .bayes_plot <- pplot_roc(bayes_results[,1], bayes_results[,-1], 'bayes')
 
-grid <- plot_grid(.pcor_plot, .pcor_log_plot, .bcor_plot, .bayes_plot, nrow=1)
+grid <- plot_grid(.pcor_plot, .bcor_approx_plot, .bcor_plot, .bayes_plot, nrow=1)
 plot(grid)
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")

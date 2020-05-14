@@ -14,7 +14,7 @@ bayes.pcor.test <- function(X, Y, Z) {
   return(list(bf=bf, p_H0=1-1/(1+bf), p_H1=1/(1+bf)))
 }
 
-# main function to analytically calculate the BF for partial correlation
+# Main function to analytically calculate the BF for partial correlation
 # see Wetzels, R. & Wagenmakers, E.-J. (2012). A default Bayesian 
 # hypothesis test for correlations and partial correlations. Psychonomic 
 # Bulletin & Review.
@@ -24,24 +24,24 @@ bayes.pcor.test <- function(X, Y, Z) {
     return(exp(a) * dinvgamma(g, shape=.5, scale=n/2))
   }
   
-  bf10 <- integrate(int, lower=0, upper=40, r=r1, p=p1, n=n)$value /
-    integrate(int, lower=0, upper=40, r=r0, p=p0, n=n)$value
+  bf10 <- integrate(int, lower=0, upper=50, r=r1, p=p1, n=n)$value /
+    integrate(int, lower=0, upper=50, r=r0, p=p0, n=n)$value
   
   return(1/bf10)
 }
 
 
-# main function to analytically calculate the BF for correlation
+# Main function to analytically calculate the BF for correlation
 # see Wetzels, R. & Wagenmakers, E.-J. (2012). A default Bayesian 
 # hypothesis test for correlations and partial correlations. Psychonomic 
 # Bulletin & Review.
 .jzs_corbf <- function(r,n) {
   int <- function(r,n,g) {
     a <- .5 * ((n-2) * log(1+g) - (n-1) * log(1+g * (1-r^2)))
-    return(exp(a) * dinvgamma(g,shape=.5, scale=n/2))
+    return(exp(a) * dinvgamma(g, shape=.5, scale=n/2))
   }
   
-  bf10 <- integrate(int,lower=0,upper=40,r=r,n=n)$value
+  bf10 <- integrate(int,lower=0,upper=50,r=r,n=n)$value
   
   return(1/bf10)
 }
