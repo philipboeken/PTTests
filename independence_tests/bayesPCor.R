@@ -1,3 +1,5 @@
+suppressMessages(library(invgamma))
+
 bayes.cor.test <- function(X, Y) {
   bf <- .jzs_corbf(cor(X, Y), length(X))
   
