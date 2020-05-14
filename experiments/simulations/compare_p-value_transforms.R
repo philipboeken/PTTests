@@ -80,8 +80,8 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   
   return(list(C=C, X=X, Z=Z,
-              label_ts=as.numeric(!intervene),
-              label_uci=as.numeric(!link_nonlin),
+              label_ts=as.numeric(intervene),
+              label_uci=as.numeric(link_nonlin),
               label_ci=cond_indep))
 }
 
@@ -104,7 +104,7 @@ get_results <- function(dataset, test){
     ci <- f(data$C, data$X, data$Z)
     CX <- f(data$C, data$X)
     
-    label <- as.numeric(!data$label_uci & !data$label_ts & data$label_ci)
+    label <- as.numeric(data$label_uci & data$label_ts & data$label_ci)
     n <- length(data$C)
     
     if (test == 'pcor') {

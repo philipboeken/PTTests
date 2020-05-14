@@ -3,7 +3,7 @@ rm(list = ls(all.names = TRUE))
 
 # Imports
 source('independence_tests/test_wrappers.R')
-# source('independence_tests/RhoBFP.R')
+source('independence_tests/RhoBFP.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
 suppressWarnings(library(foreach))
@@ -80,8 +80,8 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   
   return(list(C=C, X=X, Z=Z,
-              label_ts=as.numeric(!intervene),
-              label_uci=as.numeric(!link_nonlin),
+              label_ts=as.numeric(intervene),
+              label_uci=as.numeric(link_nonlin),
               label_ci=cond_indep))
 }
 
@@ -92,14 +92,14 @@ get_results <- function(dataset, test){
     uci <- test(data$Z, data$X)
     ci <- test(data$C, data$X, data$Z)
     lcd <- min((1 - ts), (1 - uci), ci)
-    label_lcd <- as.numeric(!data$label_uci & !data$label_ts & data$label_ci)
+    label_lcd <- as.numeric(data$label_uci & data$label_ts & data$label_ci)
     return(data.frame(
       label_ts=data$label_ts,
       label_uci=data$label_uci,
       label_ci=data$label_ci,
       label_lcd=label_lcd,
-      ts=ts,
-      uci=uci,
+      ts=1-ts,
+      uci=1-uci,
       ci=ci,
       lcd=lcd
     ))
@@ -119,11 +119,11 @@ results <- list(
   pcor=get_results(data, .pcor_wrapper),
   bayes=get_results(data, .bayes_wrapper),
   bcor=get_results(data, .bcor_wrapper),
-  # bcor_approx=get_results(data, .bcor_approx_wrapper),
-  # bcor_full=get_results(data, .bcor_full_wrapper),
-  gcm=get_results(data, .gcm_wrapper),
-  ccit=get_results(data, .ccit_wrapper),
-  rcot=get_results(data, .rcot_wrapper)
+  bcor_approx=get_results(data, .bcor_approx_wrapper),
+  bcor_full=get_results(data, .bcor_full_wrapper)
+  # gcm=get_results(data, .gcm_wrapper),
+  # ccit=get_results(data, .ccit_wrapper),
+  # rcot=get_results(data, .rcot_wrapper)
 )
 
 stopCluster(.cl)
