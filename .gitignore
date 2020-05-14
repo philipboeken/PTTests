@@ -3,4 +3,4 @@
 .DS_Store
 bayesian-lcd.Rproj
 experiments/sachs/sachs_data_pooled.csv
-independence_tests/bcor.R
+independence_tests/RhoBFP.R
