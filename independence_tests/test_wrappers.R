@@ -1,6 +1,7 @@
 source('independence_tests/splineGCM.R')
 source('independence_tests/bayesCITest.R')
 source('independence_tests/CCIT.R')
+source('independence_tests/bayesPCor.R')
 
 suppressWarnings(library(ppcor))
 suppressWarnings(library(RCIT))
@@ -13,6 +14,13 @@ use_python('/usr/local/bin/python3')
 ##############################################
 .bayes_wrapper <- function (X, Y, Z=NULL) {
   return(bayes.CItest(X, Y, Z, verbose=FALSE)$p_H0)
+}
+
+.bcor_wrapper <- function(X, Y, Z=NULL) {
+  if (is.null(Z) || length(Z) == 0) {
+    return(bayes.cor.test(X, Y)$p_H0)
+  }
+  return(bayes.pcor.test(X, Y, Z)$p_H0)
 }
 
 .pcor_wrapper <- function(X, Y, Z=NULL) {
