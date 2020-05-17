@@ -7,8 +7,8 @@ bayes.cor.test <- function(X, Y) {
 }
 
 bayes.pcor.test <- function(X, Y, Z) {
-  r0 <- sqrt(summary(lm(X~Z))$r.squared)
-  r1 <- sqrt(summary(lm(X~Z+Y))$r.squared)
+  r0 <- sqrt(summary(lm(Y~Z))$r.squared)
+  r1 <- sqrt(summary(lm(Y~Z+X))$r.squared)
   bf <- .jzs_partcorbf(r0, r1, 1, 2, length(X))
   
   return(list(bf=bf, p_H0=1-1/(1+bf), p_H1=1/(1+bf)))
@@ -24,8 +24,8 @@ bayes.pcor.test <- function(X, Y, Z) {
     return(exp(a) * dinvgamma(g, shape=.5, scale=n/2))
   }
   
-  bf10 <- integrate(int, lower=0, upper=50, r=r1, p=p1, n=n)$value /
-    integrate(int, lower=0, upper=50, r=r0, p=p0, n=n)$value
+  bf10 <- integrate(int, lower=0, upper=10, r=r1, p=p1, n=n)$value /
+    integrate(int, lower=0, upper=10, r=r0, p=p0, n=n)$value
   
   return(1/bf10)
 }
@@ -41,7 +41,7 @@ bayes.pcor.test <- function(X, Y, Z) {
     return(exp(a) * dinvgamma(g, shape=.5, scale=n/2))
   }
   
-  bf10 <- integrate(int,lower=0,upper=50,r=r,n=n)$value
+  bf10 <- integrate(int,lower=0,upper=10,r=r,n=n)$value
   
   return(1/bf10)
 }

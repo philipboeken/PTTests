@@ -15,13 +15,17 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
   old_expressions <- options()$expressions
   options(expressions = max(2*max_depth, old_expressions))
 
-  if (length(unique(X)) == 2 ||length(unique(Y)) == 2) {
+  if (all(X %in% 0:1) && all(Y %in% 0:1) || length(X) <= 2) {
+    return(list(bf=1, p_H0=1/2, p_H1=1/2))
+  }
+  
+  if (all(X %in% 0:1) || all(Y %in% 0:1)) {
 
     if (verbose) {
       cat('Performing two-sample test\n')
     }
     
-    if (length(unique(X)) == 2) {
+    if (all(X %in% 0:1)) {
       bin <- X
       cont <- Y
     } else {
@@ -33,7 +37,8 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
     XZ <- data[, c(1, 3)]
     X1Z <- data[data[,2] == 0, c(1, 3)]
     X2Z <- data[data[,2] == 1, c(1, 3)]
-
+    cat(data, "\n")
+    cat(X2Z)
     p_x <- .opt_pt(XZ, 1, 2, z_min=0, z_max=1, c, rho, depth=1, max_depth, qdist)
     p_x1 <- .opt_pt(X1Z, 1, 2, z_min=0, z_max=1, c, rho, depth=1, max_depth, qdist)
     p_x2 <- .opt_pt(X2Z, 1, 2, z_min=0, z_max=1, c, rho, depth=1, max_depth, qdist)

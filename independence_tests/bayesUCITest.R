@@ -5,13 +5,13 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
 
-  if (length(unique(X)) == 2 || length(unique(Y)) == 2) {
+  if (all(X %in% 0:1) || all(Y %in% 0:1)) {
     
     if (verbose) {
       cat('Performing two-sample test\n')
     }
     
-    if (length(unique(X)) == 2) {
+    if (all(X %in% 0:1)) {
       bin <- X
       cont <- Y
     } else {
