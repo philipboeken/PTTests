@@ -1,3 +1,5 @@
 *
 !.gitignore
-!pval-tests
+!pval-roc-tests
+!lcd-roc-tests
+!pval-to-bf-convergence-tests
