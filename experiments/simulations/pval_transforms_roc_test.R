@@ -1,5 +1,6 @@
 # Clear workspace
 rm(list = ls(all.names = TRUE))
+gc()
 
 # Imports
 source('independence_tests/test_wrappers.R')
@@ -13,8 +14,8 @@ suppressWarnings(library(cowplot))
 
 # Input parameters
 ##############################################
-n <- 300
-m <- 500
+n <- 500
+m <- 800
 
 err_sd <- 0.1
 
@@ -24,8 +25,8 @@ p_two_sample <- 0.5
 
 nonlin_options <- c(
   linear,
-  parabolic,
-  sinusoidal
+  parabolic
+  # sinusoidal
 )
 
 interv_options <- c(
@@ -78,11 +79,9 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
   }
   
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
+  lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
-  return(list(C=C, X=X, Z=Z,
-              label_ts=as.numeric(intervene),
-              label_uci=as.numeric(link_nonlin),
-              label_ci=cond_indep))
+  return(list(C=C, X=X, Z=Z, label=lcd))
 }
 
 get_results <- function(dataset, test){
@@ -91,12 +90,16 @@ get_results <- function(dataset, test){
     
     if (test == 'pcor' || test == 'pcor-log') {
       f <- .pcor_wrapper
+    } else if (test == 'bcor-pb') {
+      f <- .bayes_transform(.pcor_wrapper)
+    } else if (test == 'bcor-ly') {
+      f <- .bcor_ly_wrapper
     } else if (test == 'bayes') {
       f <- .bayes_wrapper
     } else if (test == 'bcor-approx') {
       f <- .bcor_approx_wrapper
-    } else {
-      f <- .bcor_wrapper
+    } else if (test == 'bcor-wg') {
+      f <- .bcor_wg_wrapper
     }
     
     ts <- f(data$C, data$Z)
@@ -104,23 +107,31 @@ get_results <- function(dataset, test){
     ci <- f(data$C, data$X, data$Z)
     CX <- f(data$C, data$X)
     
-    label <- as.numeric(data$label_uci & data$label_ts & data$label_ci)
     n <- length(data$C)
     
     if (test == 'pcor') {
-      return(data.frame(label=label,
-                        cx_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (1-CX),
-                        ci_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * ci,
+      return(data.frame(label=data$label,
+                        c_dep_y=(1-CX),
+                        c_dep_y_cond=(ts < 1/sqrt(2*n)) * 
+                          (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (1-CX),
+                        c_indep_y_given_x=ci,
+                        c_indep_y_given_x_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * ci,
                         min=min(1 - ts, 1 - uci, ci)))
     } else if (test == 'pcor-log') {
-      return(data.frame(label=-log(1-label),
-                        log_cx_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (-log(CX)),
-                        log_ci_cond=(ts < 1/sqrt(2*n)) * (uci < 1/sqrt(2*n)) * (-log(1-ci)),
-                        log_min=-log(1-min(1 - ts, 1 - uci, ci))))
-    } else if (test == 'bayes' || test == 'bcor' || test == 'bcor-approx') {
-      return(data.frame(label=label,
-                        cx_cond=(ts < 1/2) * (uci < 1/2) * (ci >= 1/2) * (1-CX),
-                        ci_cond=(ts < 1/2) * (uci < 1/2) * ci,
+      return(data.frame(label=-log(1-data$label),
+                        l_c_dep_y=-log(CX),
+                        l_c_dep_y_cond=(ts < 1/sqrt(2*n)) * 
+                          (uci < 1/sqrt(2*n)) * (ci >= 1/sqrt(2*n)) * (-log(CX)),
+                        l_c_indep_y_given_x=-log(1-ci),
+                        l_c_indep_y_given_x_cond=(ts < 1/sqrt(2*n)) * 
+                          (uci < 1/sqrt(2*n)) * (-log(1-ci)),
+                        l_min=-log(1-min(1 - ts, 1 - uci, ci))))
+    } else {
+      return(data.frame(label=data$label,
+                        c_dep_y=(1-CX),
+                        c_dep_y_cond=(ts < 1/2) * (uci < 1/2) * (ci >= 1/2) * (1-CX),
+                        c_indep_y_given_x=ci,
+                        c_indep_y_given_x_cond=(ts < 1/2) * (uci < 1/2) * ci,
                         min=min(1 - ts, 1 - uci, ci)))
     }
   }
@@ -136,8 +147,10 @@ registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci, 
                                           err_sd, nonlin_options, interv_options))
 pcor_results <- get_results(data, 'pcor')
-pcor_log_results <- get_results(data, 'pcor-log')
-bcor_results <- get_results(data, 'bcor')
+pcor_l_results <- get_results(data, 'pcor-log')
+bcor_pb_results <- get_results(data, 'bcor-pb')
+bcor_ly_results <- get_results(data, 'bcor-ly')
+bcor_wg_results <- get_results(data, 'bcor-wg')
 bcor_approx_results <- get_results(data, 'bcor-approx')
 bayes_results <- get_results(data, 'bayes')
 
@@ -147,27 +160,23 @@ stopCluster(.cl)
 # Process results
 ##############################################
 
-.pcor_plot <- pplot_roc(pcor_results[,1], pcor_results[,-1], 'pcor')
-.pcor_log_plot <- pplot_roc(pcor_log_results[,1], pcor_log_results[,-1], 'pcor-log')
-.bcor_plot <- pplot_roc(bcor_results[,1], bcor_results[,-1], 'bcor')
-.bcor_approx_plot <- pplot_roc(bcor_approx_results[,1], bcor_approx_results[,-1], 'bcor-approx')
-.bayes_plot <- pplot_roc(bayes_results[,1], bayes_results[,-1], 'bayes')
-
-grid <- plot_grid(.pcor_plot, .bcor_approx_plot, .bcor_plot, .bayes_plot, nrow=1)
-plot(grid)
+grid <- plot_grid(
+  pplot_roc(pcor_results[,1], pcor_results[,-1], 'pcor'),
+  pplot_roc(pcor_l_results[,1], pcor_l_results[,-1], 'pcor-log'),
+  pplot_roc(bayes_results[,1], bayes_results[,-1], 'bayes'),
+  pplot_roc(bcor_ly_results[,1], bcor_ly_results[,-1], 'bcor_ly'),
+  pplot_roc(bcor_approx_results[,1], bcor_approx_results[,-1], 'bcor_approx'),
+  pplot_roc(bcor_wg_results[,1], bcor_wg_results[,-1], 'bcor_wg'),
+  pplot_roc(bcor_pb_results[,1], bcor_pb_results[,-1], 'bcor_pb'),
+  nrow=3
+)
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+.path <- 'experiments/simulations/output/pval-roc-tests/'
 
-save.image(file=paste('experiments/simulations/output/pval-tests/pval_test_',
-                      timestamp, ".Rdata", sep=""))
+save.image(file=paste(.path, 'pval_test_',timestamp, ".Rdata", sep=""))
 
-ggsave(
-  paste('experiments/simulations/output/pval-tests/pval_test_', timestamp, ".pdf", sep=""),
-  plot = grid,
-  scale = 1,
-  width = 35,
-  height = 10,
-  units = "cm",
-  dpi = 300,
-  limitsize = TRUE
-)
+.ggsave(paste(.path, 'pval_test_', timestamp, sep=""), grid, 35, 35)
+.ggsave(paste(.path, 'pval_test_last', sep=""), grid, 35, 35)
+
+# plot(grid)

@@ -79,6 +79,16 @@ pplot_roc <- function(labels, predictions, title=NULL) {
   return(plt)
 }
 
+.ggsave <- function (name, grid, width, height) {
+  ggsave(
+    paste(name, ".pdf", sep=""),
+    plot = grid, scale = 1,
+    width = width,
+    height = height,
+    units = "cm", dpi = 300, limitsize = TRUE
+  )
+}
+
 # pplot_roc_custom <- function(labels, tests, title=NULL) {
 #   tests <- as.matrix(tests)
 #   pred <- .custom_lcd_prediction(labels, tests)
@@ -86,14 +96,14 @@ pplot_roc <- function(labels, predictions, title=NULL) {
 #   # auc <- round(performance(pred, "auc")@y.values[[1]], 3)
 #   x <- pred$fpr
 #   y <- pred$tpr
-  
+
 #   plt <- ggplot() + 
 #     labs(x="False Positive Rate", y="True Positive Rate", title=title) +
 #     theme(legend.title = element_blank(),
 #           legend.position = c(0.78, 0.25),
 #           plot.title = element_text(size=12, hjust=0.5)) +
 #     geom_line(data=data.frame(x=x,y=y), aes(x, y))
-  
+
 #   return(plt)
 # }
 

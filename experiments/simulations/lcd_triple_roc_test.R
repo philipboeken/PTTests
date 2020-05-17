@@ -13,7 +13,7 @@ suppressWarnings(library(cowplot))
 
 # Input parameters
 ##############################################
-n <- 300
+n <- 400
 m <- 500
 
 err_sd <- 0.1
@@ -117,12 +117,15 @@ data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci,
                                           err_sd, nonlin_options, interv_options))
 results <- list(
   pcor=get_results(data, .pcor_wrapper),
+  pcor_bayes=get_results(data, .bayes_transform(.pcor_wrapper)),
   bayes=get_results(data, .bayes_wrapper),
-  bcor=get_results(data, .bcor_wrapper),
-  bcor_approx=get_results(data, .bcor_approx_wrapper),
-  bcor_full=get_results(data, .bcor_full_wrapper)
+  bcor_wg=get_results(data, .bcor_wg_wrapper),
+  # bcor_approx=get_results(data, .bcor_approx_wrapper),
+  bcor_ly=get_results(data, .bcor_ly_wrapper),
+  gcm_bayes=get_results(data, .bayes_transform(.gcm_wrapper)),
   # gcm=get_results(data, .gcm_wrapper),
   # ccit=get_results(data, .ccit_wrapper),
+  rcot_bayes=get_results(data, .bayes_transform(.rcot_wrapper))
   # rcot=get_results(data, .rcot_wrapper)
 )
 
@@ -145,26 +148,20 @@ uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
 lcd_results <- .get_results_by_type(results, 'lcd')
 
-.ts_plot <- pplot_roc(ts_results[,1], ts_results[,-1], 'Two-sample test')
-.uci_plot <- pplot_roc(uci_results[,1], uci_results[,-1], 'Continuous independence test')
-.ci_plot <- pplot_roc(ci_results[,1], ci_results[,-1], 'Conditional two-sample test')
-.lcd_plot <- pplot_roc(lcd_results[,1], lcd_results[,-1], 'LCD ensemble')
-
-grid <- plot_grid(.ts_plot, .uci_plot, .ci_plot, .lcd_plot, nrow=2)
-plot(grid)
+grid <- plot_grid(
+  pplot_roc(ts_results[,1], ts_results[,-1], 'Two-sample test'), 
+  pplot_roc(uci_results[,1], uci_results[,-1], 'Continuous independence test'), 
+  pplot_roc(ci_results[,1], ci_results[,-1], 'Conditional two-sample test'), 
+  pplot_roc(lcd_results[,1], lcd_results[,-1], 'LCD ensemble'), 
+  nrow=2
+)
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+.path <- 'experiments/simulations/output/lcd-roc-tests/'
 
-save.image(file=paste('experiments/simulations/output/lcd-roc-tests_',
-                      timestamp, ".Rdata", sep=""))
+save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, ".Rdata", sep=""))
 
-ggsave(
-  paste('experiments/simulations/output/lcd-roc-tests_', timestamp, ".pdf", sep=""),
-  plot = grid,
-  scale = 1,
-  width = 20,
-  height = 20,
-  units = "cm",
-  dpi = 300,
-  limitsize = TRUE
-)
+.ggsave(paste(.path, 'lcd-roc-tests_', timestamp, sep=""), grid, 20, 20)
+.ggsave(paste(.path, 'lcd-roc-tests_last', sep=""), grid, 20, 20)
+
+# plot(grid)
