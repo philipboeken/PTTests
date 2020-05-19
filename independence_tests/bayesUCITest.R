@@ -1,6 +1,6 @@
 bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=TRUE) {
 
-  max_depth <- ifelse(max_depth < 0, ceiling(log2(length(X))/2), max_depth)
+  max_depth <- ifelse(max_depth < 0, floor(log2(length(X))/2), max_depth)
 
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
@@ -51,7 +51,7 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
 
 
 .pt_logl <- function(data, low, up, c, depth, max_depth, qdist) {
-  if (depth == max_depth || length(data) < length(low)) {
+  if (depth == max_depth) {
     return(0)
   }
 
