@@ -8,17 +8,17 @@ library(doParallel)
 # Input parameters
 ##############################################
 n <- 300
-m <- 200
+m <- 500
 
 p_two_sample <- runif(1, 0.45, 0.65)
 p_link <- 0.5
 
 interv_options <- c(
-  mean_shift,
-  variance_shift,
-  fixed_point,
-  mixture,
-  tails
+  mean_shift
+  # variance_shift
+  # fixed_point,
+  # mixture,
+  # tails
   # log_mean_shift,
   # log_variance_shift
 )
@@ -40,9 +40,9 @@ get_results <- function(n, m, p_two_sample, p_link, interv_options){
     return(data.frame(
       label=data$label,
       cor=.pcor_wrapper(data$C, data$X),
-      splineGCM=.gcm_wrapper(data$C, data$X),
-      RCoT=.rcot_wrapper(data$C, data$X),
-      CCIT=.ccit_wrapper(data$C, data$X),
+      # splineGCM=.gcm_wrapper(data$C, data$X),
+      # RCoT=.rcot_wrapper(data$C, data$X),
+      # CCIT=.ccit_wrapper(data$C, data$X),
       Bayes=.bayes_wrapper(data$C, data$X)
     ))
   }

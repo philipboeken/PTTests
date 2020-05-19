@@ -8,28 +8,27 @@ library(doParallel)
 # Input parameters
 ##############################################
 n <- 300
-m <- 200
-
-p_link <- 0.5
+m <- 500
 
 err_sd <- 0.1
-nonlin_options <- c(
-  linear,
-  parabolic,
-  sinusoidal,
-  partial
-)
 
+p_ci <- 0
+p_link <- 0.8
 p_two_sample <- 0.5
-interv_options <- c(
-  mean_shift,
-  variance_shift,
-  fixed_point,
-  mixture
-  # tails
+
+nonlin_options <- c(
+  # linear
+  parabolic
+  # sinusoidal
 )
 
-p_ci <- 0.5
+interv_options <- c(
+  mean_shift
+  # variance_shift
+  # fixed_point
+  # mixture
+)
+
 
 
 # Setup test
@@ -47,7 +46,7 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd,
     X <- link_nonlin * nonlin(nonlin_options, Z)
     X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
   } else {
-    if (runif(1) <= 0.5) { # C -> Z <- X
+    if (runif(1) <= 1) { # C -> Z <- X
       X <- rnorm(n)
       
       link_nonlin <- rbinom(1, 1, p_link)
@@ -64,7 +63,7 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd,
       X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       link_nonlin2 <- rbinom(1, 1, p_link)
-      Z <- link_nonlin2 * L
+      Z <- link_nonlin2 * nonlin(nonlin_options, L)
       Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
@@ -86,9 +85,9 @@ get_results <- function(n, m, p_two_sample, p_link, p_ci, err_sd,
     return(data.frame(
       label=data$label,
       pcor=.pcor_wrapper(data$C, data$X, data$Z),
-      splineGCM=.gcm_wrapper(data$C, data$X, data$Z),
-      RCoT=.rcot_wrapper(data$C, data$X, data$Z),
-      CCIT=.ccit_wrapper(data$C, data$X, data$Z),
+      # splineGCM=.gcm_wrapper(data$C, data$X, data$Z),
+      # RCoT=.rcot_wrapper(data$C, data$X, data$Z),
+      # CCIT=.ccit_wrapper(data$C, data$X, data$Z),
       Bayes=.bayes_wrapper(data$C, data$X, data$Z)
     ))
   }
@@ -110,4 +109,4 @@ stopCluster(.cl)
 
 # Process results
 ##############################################
-plot(pplot_roc(results[,1], results[,-1]))
+plot(pplot_roc(results[,1], results[,-1], 'Conditional two-sample test'))

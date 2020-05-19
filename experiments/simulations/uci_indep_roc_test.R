@@ -8,18 +8,18 @@ suppressWarnings(library(doParallel))
 # Input parameters
 ##############################################
 n <- 300
-m <- 200
+m <- 500
 
 err_sd <- 0.1
-p_link <- 0.5
+p_link <- 0.8
 
 nonlin_options <- c(
-  linear,
-  parabolic,
-  sinusoidal,
-  partial,
-  circular,
-  checkerboard
+  # linear,
+  parabolic
+  # sinusoidal
+  # partial
+  # circular
+  # checkerboard
 )
 
 
@@ -45,9 +45,9 @@ get_results <- function(n, m){
     data <- get_data(n, p_link, nonlin_options, err_sd)
     return(data.frame(label=data$label,
                       cor=.pcor_wrapper(data$X, data$Y),
-                      splineGCM=.gcm_wrapper(data$X, data$Y),
-                      RCoT=.rcot_wrapper(data$X, data$Y),
-                      CCIT=.ccit_wrapper(data$X, data$Y),
+                      # splineGCM=.gcm_wrapper(data$X, data$Y),
+                      # RCoT=.rcot_wrapper(data$X, data$Y),
+                      # CCIT=.ccit_wrapper(data$X, data$Y),
                       Bayes=.bayes_wrapper(data$X, data$Y)))
   }
   return(result)
