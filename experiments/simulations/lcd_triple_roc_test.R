@@ -13,7 +13,7 @@ suppressWarnings(library(cowplot))
 
 # Input parameters
 ##############################################
-n <- 400
+n <- 300
 m <- 500
 
 err_sd <- 0.1
@@ -78,11 +78,13 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
   }
   
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
+  lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
   return(list(C=C, X=X, Z=Z,
               label_ts=as.numeric(intervene),
               label_uci=as.numeric(link_nonlin),
-              label_ci=cond_indep))
+              label_ci=cond_indep,
+              label_lcd=lcd))
 }
 
 get_results <- function(dataset, test){
@@ -92,12 +94,12 @@ get_results <- function(dataset, test){
     uci <- test(data$Z, data$X)
     ci <- test(data$C, data$X, data$Z)
     lcd <- min((1 - ts), (1 - uci), ci)
-    label_lcd <- as.numeric(data$label_uci & data$label_ts & data$label_ci)
+    
     return(data.frame(
       label_ts=data$label_ts,
       label_uci=data$label_uci,
       label_ci=data$label_ci,
-      label_lcd=label_lcd,
+      label_lcd=data$label_lcd,
       ts=1-ts,
       uci=1-uci,
       ci=ci,
@@ -117,16 +119,17 @@ data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci,
                                           err_sd, nonlin_options, interv_options))
 results <- list(
   pcor=get_results(data, .pcor_wrapper),
-  pcor_bayes=get_results(data, .bayes_transform(.pcor_wrapper)),
   bayes=get_results(data, .bayes_wrapper),
-  bcor_wg=get_results(data, .bcor_wg_wrapper),
+  bcor_pb=get_results(data, .bayes_transform(.pcor_wrapper))
+  # bcor_wg=get_results(data, .bcor_wg_wrapper),
   # bcor_approx=get_results(data, .bcor_approx_wrapper),
-  bcor_ly=get_results(data, .bcor_ly_wrapper),
-  gcm_bayes=get_results(data, .bayes_transform(.gcm_wrapper)),
+  # bcor_ly=get_results(data, .bcor_ly_wrapper),
+  # gcm_bayes=get_results(data, .bayes_transform(.gcm_wrapper)),
   # gcm=get_results(data, .gcm_wrapper),
   # ccit=get_results(data, .ccit_wrapper),
-  rcot_bayes=get_results(data, .bayes_transform(.rcot_wrapper))
+  # ccit_bayes=get_results(data, .bayes_transform(.ccit_wrapper)),
   # rcot=get_results(data, .rcot_wrapper)
+  # rcot_bayes=get_results(data, .bayes_transform(.rcot_wrapper))
 )
 
 stopCluster(.cl)
