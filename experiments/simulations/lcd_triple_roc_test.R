@@ -67,7 +67,7 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
       X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       link_nonlin2 <- rbinom(1, 1, p_link)
-      Z <- link_nonlin2 * L
+      Z <- link_nonlin2 * nonlin(nonlin_options, L)
       Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
@@ -87,13 +87,21 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
               label_lcd=lcd))
 }
 
-get_results <- function(dataset, test){
+get_results <- function(dataset, test, bayesian=FALSE){
   result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
     data <- dataset[[i]]
     ts <- test(data$C, data$Z)
     uci <- test(data$Z, data$X)
     ci <- test(data$C, data$X, data$Z)
-    lcd <- min((1 - ts), (1 - uci), ci)
+    CZ <- test(data$C, data$Z)
+    
+    if (bayesian) {
+      lcd <- (ts <= 1/2) * (uci <= 1/2) * (ci > 1/2) * (1-CZ)
+    } else {
+      n <- length(data$C)
+      lcd <- (ts <= 1/(2*sqrt(n))) * (uci <= 1/(2*sqrt(n))) * (ci > 1/(2*sqrt(n))) * (1-CZ)
+    }
+    # lcd <- min((1 - ts), (1 - uci), ci)
     
     return(data.frame(
       label_ts=data$label_ts,
@@ -119,16 +127,16 @@ data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci,
                                           err_sd, nonlin_options, interv_options))
 results <- list(
   pcor=get_results(data, .pcor_wrapper),
-  bayes=get_results(data, .bayes_wrapper),
-  bcor_pb=get_results(data, .bayes_transform(.pcor_wrapper))
-  # bcor_wg=get_results(data, .bcor_wg_wrapper),
+  bayes=get_results(data, .bayes_wrapper, TRUE),
+  # bcor_pb=get_results(data, .bayes_transform(.pcor_wrapper))
+  bcor=get_results(data, .bcor_wg_wrapper, TRUE),
   # bcor_approx=get_results(data, .bcor_approx_wrapper),
   # bcor_ly=get_results(data, .bcor_ly_wrapper),
   # gcm_bayes=get_results(data, .bayes_transform(.gcm_wrapper)),
-  # gcm=get_results(data, .gcm_wrapper),
-  # ccit=get_results(data, .ccit_wrapper),
+  gcm=get_results(data, .gcm_wrapper),
+  ccit=get_results(data, .ccit_wrapper),
   # ccit_bayes=get_results(data, .bayes_transform(.ccit_wrapper)),
-  # rcot=get_results(data, .rcot_wrapper)
+  rcot=get_results(data, .rcot_wrapper)
   # rcot_bayes=get_results(data, .bayes_transform(.rcot_wrapper))
 )
 
@@ -156,7 +164,7 @@ grid <- plot_grid(
   pplot_roc(uci_results[,1], uci_results[,-1], 'Continuous independence test'), 
   pplot_roc(ci_results[,1], ci_results[,-1], 'Conditional two-sample test'), 
   pplot_roc(lcd_results[,1], lcd_results[,-1], 'LCD ensemble'), 
-  nrow=2
+  nrow=1
 )
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
@@ -164,7 +172,7 @@ timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
 save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, ".Rdata", sep=""))
 
-.ggsave(paste(.path, 'lcd-roc-tests_', timestamp, sep=""), grid, 20, 20)
-.ggsave(paste(.path, 'lcd-roc-tests_last', sep=""), grid, 20, 20)
+.ggsave(paste(.path, 'lcd-roc-tests_', timestamp, sep=""), grid, 40, 10)
+.ggsave(paste(.path, 'lcd-roc-tests_last', sep=""), grid, 40, 10)
 
 # plot(grid)
