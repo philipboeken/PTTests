@@ -9,11 +9,12 @@ source('helpers.R')
 suppressWarnings(library(foreach))
 suppressWarnings(library(doParallel))
 suppressWarnings(library(cowplot))
+library(latex2exp)
 
 
 # Input parameters
 ##############################################
-n <- 300
+n <- 400
 m <- 500
 
 err_sd <- 0.1
@@ -96,22 +97,25 @@ get_results <- function(dataset, test, bayesian=FALSE){
     CZ <- test(data$C, data$Z)
     
     if (bayesian) {
-      lcd <- (ts <= 1/2) * (uci <= 1/2) * (ci > 1/2) * (1-CZ)
+      lcd_CY <- (ts <= 1/2) * (uci <= 1/2) * (ci > 1/2) * (1-CZ)
     } else {
       n <- length(data$C)
-      lcd <- (ts <= 1/(2*sqrt(n))) * (uci <= 1/(2*sqrt(n))) * (ci > 1/(2*sqrt(n))) * (1-CZ)
+      lcd_CY <- (ts <= 1/(5*sqrt(n))) * (uci <= 1/(5*sqrt(n))) * (ci > 1/(5*sqrt(n))) * (1-CZ)
     }
-    # lcd <- min((1 - ts), (1 - uci), ci)
+    
+    lcd_min <- min((1 - ts), (1 - uci), ci)
     
     return(data.frame(
       label_ts=data$label_ts,
       label_uci=data$label_uci,
       label_ci=data$label_ci,
-      label_lcd=data$label_lcd,
+      label_lcd_min=data$label_lcd,
+      label_lcd_CY=data$label_lcd,
       ts=1-ts,
       uci=1-uci,
       ci=ci,
-      lcd=lcd
+      lcd_min=lcd_min,
+      lcd_CY=lcd_CY
     ))
   }
   return(result)
@@ -129,12 +133,12 @@ results <- list(
   pcor=get_results(data, .pcor_wrapper),
   bayes=get_results(data, .bayes_wrapper, TRUE),
   # bcor_pb=get_results(data, .bayes_transform(.pcor_wrapper))
-  bcor=get_results(data, .bcor_wg_wrapper, TRUE),
+  # bcor=get_results(data, .bcor_wg_wrapper, TRUE),
   # bcor_approx=get_results(data, .bcor_approx_wrapper),
-  # bcor_ly=get_results(data, .bcor_ly_wrapper),
+  bcor_ly=get_results(data, .bcor_ly_wrapper),
   # gcm_bayes=get_results(data, .bayes_transform(.gcm_wrapper)),
   gcm=get_results(data, .gcm_wrapper),
-  ccit=get_results(data, .ccit_wrapper),
+  # ccit=get_results(data, .ccit_wrapper),
   # ccit_bayes=get_results(data, .bayes_transform(.ccit_wrapper)),
   rcot=get_results(data, .rcot_wrapper)
   # rcot_bayes=get_results(data, .bayes_transform(.rcot_wrapper))
@@ -147,7 +151,7 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  result <- data.frame(label=results$bayes[,{{paste('label_',type, sep="")}}])
+  result <- data.frame(label=results$bayes[,{{paste('label_',type, sep='')}}])
   for (test in names(results)) {
     result[test] <- results[[test]][,type]
   }
@@ -157,22 +161,28 @@ stopCluster(.cl)
 ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
-lcd_results <- .get_results_by_type(results, 'lcd')
+lcd_min_results <- .get_results_by_type(results, 'lcd_min')
+lcd_CY_results <- .get_results_by_type(results, 'lcd_CY')
 
+t1 <- TeX('$(p_{CX} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\alpha)$')
+t2 <- TeX('$(p_{CX} < \\alpha_0) \\and (p_{XY} < \\alpha_0) \\and (p_{CY|X} > \\alpha_0) \\and (p_{CY} < \\alpha)$')
+t3 <- TeX('$(p_{CX} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\min(\\alpha, \\alpha_0))$')
 grid <- plot_grid(
-  pplot_roc(ts_results[,1], ts_results[,-1], 'Two-sample test'), 
-  pplot_roc(uci_results[,1], uci_results[,-1], 'Continuous independence test'), 
-  pplot_roc(ci_results[,1], ci_results[,-1], 'Conditional two-sample test'), 
-  pplot_roc(lcd_results[,1], lcd_results[,-1], 'LCD ensemble'), 
+  # pplot_roc(ts_results[,1], ts_results[,-1], 'Two-sample test'), 
+  # pplot_roc(uci_results[,1], uci_results[,-1], 'Continuous independence test'), 
+  # pplot_roc(ci_results[,1], ci_results[,-1], 'Conditional two-sample test'), 
+  pplot_roc(lcd_min_results[,1], lcd_min_results[,-1], t1),
+  pplot_roc(lcd_CY_results[,1], lcd_CY_results[,-1], t2),
+  pplot_roc_custom(lcd_min_results[,1], ts_results[,-1], uci_results[,-1], ci_results[,-1], t3),
   nrow=1
 )
+plot(grid)
 
-timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-roc-tests/'
 
-save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, ".Rdata", sep=""))
+save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, '.Rdata', sep=''))
 
-.ggsave(paste(.path, 'lcd-roc-tests_', timestamp, sep=""), grid, 40, 10)
-.ggsave(paste(.path, 'lcd-roc-tests_last', sep=""), grid, 40, 10)
+.ggsave(paste(.path, 'lcd-roc-tests_', timestamp, sep=''), grid, 30, 10)
+.ggsave(paste(.path, 'lcd-roc-tests_last', sep=''), grid, 30, 10)
 
-# plot(grid)

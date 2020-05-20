@@ -79,6 +79,70 @@ pplot_roc <- function(labels, predictions, title=NULL) {
   return(plt)
 }
 
+pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
+  roc_data <- c()
+  for (i in 1:ncol(ts_res)) {
+    name <- colnames(ts_res)[i]
+    bayes <- (name == 'bayes')
+    res <- .lcd_performance(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
+    x <- res$fpr
+    y <- res$tpr
+    roc_data[[name]] <- list(data=data.frame(x=x, y=y), auc=res$auc, name=name)
+  }
+  
+  plt <- ggplot() + 
+    labs(x="False Positive Rate", y="True Positive Rate", title=title) +
+    theme(legend.title = element_blank(),
+          legend.position = c(0.78, 0.25),
+          plot.title = element_text(size=12, hjust=0.5))
+  for (roc in roc_data) {
+    c <- paste(roc$name, ' (', roc$auc, ')', sep="")
+    plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
+  }
+  
+  return(plt)
+}
+
+.lcd_performance <- function(labels, ts, uci, ci, bayes) {
+  
+  alphas <- sort(c(Inf, ts, uci, ci), TRUE)
+  
+  false <- which(labels == 0)
+  true <- which(labels == 1)
+  
+  n <- length(labels)
+  a <- ifelse(bayes, 0.5, 1/(3*sqrt(n)))
+  
+  fp <- c()
+  tp <- c()
+  for (alpha in alphas) {
+    idx <- intersect(intersect(which(ts >= alpha), which(uci >= alpha)), which(ci >= min(alpha, a)))
+    tp <- c(tp, length(intersect(idx, true)))
+    fp <- c(fp, length(intersect(idx, false)))
+  }
+  
+  tpr <- tp / length(true)
+  fpr <- fp / length(false)
+  
+  auc <- .get_auc(tpr, fpr)
+  # auc <- NaN
+  
+  return(list(tpr=c(tpr, 1), fpr=c(fpr, 1), auc=auc))
+}
+
+.get_auc <- function(tpr, fpr) {
+  if (0 < min(tpr)) {
+    tpr <- c(min(tpr)/2, min(tpr)/2, tpr)
+    fpr <- c(0, min(fpr), fpr)
+  }
+  if (max(tpr) < 1) {
+    tpr <- c(tpr, max(tpr) + (1-max(tpr))/2)
+    fpr <- c(fpr, max(fpr) + (1-max(fpr))/2)
+  }
+  int <- round(sum(tpr[-1] * diff(fpr)), 3)
+  return(int)
+}
+
 .ggsave <- function (name, grid, width, height) {
   ggsave(
     paste(name, ".pdf", sep=""),
@@ -89,39 +153,6 @@ pplot_roc <- function(labels, predictions, title=NULL) {
   )
 }
 
-# pplot_roc_custom <- function(labels, tests, title=NULL) {
-#   tests <- as.matrix(tests)
-#   pred <- .custom_lcd_prediction(labels, tests)
-#   # res <- performance(pred, "tpr", "fpr")
-#   # auc <- round(performance(pred, "auc")@y.values[[1]], 3)
-#   x <- pred$fpr
-#   y <- pred$tpr
 
-#   plt <- ggplot() + 
-#     labs(x="False Positive Rate", y="True Positive Rate", title=title) +
-#     theme(legend.title = element_blank(),
-#           legend.position = c(0.78, 0.25),
-#           plot.title = element_text(size=12, hjust=0.5)) +
-#     geom_line(data=data.frame(x=x,y=y), aes(x, y))
 
-#   return(plt)
-# }
 
-# .custom_lcd_prediction <- function(labels, tests, method='freq') {
-#   ts <- tests[,1]
-#   uci <- tests[,2]
-#   ci <- tests[,3]
-#   score <- tests[,4]
-#   alphas <- seq(0, 1, 1/(2*length(ts)-1))
-#   fpr <- c(0, 1)
-#   tpr <- c(0, 1)
-#   false <- which(labels == 0)
-#   true <- which(labels == 1)
-#   for (alpha in alphas) {
-#     # idx <- intersect(c(which(ts <= alpha), which(uci <= alpha)), which(ci >= 1-alpha))
-#     cond <- which(score > alpha)
-#     tpr <- c(tpr, length(intersect(cond, true)) / length(true))
-#     fpr <- c(fpr, length(intersect(cond, false)) / length(ts))
-#   }
-#   return(list(tpr=tpr, fpr=fpr))
-# }
