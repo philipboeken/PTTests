@@ -2,4 +2,5 @@
 !.gitignore
 !pval-roc-tests
 !lcd-roc-tests
+!example-pcor-fail
 !pval-to-bf-convergence-tests
