@@ -53,7 +53,7 @@ suppressMessages(library(ROCR))
   return((X - min(X)) / (max(X) - min(X)))
 }
 
-pplot_roc <- function(labels, predictions, title=NULL) {
+pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25)) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
@@ -69,7 +69,7 @@ pplot_roc <- function(labels, predictions, title=NULL) {
   plt <- ggplot() + 
     labs(x="False Positive Rate", y="True Positive Rate", title=title) +
     theme(legend.title = element_blank(),
-          legend.position = c(0.78, 0.25),
+          legend.position = legend_pos,
           plot.title = element_text(size=12, hjust=0.5))
   for (roc in roc_data) {
     c <- paste(roc$name, ' (', roc$auc, ')', sep="")
@@ -79,12 +79,12 @@ pplot_roc <- function(labels, predictions, title=NULL) {
   return(plt)
 }
 
-pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
+pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
     name <- colnames(ts_res)[i]
     bayes <- (name == 'bayes')
-    res <- .lcd_performance(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
+    res <- .lcd_performance(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes, opt)
     x <- res$fpr
     y <- res$tpr
     roc_data[[name]] <- list(data=data.frame(x=x, y=y), auc=res$auc, name=name)
@@ -103,7 +103,7 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   return(plt)
 }
 
-.lcd_performance <- function(labels, ts, uci, ci, bayes) {
+.lcd_performance <- function(labels, ts, uci, ci, bayes, opt=1) {
   
   alphas <- sort(c(Inf, ts, uci, ci), TRUE)
   
@@ -116,7 +116,12 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   fp <- c()
   tp <- c()
   for (alpha in alphas) {
-    idx <- intersect(intersect(which(ts >= alpha), which(uci >= alpha)), which(ci >= min(alpha, a)))
+    if (opt) {
+      idx <- intersect(intersect(which(ts >= alpha), which(uci >= alpha)), which(ci >= min(alpha, a)))
+    } else {
+      idx <- intersect(intersect(which(ts >= alpha), which(uci >= alpha)), which(ci >= a))
+    }
+    # idx <- intersect(intersect(which(ts >= alpha), which(uci >= alpha)), which(ci >= alpha))
     tp <- c(tp, length(intersect(idx, true)))
     fp <- c(fp, length(intersect(idx, false)))
   }
