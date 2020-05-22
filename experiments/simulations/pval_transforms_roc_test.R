@@ -14,8 +14,8 @@ suppressWarnings(library(cowplot))
 
 # Input parameters
 ##############################################
-n <- 500
-m <- 800
+n <- 300
+m <- 300
 
 err_sd <- 0.1
 
@@ -25,15 +25,15 @@ p_two_sample <- 0.5
 
 nonlin_options <- c(
   linear,
-  parabolic
-  # sinusoidal
+  parabolic,
+  sinusoidal
 )
 
 interv_options <- c(
   mean_shift,
-  # variance_shift,
-  fixed_point
-  # mixture
+  variance_shift,
+  fixed_point,
+  mixture
 )
 
 
@@ -147,11 +147,11 @@ registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci, 
                                           err_sd, nonlin_options, interv_options))
 pcor_results <- get_results(data, 'pcor')
-pcor_l_results <- get_results(data, 'pcor-log')
-bcor_pb_results <- get_results(data, 'bcor-pb')
+# pcor_l_results <- get_results(data, 'pcor-log')
+# bcor_pb_results <- get_results(data, 'bcor-pb')
 bcor_ly_results <- get_results(data, 'bcor-ly')
-bcor_wg_results <- get_results(data, 'bcor-wg')
-bcor_approx_results <- get_results(data, 'bcor-approx')
+# bcor_wg_results <- get_results(data, 'bcor-wg')
+# bcor_approx_results <- get_results(data, 'bcor-approx')
 bayes_results <- get_results(data, 'bayes')
 
 stopCluster(.cl)
@@ -162,13 +162,14 @@ stopCluster(.cl)
 
 grid <- plot_grid(
   pplot_roc(pcor_results[,1], pcor_results[,-1], 'pcor'),
-  pplot_roc(pcor_l_results[,1], pcor_l_results[,-1], 'pcor-log'),
-  pplot_roc(bayes_results[,1], bayes_results[,-1], 'bayes'),
+  # pplot_roc(pcor_l_results[,1], pcor_l_results[,-1], 'pcor-log'),
+  # pplot_roc(bayes_results[,1], bayes_results[,-1], 'bayes'),
   pplot_roc(bcor_ly_results[,1], bcor_ly_results[,-1], 'bcor_ly'),
-  pplot_roc(bcor_approx_results[,1], bcor_approx_results[,-1], 'bcor_approx'),
-  pplot_roc(bcor_wg_results[,1], bcor_wg_results[,-1], 'bcor_wg'),
-  pplot_roc(bcor_pb_results[,1], bcor_pb_results[,-1], 'bcor_pb'),
-  nrow=3
+  # pplot_roc(bcor_approx_results[,1], bcor_approx_results[,-1], 'bcor_approx'),
+  # pplot_roc(bcor_wg_results[,1], bcor_wg_results[,-1], 'bcor_wg'),
+  # pplot_roc(bcor_pb_results[,1], bcor_pb_results[,-1], 'bcor_pb'),
+  pplot_roc(bayes_results[,1], bayes_results[,-1], 'bcor'),
+  nrow=1
 )
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
@@ -176,7 +177,7 @@ timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
 save.image(file=paste(.path, 'pval_test_',timestamp, ".Rdata", sep=""))
 
-.ggsave(paste(.path, 'pval_test_', timestamp, sep=""), grid, 35, 35)
-.ggsave(paste(.path, 'pval_test_last', sep=""), grid, 35, 35)
+.ggsave(paste(.path, 'pval_test_', timestamp, sep=""), grid, 30, 10)
+.ggsave(paste(.path, 'pval_test_last', sep=""), grid, 30, 10)
 
 # plot(grid)

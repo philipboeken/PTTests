@@ -3,7 +3,6 @@ rm(list = ls(all.names = TRUE))
 
 # Imports
 source('independence_tests/test_wrappers.R')
-source('independence_tests/RhoBFP.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
 suppressWarnings(library(foreach))
@@ -17,7 +16,7 @@ library(latex2exp)
 n <- 400
 m <- 500
 
-err_sd <- 0.1
+err_sd <- 0.5
 
 p_ci <- 0.6
 p_link <- 0.8
@@ -39,7 +38,7 @@ interv_options <- c(
 
 # Setup test
 ##############################################
-get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options) {
+get_data <- function() {
   C <- rbinom(n, 1, p_two_sample)
   
   cond_indep <- rbinom(1, 1, p_ci)
@@ -88,7 +87,7 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
               label_lcd=lcd))
 }
 
-get_results <- function(dataset, test, bayesian=FALSE){
+get_results <- function(dataset, test){
   result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
     data <- dataset[[i]]
     ts <- test(data$C, data$Z)
@@ -96,26 +95,14 @@ get_results <- function(dataset, test, bayesian=FALSE){
     ci <- test(data$C, data$X, data$Z)
     CZ <- test(data$C, data$Z)
     
-    if (bayesian) {
-      lcd_CY <- (ts <= 1/2) * (uci <= 1/2) * (ci > 1/2) * (1-CZ)
-    } else {
-      n <- length(data$C)
-      lcd_CY <- (ts <= 1/(5*sqrt(n))) * (uci <= 1/(5*sqrt(n))) * (ci > 1/(5*sqrt(n))) * (1-CZ)
-    }
-    
-    lcd_min <- min((1 - ts), (1 - uci), ci)
-    
     return(data.frame(
       label_ts=data$label_ts,
       label_uci=data$label_uci,
       label_ci=data$label_ci,
-      label_lcd_min=data$label_lcd,
-      label_lcd_CY=data$label_lcd,
+      label_lcd=data$label_lcd,
       ts=1-ts,
       uci=1-uci,
-      ci=ci,
-      lcd_min=lcd_min,
-      lcd_CY=lcd_CY
+      ci=ci
     ))
   }
   return(result)
@@ -127,21 +114,15 @@ get_results <- function(dataset, test, bayesian=FALSE){
 .cores <- detectCores()
 .cl <- makeForkCluster(.cores[1]-1)
 registerDoParallel(.cl)
-data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci, 
-                                          err_sd, nonlin_options, interv_options))
+data <- lapply(1:m, function (i) get_data())
 results <- list(
   pcor=get_results(data, .pcor_wrapper),
-  bayes=get_results(data, .bayes_wrapper, TRUE),
-  # bcor_pb=get_results(data, .bayes_transform(.pcor_wrapper))
-  # bcor=get_results(data, .bcor_wg_wrapper, TRUE),
-  # bcor_approx=get_results(data, .bcor_approx_wrapper),
-  bcor_ly=get_results(data, .bcor_ly_wrapper),
-  # gcm_bayes=get_results(data, .bayes_transform(.gcm_wrapper)),
+  # prcor=get_results(data, .prcor_wrapper),
+  bcor=get_results(data, .bcor_wg_wrapper),
   gcm=get_results(data, .gcm_wrapper),
-  # ccit=get_results(data, .ccit_wrapper),
-  # ccit_bayes=get_results(data, .bayes_transform(.ccit_wrapper)),
-  rcot=get_results(data, .rcot_wrapper)
-  # rcot_bayes=get_results(data, .bayes_transform(.rcot_wrapper))
+  rcot=get_results(data, .rcot_wrapper),
+  ccit=get_results(data, .ccit_wrapper),
+  bayes=get_results(data, .bayes_wrapper)
 )
 
 stopCluster(.cl)
@@ -161,28 +142,25 @@ stopCluster(.cl)
 ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
-lcd_min_results <- .get_results_by_type(results, 'lcd_min')
-lcd_CY_results <- .get_results_by_type(results, 'lcd_CY')
 
-t1 <- TeX('$(p_{CX} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\alpha)$')
-t2 <- TeX('$(p_{CX} < \\alpha_0) \\and (p_{XY} < \\alpha_0) \\and (p_{CY|X} > \\alpha_0) \\and (p_{CY} < \\alpha)$')
-t3 <- TeX('$(p_{CX} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\min(\\alpha, \\alpha_0))$')
-grid <- plot_grid(
-  # pplot_roc(ts_results[,1], ts_results[,-1], 'Two-sample test'), 
-  # pplot_roc(uci_results[,1], uci_results[,-1], 'Continuous independence test'), 
-  # pplot_roc(ci_results[,1], ci_results[,-1], 'Conditional two-sample test'), 
-  pplot_roc(lcd_min_results[,1], lcd_min_results[,-1], t1),
-  pplot_roc(lcd_CY_results[,1], lcd_CY_results[,-1], t2),
-  pplot_roc_custom(lcd_min_results[,1], ts_results[,-1], uci_results[,-1], ci_results[,-1], t3),
-  nrow=1
-)
-plot(grid)
+.plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1])
+.plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1])
+.plot_ci <- pplot_roc(ci_results[,1], ci_results[,-1], freq_default=0.99)
+.plot_lcd <- pplot_roc_custom(results$bayes[,'label_lcd'], ts_results[,-1], uci_results[,-1], ci_results[,-1])
+
+grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow=1)
+
+# plot(grid)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-roc-tests/'
 
 save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, '.Rdata', sep=''))
 
-.ggsave(paste(.path, 'lcd-roc-tests_', timestamp, sep=''), grid, 30, 10)
-.ggsave(paste(.path, 'lcd-roc-tests_last', sep=''), grid, 30, 10)
+.ggsave(paste(.path, 'lcd-roc-tests_', timestamp, sep=''), grid, 40, 10)
+.ggsave(paste(.path, 'lcd-roc-tests_last', sep=''), grid, 40, 10)
+.ggsave(paste(.path, 'plot_ts', sep=''), .plot_ts, 10, 10)
+.ggsave(paste(.path, 'plot_uci', sep=''), .plot_uci, 10, 10)
+.ggsave(paste(.path, 'plot_ci', sep=''), .plot_ci, 10, 10)
+.ggsave(paste(.path, 'plot_lcd', sep=''), .plot_lcd, 10, 10)
 

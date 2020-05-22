@@ -30,22 +30,11 @@ use_python('/usr/local/bin/python3')
   return(pcor.test(X, Y, Z)$p.value)
 }
 
-.bayes_transform <- function(test, beta1=1, beta2=1/2) {
-  return(
-    function(X, Y, Z=NULL) {
-      n <- length(X)
-      p <- test(X, Y, Z)
-      alpha <- (1 / (n + 2^(1/beta1)))^beta1
-      m <- 1 - (1 / (n + 2^(1/beta2)))^beta2
-      w <- 1/n
-      if (p <= alpha) {
-        p0 <- p * m * alpha
-      } else {
-        p0 <- 1 - (1-m) * (1-p) / (1-alpha)
-      }
-      return(m * w + p0 * (1-w))
-    }
-  )
+.prcor_wrapper <- function(X, Y, Z=NULL) {
+  if (is.null(Z) || length(Z) == 0) {
+    return(cor.test(X, Y, method='spearman')$p.value)
+  }
+  return(pcor.test(X, Y, Z, method='spearman')$p.value)
 }
 
 .gcm_wrapper <- function(X, Y, Z=NULL) {
