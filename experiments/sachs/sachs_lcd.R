@@ -8,17 +8,7 @@ suppressWarnings(library(foreach))
 suppressWarnings(library(doParallel))
 suppressWarnings(library(cowplot))
 suppressWarnings(library(readr))
-
-
-# Input parameters
-##############################################
-test_ensembles <- c(
-  .bayes_wrapper,
-  .pcor_wrapper,
-  .gcm_wrapper,
-  .rcot_wrapper,
-  .ccit_wrapper
-)
+suppressWarnings(library(Rgraphviz))
 
 
 # Setup test
@@ -36,19 +26,33 @@ sachs_data_pooled <- read_csv("experiments/sachs/sachs_data_pooled.csv",
 
 .system_vars <- setdiff(colnames(sachs_data_pooled), c(.context_vars, 'experiment'))
 
-pos_lcd_triples <- as.matrix(expand.grid(C=.context_vars, X=.system_vars, Y=.system_vars))
-pos_lcd_triples <- pos_lcd_triples[which(pos_lcd_triples[ ,2] != pos_lcd_triples[ ,3]), ]
+CX_combos <- as.matrix(expand.grid(C=.context_vars, X=.system_vars))
+XY_combos <- as.matrix(expand.grid(X=.system_vars, Y=.system_vars))
+XY_combos <- CX_combos[which(CX_combos[ ,1] != CX_combos[ ,2]), ]
+lcd_triples <- as.matrix(expand.grid(C=.context_vars, X=.system_vars, Y=.system_vars))
+lcd_triples <- lcd_triples[which(lcd_triples[ ,2] != lcd_triples[ ,3]), ]
 
 get_results <- function(test) {
-  result <- foreach(i=1:nrow(pos_lcd_triples), .combine=rbind) %dopar% {
-    lcd_triple <- pos_lcd_triples[i,]
-    idx <- which(sachs_data_pooled[,lcd_triple[1]] == 1 | sachs_data_pooled[,'experiment'] == 1)
+  CX_test_results <- foreach(i=1:nrow(CX_combos), .combine=rbind) %dopar% {
+    C <- CX_combos[i,1]
+    X <- CX_combos[i,2]
+    idx <- which(sachs_data_pooled[, C] == 1 | sachs_data_pooled[,'experiment'] == 1)
+    data <- as.matrix(sachs_data_pooled[idx, c(C, X)])
+    CX <- test(data[,1], data[,2])
+    return(data.frame(C=C, X=X, CX=CX))
+  }
+  
+  result <- foreach(i=1:nrow(lcd_triples), .combine=rbind) %dopar% {
+    lcd_triple <- lcd_triples[i,]
+    C <- lcd_triple[1]
+    X <- lcd_triple[2]
+    Y <- lcd_triple[3]
+    idx <- which(sachs_data_pooled[,C] == 1 | sachs_data_pooled[,'experiment'] == 1)
     data <- as.matrix(sachs_data_pooled[idx, lcd_triple])
-    ts <- test(data[,1], data[,2])
-    uci <- test(data[,2], data[,3])
-    ci <- test(data[,1], data[,2], data[,3])
-    lcd <- min((1 - ts), (1 - uci), ci)
-    return(data.frame(ts=ts, uci=uci, ci=ci, lcd=lcd))
+    CX <- CX_test_results[which(CX_test_results[,'C'] == C &  CX_test_results[,'X'] == X), 'CX']
+    XY <- test(data[,2], data[,3])
+    CY_X <- test(data[,1], data[,3], data[,2])
+    return(data.frame(C=C, X=X, Y=Y, CX=CX, XY=XY, CY_X=CY_X))
   }
   return(result)
 }
@@ -62,10 +66,8 @@ registerDoParallel(.cl)
 
 results <- list(
   pcor=get_results(.pcor_wrapper),
-  bayes=get_results(.bayes_wrapper),
-  gcm=get_results(.gcm_wrapper),
-  ccit=get_results(.ccit_wrapper),
-  rcot=get_results(.rcot_wrapper)
+  rcot=get_results(.rcot_wrapper),
+  bayes=get_results(.bayes_wrapper)
 )
 
 stopCluster(.cl)
@@ -75,5 +77,20 @@ stopCluster(.cl)
 ##############################################
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+.path <- 'experiments/sachs/output/'
 
-save.image(file=paste('experiments/sachs/output/sachs_output_', timestamp, ".Rdata", sep=""))
+bayes_triples <- filter(results$bayes, CX <= 0.1, XY <= 0.1, CY_X >= 0.9)
+.output_graph(bayes_triples, .path, 'sachs_output_bayes')
+.output_sachs_plots(sachs_data_pooled, bayes_triples, paste(.path, 'sachs_output_bayes_deep', sep=''))
+
+pcor_triples <- filter(results$pcor, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
+.output_graph(pcor_triples, .path, 'sachs_output_pcor')
+.output_sachs_plots(sachs_data_pooled, pcor_triples, paste(.path, 'sachs_output_pcor', sep=''))
+
+rcot_triples <- filter(results$rcot, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
+.output_graph(rcot_triples, .path, 'sachs_output_rcot')
+.output_sachs_plots(sachs_data_pooled, rcot_triples, paste(.path, 'sachs_output_rcot', sep=''))
+
+save.image(file=paste(.path, timestamp, ".Rdata", sep=""))
+
+
