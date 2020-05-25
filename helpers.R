@@ -7,7 +7,7 @@ suppressMessages(library(ROCR))
     ggplot(data.frame(y,x), aes(x, y)) + geom_count()
   } else {
     result <- bayes.UCItest(x, y)
-    cat("\nBF(H0, H1):\t", result$bf, "\nP(H1 | XY):\t", result$p_H1, "\n")
+    cat("\nBF(H0, H1):\t", result$bf, "\nP(H0 | XY):\t", result$p_H0, "\n")
     ggplot(data.frame(y,x), aes(x, y)) + geom_point() +
       labs(x = substitute(x), y = substitute(y))
   }
@@ -147,10 +147,56 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1)
     plot = grid, scale = 1,
     width = width,
     height = height,
-    units = "cm", dpi = 300, limitsize = TRUE
+    units = "cm", dpi = 300, limitsize = FALSE
   )
 }
 
+.output_graph <- function(lcd_triples, path, name) {
+  .context <- unique(as.character(lcd_triples[,'C']))
+  .system <- unique(c(as.character(lcd_triples[,'X']), as.character(lcd_triples[,'Y'])))
+  .edges <- unique(rbind(as.matrix(lcd_triples[,c('C', 'X')]), as.matrix(lcd_triples[,c('X', 'Y')])))
+  output <- "digraph G {"
+  for (node in .context) {
+    output <- paste(output, sprintf("\"%s\"[label=\"%s\", shape=box];", node, node), sep="\n")
+  }
+  for (node in .system) {
+    output <- paste(output, sprintf("\"%s\"[label=\"%s\", shape=oval];", node, node), sep="\n")
+  }
+  for (i in 1:nrow(.edges)) {
+    output <- paste(output, sprintf(
+      "\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"];",
+      .edges[i, 1],
+      .edges[i, 2]),
+      sep="\n")
+  }
+  output <- paste(output, "}", sep="\n")
+  
+  write(output, file=paste(path, name, ".dot", sep=""))
+}
 
-
-
+.output_sachs_plots <- function(all_data_pooled, results, filename) {  
+  .plot_lcd_triple <- function(C, X, Y, title) {
+    idx <- which(all_data_pooled[,C] == 1 | all_data_pooled[,'experiment'] == 1)
+    data <- as.data.frame(all_data_pooled[idx, c(C, X, Y)])
+    colnames(data) <- c('C', 'X', 'Y')
+    data[,'C'] <- as.factor(data[,'C'])
+    return(ggplot() + geom_point(data=data, aes(x=X, y=Y, colour=C)) + 
+             labs(x="X", y="Y", title=title) +
+             theme(legend.title = element_blank(),
+                   legend.position = c(0.87, 0.12)) +
+             scale_color_manual(labels = c("C=0", "C=1"), values = c("blue", "red")))
+  }
+  
+  plots <- list()
+  for (i in 1:nrow(results)) {
+    C <- as.character(results[i,'C'])
+    X <- as.character(results[i,'X'])
+    Y <- as.character(results[i,'Y'])
+    plots[[i]] <- .plot_lcd_triple(
+      C, X, Y, sprintf("%s -> %s -> %s\nCX: %.3f, XY:  %.3f, CY|X:  %.3f",
+                       C, X, Y, results[i,'CX'], results[i,'XY'], results[i,'CY_X']))
+  }
+  
+  grid <- plot_grid(plotlist=as.list(plots), ncol=5, nrow=ceiling(nrow(results)/5))
+  .ggsave(filename, grid, 50, ceiling(nrow(results)/5)*12)
+}
