@@ -26,6 +26,10 @@ sachs_data_pooled <- read_csv("experiments/sachs/sachs_data_pooled.csv",
 
 .system_vars <- setdiff(colnames(sachs_data_pooled), c(.context_vars, 'experiment'))
 
+# Remove zero's?
+# idx <- apply(sachs_data_pooled, 1, function(row) all(row[.system_vars] !=0 ))
+# sachs_data_pooled <- sachs_data_pooled[idx,]
+
 CX_combos <- as.matrix(expand.grid(C=.context_vars, X=.system_vars))
 XY_combos <- as.matrix(expand.grid(X=.system_vars, Y=.system_vars))
 XY_combos <- CX_combos[which(CX_combos[ ,1] != CX_combos[ ,2]), ]
@@ -81,15 +85,18 @@ timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
 bayes_triples <- filter(results$bayes, CX <= 0.1, XY <= 0.1, CY_X >= 0.9)
 .output_graph(bayes_triples, .path, 'sachs_output_bayes')
-.output_sachs_plots(sachs_data_pooled, bayes_triples, paste(.path, 'sachs_output_bayes_deep', sep=''))
+.output_sachs_plots(sachs_data_pooled, bayes_triples,
+                    paste(.path, 'sachs_output_bayes', sep=''))
 
 pcor_triples <- filter(results$pcor, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
 .output_graph(pcor_triples, .path, 'sachs_output_pcor')
-.output_sachs_plots(sachs_data_pooled, pcor_triples, paste(.path, 'sachs_output_pcor', sep=''))
+.output_sachs_plots(sachs_data_pooled, pcor_triples,
+                    paste(.path, 'sachs_output_pcor', sep=''))
 
 rcot_triples <- filter(results$rcot, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
 .output_graph(rcot_triples, .path, 'sachs_output_rcot')
-.output_sachs_plots(sachs_data_pooled, rcot_triples, paste(.path, 'sachs_output_rcot', sep=''))
+.output_sachs_plots(sachs_data_pooled, rcot_triples,
+                    paste(.path, 'sachs_output_rcot', sep=''))
 
 save.image(file=paste(.path, timestamp, ".Rdata", sep=""))
 
