@@ -13,12 +13,13 @@ suppressMessages(library(ROCR))
   }
 }
 
-pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25), freq_default=0.01) {
+pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25), 
+                      freq_default=0.01, label.ordering=c(1,0)) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
     name <- colnames(predictions)[i]
-    pred <- prediction(predictions[,i], labels)
+    pred <- prediction(predictions[,i], labels, label.ordering)
     res <- performance(pred, "tpr", "fpr")
     auc <- round(performance(pred, "auc")@y.values[[1]], 3)
     x <- res@x.values[[1]]
@@ -45,12 +46,12 @@ pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
   return(plt)
 }
 
-pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1) {
+pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
     name <- colnames(ts_res)[i]
-    bayes <- (name == 'bayes')
-    roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes, opt)
+    bayes <- (name == 'bayes' || name == 'bcor')
+    roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
     dot <- .lcd_roc_dot(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
     info <- paste(name, ' (', roc$auc, ')', sep="")
     roc_data[[name]] <- list(data=data.frame(x=roc$fpr, y=roc$tpr), 
@@ -72,7 +73,7 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1)
   return(plt)
 }
 
-.lcd_roc <- function(labels, ts, uci, ci, bayes, opt=1) {
+.lcd_roc <- function(labels, ts, uci, ci, bayes) {
   alphas <- sort(c(ts, uci, ci), TRUE)
   alphas <- alphas[alphas != 0]
   
@@ -85,14 +86,9 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1)
   fp <- c()
   tp <- c()
   for (alpha in rev(alphas)) {
-    
-    if (opt == 1) {
-      idx <- intersect(intersect(which(1-ts <= alpha), which(1-uci <= alpha)), which(ci >= min(a, 1-alpha)))
-    } else if (opt == 2) {
-      idx <- intersect(intersect(which(ts >= alpha), which(uci >= alpha)), which(ci >= a))
-    } else {
-      idx <- intersect(intersect(which(ts >= alpha), which(uci >= alpha)), which(ci >= alpha))
-    }
+    idx <- which(1-ts <= alpha)
+    idx <- intersect(idx, which(1-uci <= alpha))
+    idx <- intersect(idx, which(1-ci >= min(a, 1-alpha)))
     
     tp <- c(tp, length(intersect(idx, true)))
     fp <- c(fp, length(intersect(idx, false)))
@@ -122,7 +118,7 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1)
   true <- which(labels == 1)
   n <- length(labels)
   alpha <- ifelse(bayes, 0.5, 0.01)
-  idx <- intersect(intersect(which(1-ts <= alpha), which(1-uci <= alpha)), which(ci >= alpha))
+  idx <- intersect(intersect(which(1-ts <= alpha), which(1-uci <= alpha)), which(1-ci >= alpha))
   tpr <- length(intersect(idx, true)) / length(true)
   fpr <- length(intersect(idx, false)) / length(false)
   return(list(tpr=tpr, fpr=fpr))
@@ -154,7 +150,8 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1)
 .output_graph <- function(lcd_triples, path, name) {
   .context <- unique(as.character(lcd_triples[,'C']))
   .system <- unique(c(as.character(lcd_triples[,'X']), as.character(lcd_triples[,'Y'])))
-  .edges <- unique(rbind(as.matrix(lcd_triples[,c('C', 'X')]), as.matrix(lcd_triples[,c('X', 'Y')])))
+  .edges <- unique(rbind(as.matrix(lcd_triples[,c('C', 'X')]), 
+                         as.matrix(lcd_triples[,c('X', 'Y')])))
   output <- "digraph G {"
   for (node in .context) {
     output <- paste(output, sprintf("\"%s\"[label=\"%s\", shape=box];", node, node), sep="\n")
@@ -199,4 +196,13 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL, opt=1)
   
   grid <- plot_grid(plotlist=as.list(plots), ncol=5, nrow=ceiling(nrow(results)/5))
   .ggsave(filename, grid, 50, ceiling(nrow(results)/5)*12)
+}
+
+plot_times <- function(times, title=NULL) {
+  return(ggplot(data=times, aes(x=ensemble, y=time, fill=test)) +
+           geom_col() +
+           labs(x="Test ensemble", y="Runtime (sec.)", title=title) +
+           # scale_y_log10() +
+           coord_flip()
+  )
 }

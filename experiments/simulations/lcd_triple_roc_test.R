@@ -13,8 +13,10 @@ library(latex2exp)
 
 # Input parameters
 ##############################################
+set.seed(0)
+
 n <- 400
-m <- 500
+m <- 2000
 
 err_sd <- 0.5
 
@@ -83,17 +85,25 @@ get_data <- function() {
   return(list(C=C, X=X, Z=Z,
               label_ts=as.numeric(intervene),
               label_uci=as.numeric(link_nonlin),
-              label_ci=cond_indep,
+              label_ci=1-cond_indep,
               label_lcd=lcd))
 }
 
 get_results <- function(dataset, test){
   result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
     data <- dataset[[i]]
+    
+    start_time_ts <- Sys.time()
     ts <- test(data$C, data$Z)
+    end_time_ts <- Sys.time()
+    
+    start_time_uci <- Sys.time()
     uci <- test(data$Z, data$X)
+    end_time_uci <- Sys.time()
+    
+    start_time_ci <- Sys.time()
     ci <- test(data$C, data$X, data$Z)
-    CZ <- test(data$C, data$Z)
+    end_time_ci <- Sys.time()
     
     return(data.frame(
       label_ts=data$label_ts,
@@ -102,7 +112,10 @@ get_results <- function(dataset, test){
       label_lcd=data$label_lcd,
       ts=1-ts,
       uci=1-uci,
-      ci=ci
+      ci=1-ci,
+      time_ts=end_time_ts - start_time_ts,
+      time_uci=end_time_uci - start_time_uci,
+      time_ci=end_time_ci - start_time_ci
     ))
   }
   return(result)
@@ -117,7 +130,7 @@ registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data())
 results <- list(
   pcor=get_results(data, .pcor_wrapper),
-  # prcor=get_results(data, .prcor_wrapper),
+  prcor=get_results(data, .prcor_wrapper),
   bcor=get_results(data, .bcor_wg_wrapper),
   gcm=get_results(data, .gcm_wrapper),
   rcot=get_results(data, .rcot_wrapper),
@@ -139,18 +152,26 @@ stopCluster(.cl)
   return(result)
 }
 
+times <- foreach(test=names(results), .combine=rbind) %do% {
+  rbind(c(test, 'ts', sum(results[[test]][,'time_ts'])),
+        c(test, 'uci', sum(results[[test]][,'time_uci'])),
+        c(test, 'ci', sum(results[[test]][,'time_ci'])))
+}
+times <- data.frame(ensemble=times[,1], test=times[,2], time=as.double(times[,3]))
+
 ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
 
-.plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1])
-.plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1])
-.plot_ci <- pplot_roc(ci_results[,1], ci_results[,-1], freq_default=0.99)
-.plot_lcd <- pplot_roc_custom(results$bayes[,'label_lcd'], ts_results[,-1], uci_results[,-1], ci_results[,-1])
+.plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05, label.ordering=c(0,1))
+.plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05, label.ordering=c(0,1))
+.plot_ci <- pplot_roc(ci_results[,1], ci_results[,-1], freq_default=0.95, label.ordering=c(0,1))
+.plot_lcd <- pplot_roc_custom(results$bayes[,'label_lcd'], ts_results[,-1], 
+                              uci_results[,-1], ci_results[,-1])
 
 grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow=1)
 
-# plot(grid)
+.plot_time <- plot_times(times)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-roc-tests/'
@@ -163,4 +184,4 @@ save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, '.Rdata', sep=''))
 .ggsave(paste(.path, 'plot_uci', sep=''), .plot_uci, 10, 10)
 .ggsave(paste(.path, 'plot_ci', sep=''), .plot_ci, 10, 10)
 .ggsave(paste(.path, 'plot_lcd', sep=''), .plot_lcd, 10, 10)
-
+.ggsave(paste(.path, 'plot_times', sep=''), .plot_time, 10, 10)
