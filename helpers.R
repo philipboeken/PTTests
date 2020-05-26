@@ -13,13 +13,12 @@ suppressMessages(library(ROCR))
   }
 }
 
-pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25), 
-                      freq_default=0.01, label.ordering=c(1,0)) {
+pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25), freq_default=0.01) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
     name <- colnames(predictions)[i]
-    pred <- prediction(predictions[,i], labels, label.ordering)
+    pred <- prediction(-predictions[,i], labels)
     res <- performance(pred, "tpr", "fpr")
     auc <- round(performance(pred, "auc")@y.values[[1]], 3)
     x <- res@x.values[[1]]
@@ -86,9 +85,9 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   fp <- c()
   tp <- c()
   for (alpha in rev(alphas)) {
-    idx <- which(1-ts <= alpha)
-    idx <- intersect(idx, which(1-uci <= alpha))
-    idx <- intersect(idx, which(1-ci >= min(a, 1-alpha)))
+    idx <- which(ts <= alpha)
+    idx <- intersect(idx, which(uci <= alpha))
+    idx <- intersect(idx, which(ci >= min(a, 1-alpha)))
     
     tp <- c(tp, length(intersect(idx, true)))
     fp <- c(fp, length(intersect(idx, false)))
@@ -103,11 +102,11 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
 }
 
 .roc_dot <- function(labels, predictions, bayes, freq_default=0.01) {
-  false <- which(labels == 0)
-  true <- which(labels == 1)
+  true <- which(labels == 0)
+  false <- which(labels == 1)
   n <- length(labels)
-  alpha <- ifelse(bayes, 0.5, 1-freq_default)
-  idx <- which(predictions >= alpha)
+  alpha <- ifelse(bayes, 0.5, freq_default)
+  idx <- which(predictions <= alpha)
   tpr <- length(intersect(idx, true)) / length(true)
   fpr <- length(intersect(idx, false)) / length(false)
   return(list(tpr=tpr, fpr=fpr))
@@ -118,7 +117,9 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   true <- which(labels == 1)
   n <- length(labels)
   alpha <- ifelse(bayes, 0.5, 0.01)
-  idx <- intersect(intersect(which(1-ts <= alpha), which(1-uci <= alpha)), which(1-ci >= alpha))
+  idx <- which(ts <= alpha)
+  idx <- intersect(idx, which(uci <= alpha))
+  idx <- intersect(idx, which(ci >= alpha))
   tpr <- length(intersect(idx, true)) / length(true)
   fpr <- length(intersect(idx, false)) / length(false)
   return(list(tpr=tpr, fpr=fpr))

@@ -16,7 +16,7 @@ library(latex2exp)
 set.seed(0)
 
 n <- 400
-m <- 2000
+m <- 200
 
 err_sd <- 0.5
 
@@ -83,9 +83,9 @@ get_data <- function() {
   lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
   return(list(C=C, X=X, Z=Z,
-              label_ts=as.numeric(intervene),
-              label_uci=as.numeric(link_nonlin),
-              label_ci=1-cond_indep,
+              label_ts=1-as.numeric(intervene),
+              label_uci=1-as.numeric(link_nonlin),
+              label_ci=cond_indep,
               label_lcd=lcd))
 }
 
@@ -110,9 +110,9 @@ get_results <- function(dataset, test){
       label_uci=data$label_uci,
       label_ci=data$label_ci,
       label_lcd=data$label_lcd,
-      ts=1-ts,
-      uci=1-uci,
-      ci=1-ci,
+      ts=ts,
+      uci=uci,
+      ci=ci,
       time_ts=end_time_ts - start_time_ts,
       time_uci=end_time_uci - start_time_uci,
       time_ci=end_time_ci - start_time_ci
@@ -145,7 +145,13 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  result <- data.frame(label=results$bayes[,{{paste('label_',type, sep='')}}])
+  labels <- results$bayes[,{{paste('label_',type, sep='')}}]
+  if (type == "ts" || type == 'uci') {
+    labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
+  } else {
+    labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
+  }
+  result <- data.frame(label=labels)
   for (test in names(results)) {
     result[test] <- results[[test]][,type]
   }
@@ -163,11 +169,12 @@ ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
 
-.plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05, label.ordering=c(0,1))
-.plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05, label.ordering=c(0,1))
-.plot_ci <- pplot_roc(ci_results[,1], ci_results[,-1], freq_default=0.95, label.ordering=c(0,1))
-.plot_lcd <- pplot_roc_custom(results$bayes[,'label_lcd'], ts_results[,-1], 
-                              uci_results[,-1], ci_results[,-1])
+labels_lcd <- factor(results$bayes[,'label_lcd'], ordered = TRUE, levels = c(1,0))
+
+.plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05)
+.plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05)
+.plot_ci <- pplot_roc(ci_results[,1], ci_results[,-1], freq_default=0.05)
+.plot_lcd <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1])
 
 grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow=1)
 
