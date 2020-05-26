@@ -24,9 +24,9 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
     X1 <- data[data[,2] == 0, 1]
     X2 <- data[data[,2] == 1, 1]
 
-    p_xy <- .pt_logl(X, low=0, up=1, c=c, depth=1, max_depth, qdist)
-    p_x <- .pt_logl(X1, low=0, up=1, c=c, depth=1, max_depth, qdist)
-    p_y <- .pt_logl(X2, low=0, up=1, c=c, depth=1, max_depth, qdist)
+    p_xy <- .pt_logl(X, low=0, up=1, c=1*c, depth=1, max_depth, qdist)
+    p_x <- .pt_logl(X1, low=0, up=1, c=1*c, depth=1, max_depth, qdist)
+    p_y <- .pt_logl(X2, low=0, up=1, c=1*c, depth=1, max_depth, qdist)
 
     bf <- exp(p_xy - p_x - p_y)
     
@@ -36,9 +36,9 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
     Y <- scale(Y)
     XY <- cbind(X, Y)
 
-    p_x <- .pt_logl(X, low=0, up=1, c=c, depth=1, max_depth, qdist)
-    p_y <- .pt_logl(Y, low=0, up=1, c=c, depth=1, max_depth, qdist)
-    p_xy <- .pt_logl(XY, low=c(0, 0), up=c(1, 1), c=c, depth=1, max_depth, qdist)
+    p_x <- .pt_logl(X, low=0, up=1, c=2*c, depth=1, max_depth, qdist)
+    p_y <- .pt_logl(Y, low=0, up=1, c=2*c, depth=1, max_depth, qdist)
+    p_xy <- .pt_logl(XY, low=c(0, 0), up=c(1, 1), c=1*c, depth=1, max_depth, qdist)
 
     bf <- exp(p_x + p_y - p_xy)
     
@@ -92,7 +92,7 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
 
 .logl_j <- function(n_j, a_j) {
   if (length(n_j) == 2) {
-    return(lbeta(n_j[1] + 2*a_j, n_j[2] + 2*a_j) - lbeta(2*a_j, 2*a_j))
+    return(lbeta(n_j[1] + a_j, n_j[2] + a_j) - lbeta(a_j, a_j))
   } else {
     return(.lmbeta(n_j[1] + a_j, n_j[2] + a_j, n_j[3] + a_j, n_j[4] + a_j) -
              .lmbeta(a_j, a_j, a_j, a_j))

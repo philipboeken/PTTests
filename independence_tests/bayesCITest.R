@@ -38,9 +38,9 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
     X1Z <- data[data[,2] == 0, c(1, 3)]
     X2Z <- data[data[,2] == 1, c(1, 3)]
     
-    p_x <- .opt_pt(XZ, 1, 2, z_min=0, z_max=1, c, rho, depth=1, max_depth, qdist)
-    p_x1 <- .opt_pt(X1Z, 1, 2, z_min=0, z_max=1, c, rho, depth=1, max_depth, qdist)
-    p_x2 <- .opt_pt(X2Z, 1, 2, z_min=0, z_max=1, c, rho, depth=1, max_depth, qdist)
+    p_x <- .opt_pt(XZ, 1, 2, z_min=0, z_max=1, c=1*c, rho=rho, depth=1, max_depth, qdist)
+    p_x1 <- .opt_pt(X1Z, 1, 2, z_min=0, z_max=1, c=1*c, rho=rho, depth=1, max_depth, qdist)
+    p_x2 <- .opt_pt(X2Z, 1, 2, z_min=0, z_max=1, c=1*c, rho=rho, depth=1, max_depth, qdist)
 
     bf <- exp(p_x - p_x1 - p_x2)
 
@@ -48,9 +48,9 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
 
     XYZ <- cbind(scale(X), scale(Y), scale(Z))
 
-    phi_x <- .opt_pt(XYZ, 1, 3, z_min=0, z_max=1, c, rho, depth=1, max_depth, qdist)
-    phi_y <- .opt_pt(XYZ, 2, 3, z_min=0, z_max=1, c=c, rho=rho, depth=1, max_depth, qdist)
-    phi_xy <- .opt_pt(XYZ, c(1, 2), 3, z_min=0, z_max=1, c=c, rho=rho, depth=1, max_depth, qdist)
+    phi_x <- .opt_pt(XYZ, 1, 3, z_min=0, z_max=1, c=2*c, rho=rho, depth=1, max_depth, qdist)
+    phi_y <- .opt_pt(XYZ, 2, 3, z_min=0, z_max=1, c=2*c, rho=rho, depth=1, max_depth, qdist)
+    phi_xy <- .opt_pt(XYZ, c(1, 2), 3, z_min=0, z_max=1, c=1*c, rho=rho, depth=1, max_depth, qdist)
 
     bf <- exp(phi_x + phi_y - phi_xy)
 
