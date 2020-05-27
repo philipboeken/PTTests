@@ -69,8 +69,9 @@ get_results <- function(test) {
 registerDoParallel(.cl)
 
 results <- list(
-  pcor=get_results(.pcor_wrapper),
-  rcot=get_results(.rcot_wrapper),
+  # pcor=get_results(.pcor_wrapper),
+  # rcot=get_results(.rcot_wrapper),
+  # gcm=get_results(.gcm_wrapper),
   bayes=get_results(.bayes_wrapper)
 )
 
@@ -83,20 +84,45 @@ stopCluster(.cl)
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 .path <- 'experiments/sachs/output/'
 
-bayes_triples <- filter(results$bayes, CX <= 0.1, XY <= 0.1, CY_X >= 0.9)
-.output_graph(bayes_triples, .path, 'sachs_output_bayes')
-.output_sachs_plots(sachs_data_pooled, bayes_triples,
-                    paste(.path, 'sachs_output_bayes', sep=''))
+name <- 'sachs_output_bayes'
+bayes_triples_weak <- filter(results$bayes, CX <= 0.5, XY <= 0.5, CY_X >= 0.5)
+.output_graph(bayes_triples_weak, .path, name)
+system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
+.output_sachs_plots(sachs_data_pooled, bayes_triples_weak, paste(.path, name, sep=''))
 
-pcor_triples <- filter(results$pcor, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
-.output_graph(pcor_triples, .path, 'sachs_output_pcor')
-.output_sachs_plots(sachs_data_pooled, pcor_triples,
-                    paste(.path, 'sachs_output_pcor', sep=''))
+name <- 'sachs_output_bayes_medium_strict'
+bayes_triples_substantial <- filter(results$bayes, CX <= 0.2, XY <= 0.2, CY_X >= 0.8)
+.output_graph(bayes_triples_substantial, .path, name)
+system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
+.output_sachs_plots(sachs_data_pooled, bayes_triples_substantial, paste(.path, name, sep=''))
 
-rcot_triples <- filter(results$rcot, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
-.output_graph(rcot_triples, .path, 'sachs_output_rcot')
-.output_sachs_plots(sachs_data_pooled, rcot_triples,
-                    paste(.path, 'sachs_output_rcot', sep=''))
+name <- 'sachs_output_bayes_strict'
+bayes_triples_strong <- filter(results$bayes, CX <= 0.09, XY <= 0.09, CY_X >= 0.91)
+.output_graph(bayes_triples_strong, .path, name)
+system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
+.output_sachs_plots(sachs_data_pooled, bayes_triples_strong, paste(.path, name, sep=''))
+
+name <- 'sachs_output_bayes_levels'
+.output_graph_levels(bayes_triples_strong, bayes_triples_substantial, bayes_triples_weak, .path, name)
+system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
+
+# name <- 'sachs_output_pcor'
+# pcor_triples <- filter(results$pcor, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
+# .output_graph(pcor_triples, .path, name)
+# system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
+# .output_sachs_plots(sachs_data_pooled, pcor_triples, paste(.path, name, sep=''))
+# 
+# name <- 'sachs_output_rcot'
+# rcot_triples <- filter(results$rcot, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
+# .output_graph(rcot_triples, .path, name)
+# system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
+# .output_sachs_plots(sachs_data_pooled, rcot_triples, paste(.path, name, sep=''))
+# 
+# name <- 'sachs_output_gcm'
+# gcm_triples <- filter(results$gcm, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
+# .output_graph(gcm_triples, .path, name)
+# system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
+# .output_sachs_plots(sachs_data_pooled, gcm_triples, paste(.path, name, sep=''))
 
 save.image(file=paste(.path, timestamp, ".Rdata", sep=""))
 
