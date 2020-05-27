@@ -84,25 +84,25 @@ stopCluster(.cl)
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 .path <- 'experiments/sachs/output/'
 
-name <- 'sachs_output_bayes_rho_0_weak'
+name <- 'sachs_output_bayes_weak'
 bayes_triples_weak <- filter(results$bayes, CX <= 0.5, XY <= 0.5, CY_X >= 0.5)
 .output_graph(bayes_triples_weak, .path, name)
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
 .output_sachs_plots(sachs_data_pooled, bayes_triples_weak, paste(.path, name, sep=''))
 
-name <- 'sachs_output_bayes_rho_0_substantial'
+name <- 'sachs_output_bayes_substantial'
 bayes_triples_substantial <- filter(results$bayes, CX <= 0.2, XY <= 0.2, CY_X >= 0.8)
 .output_graph(bayes_triples_substantial, .path, name)
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
 .output_sachs_plots(sachs_data_pooled, bayes_triples_substantial, paste(.path, name, sep=''))
 
-name <- 'sachs_output_bayes_rho_0_strong'
+name <- 'sachs_output_bayes_strong'
 bayes_triples_strong <- filter(results$bayes, CX <= 0.09, XY <= 0.09, CY_X >= 0.91)
 .output_graph(bayes_triples_strong, .path, name)
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
 .output_sachs_plots(sachs_data_pooled, bayes_triples_strong, paste(.path, name, sep=''))
 
-name <- 'sachs_output_bayes_rho_0_levels'
+name <- 'sachs_output_bayes_levels'
 .output_graph_levels(bayes_triples_strong, bayes_triples_substantial, bayes_triples_weak, .path, name)
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
 
