@@ -1,6 +1,8 @@
 suppressMessages(library(ggplot2))
+require(scales)
 suppressMessages(library(plotly))
 suppressMessages(library(ROCR))
+suppressWarnings(library(dplyr))
 
 .pplot <- function(x, y, count=FALSE) {
   if (count) {
@@ -45,12 +47,13 @@ pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
   return(plt)
 }
 
-pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
+pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
+                             title=NULL, plot_point=TRUE, option=0) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
     name <- colnames(ts_res)[i]
-    bayes <- (name == 'bayes' || name == 'bcor')
-    roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
+    bayes <- (name == 'opt' || name == 'ppcor_b')
+    roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes, option)
     dot <- .lcd_roc_dot(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
     info <- paste(name, ' (', roc$auc, ')', sep="")
     roc_data[[name]] <- list(data=data.frame(x=roc$fpr, y=roc$tpr), 
@@ -58,21 +61,31 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
                              info=info)
   }
   
-  plt <- ggplot() + 
+  plt <- ggplot() +
+    xlim(0, 1) +
+    ylim(0, 1) +
     labs(x="False Positive Rate", y="True Positive Rate", title=title) +
     theme(legend.title = element_blank(),
           legend.position = c(0.78, 0.25),
           plot.title = element_text(size=12, hjust=0.5))
   for (roc in roc_data) {
     c <- roc$info
-    plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}})) + 
-      geom_point(data=roc$point, aes(x, y, colour={{c}}))
+    
+    if (option ==1) {
+      plt <- plt + geom_point(data=roc$data, aes(x, y, colour={{c}}), size=0.1)
+    } else {
+      plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
+    }
+    
+    if (plot_point) {
+      plt <- plt + geom_point(data=roc$point, aes(x, y, colour={{c}}))
+    }
   }
   
   return(plt)
 }
 
-.lcd_roc <- function(labels, ts, uci, ci, bayes) {
+.lcd_roc <- function(labels, ts, uci, ci, bayes, option=0) {
   alphas <- sort(c(ts, uci, ci), TRUE)
   alphas <- alphas[alphas != 0]
   
@@ -80,14 +93,26 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   true <- which(labels == 1)
   
   n <- length(labels)
-  a <- ifelse(bayes, 0.5, 1/(5*sqrt(n)))
+  a0 <- ifelse(bayes, 0.5, 1/(5*sqrt(n)))
   
   fp <- c()
   tp <- c()
   for (alpha in rev(alphas)) {
     idx <- which(ts <= alpha)
     idx <- intersect(idx, which(uci <= alpha))
-    idx <- intersect(idx, which(ci >= min(a, 1-alpha)))
+    if (option == 0) {
+      idx <- intersect(idx, which(ci >= min(a0, 1-alpha)))
+    } else if (option == 1) {
+      idx <- intersect(idx, which(ci >= alpha))
+    } else if (option == 2) {
+      idx <- intersect(idx, which(ci >= 1-alpha))
+    } else if (option == 3) {
+      idx <- intersect(idx, which(ci >= a0))
+    } else if (option == 4) {
+      idx <- which(ts <= a0)
+      idx <- intersect(idx, which(uci <= a0))
+      idx <- intersect(idx, which(ci >= 1-alpha))
+    }
     
     tp <- c(tp, length(intersect(idx, true)))
     fp <- c(fp, length(intersect(idx, false)))
@@ -96,9 +121,12 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   tpr <- tp / length(true)
   fpr <- fp / length(false)
   
-  auc <- .get_auc(tpr, fpr)
-  
-  return(list(tpr=c(0, tpr, 1), fpr=c(0, fpr, 1), auc=auc))
+  if (option == 1) {
+    return(list(tpr=c(0, tpr), fpr=c(0, fpr), auc="-"))
+  } else {
+    auc <- .get_auc(tpr, fpr)
+    return(list(tpr=c(0, tpr, 1), fpr=c(0, fpr, 1), auc=auc))
+  }
 }
 
 .roc_dot <- function(labels, predictions, bayes, freq_default=0.01) {
@@ -148,25 +176,87 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
   )
 }
 
+.graph_lines <- function(context, system, context_edges, system_edges, opts="", opts_context="") {
+  opts <- ifelse(opts != "", sprintf(", %s", opts), "")
+  opts_context <- ifelse(opts_context != "", sprintf(", %s", opts_context), "")
+  output <- ""
+  for (node in context) {
+    output <- sprintf(
+      "%s\n\"%s\"[label=\"%s\", shape=box%s];", 
+      output, node, node, opts_context)
+  }
+  for (node in system) {
+    output <- sprintf(
+      "%s\n\"%s\"[label=\"%s\", shape=oval%s];", 
+      output, node, node, opts)
+  }
+  for (i in 1:nrow(system_edges)) {
+    output <- sprintf(
+      "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"%s];",
+      output,
+      system_edges[i, 1],
+      system_edges[i, 2],
+      opts)
+  }
+  for (i in 1:nrow(context_edges)) {
+    output <- sprintf(
+      "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"%s];",
+      output,
+      context_edges[i, 1],
+      context_edges[i, 2],
+      opts_context)
+  }
+  
+  return(output)
+}
+
 .output_graph <- function(lcd_triples, path, name) {
-  .context <- unique(as.character(lcd_triples[,'C']))
-  .system <- unique(c(as.character(lcd_triples[,'X']), as.character(lcd_triples[,'Y'])))
-  .edges <- unique(rbind(as.matrix(lcd_triples[,c('C', 'X')]), 
-                         as.matrix(lcd_triples[,c('X', 'Y')])))
+  context <- unique(as.character(lcd_triples[,'C']))
+  system <- unique(c(as.character(lcd_triples[,'X']), as.character(lcd_triples[,'Y'])))
+  context_edges <- unique(lcd_triples[,c('C', 'X')])
+  system_edges <- unique(lcd_triples[,c('X', 'Y')])
   output <- "digraph G {"
-  for (node in .context) {
-    output <- paste(output, sprintf("\"%s\"[label=\"%s\", shape=box];", node, node), sep="\n")
-  }
-  for (node in .system) {
-    output <- paste(output, sprintf("\"%s\"[label=\"%s\", shape=oval];", node, node), sep="\n")
-  }
-  for (i in 1:nrow(.edges)) {
-    output <- paste(output, sprintf(
-      "\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"];",
-      .edges[i, 1],
-      .edges[i, 2]),
-      sep="\n")
-  }
+  output <- paste(output, .graph_lines(context, system, context_edges, system_edges), sep="")
+  output <- paste(output, "}", sep="\n")
+  
+  write(output, file=paste(path, name, ".dot", sep=""))
+}
+
+.output_graph_levels <- function(strong, substantial, weak, path, name) {
+  strong <- strong[,c('C', 'X', 'Y')]
+  substantial <- substantial[,c('C', 'X', 'Y')]
+  weak <- weak[,c('C', 'X', 'Y')]
+  output <- "digraph G {"
+  
+  context1 <- unique(as.character(strong[,'C']))
+  system1 <- unique(c(as.character(strong[,'X']), as.character(strong[,'Y'])))
+  context_edges1 <- unique(strong[,c('C', 'X')])
+  system_edges1 <- unique(strong[,c('X', 'Y')])
+  output <- paste(output, .graph_lines(context1, system1, context_edges1, system_edges1, 
+                                       "color=\"#000000\"",
+                                       "color=\"#c4c4c4\""), sep="")
+  
+  diff <- dplyr::setdiff(substantial, strong)
+  context2 <- dplyr::setdiff(unique(as.character(diff[,'C'])), context1)
+  system2 <- dplyr::setdiff(unique(c(as.character(diff[,'X']), as.character(diff[,'Y']))), system1)
+  context_edges2 <- dplyr::setdiff(unique(diff[,c('C', 'X')]), context_edges1)
+  system_edges2 <- dplyr::setdiff(unique(diff[,c('X', 'Y')]), system_edges1)
+  output <- paste(output, .graph_lines(context2, system2, context_edges2, system_edges2, 
+                                       "color=\"#e30505\"",
+                                       "color=\"#ffa1a1\""), sep="")
+  
+  diff <- dplyr::setdiff(weak, substantial)
+  context3 <- dplyr::setdiff(unique(as.character(diff[,'C'])), 
+                             c(context1, context2))
+  system3 <- dplyr::setdiff(unique(c(as.character(diff[,'X']), as.character(diff[,'Y']))), 
+                            c(system1, system2))
+  context_edges3 <- dplyr::setdiff(unique(diff[,c('C', 'X')]), 
+                                   rbind(context_edges1, context_edges2))
+  system_edges3 <- dplyr::setdiff(unique(diff[,c('X', 'Y')]), 
+                                  rbind(system_edges1, system_edges2))
+  output <- paste(output, .graph_lines(context3, system3, context_edges3, system_edges3, 
+                                       "color=\"#0032fa\"",
+                                       "color=\"#a8baff\""), sep="")
   output <- paste(output, "}", sep="\n")
   
   write(output, file=paste(path, name, ".dot", sep=""))
@@ -201,9 +291,9 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, title=NULL) {
 
 plot_times <- function(times, title=NULL) {
   return(ggplot(data=times, aes(x=ensemble, y=time, fill=test)) +
-           geom_col() +
+           geom_bar(stat="identity", position=position_dodge()) +
            labs(x="Test ensemble", y="Runtime (sec.)", title=title) +
-           # scale_y_log10() +
-           coord_flip()
+           scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                         labels = trans_format("log10", math_format(10^.x)))
   )
 }
