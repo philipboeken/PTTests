@@ -89,7 +89,8 @@ scat_plot_linked <- ggplot() +
         legend.position = c(0.87, 0.12)) +
   scale_color_manual(labels = c("C=0", "C=1"), values = c("blue", "red"))
 
-roc_plot <- pplot_roc(results[,1], results[,-1], NULL, c(0.8, 0.12))
+labels <- factor(results[,1], ordered = TRUE, levels=c(1,0))
+roc_plot <- pplot_roc(labels, results[,-1], NULL, c(0.8, 0.12))
 
 grid <- plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow=1)
 plot(grid)
