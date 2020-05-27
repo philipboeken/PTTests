@@ -10,10 +10,10 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
     return(bayes.UCItest(X, Y, c, max_depth, qdist, verbose))
   }
 
-  max_depth <- ifelse(max_depth < 0, floor(log2(length(X))/2), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
 
   old_expressions <- options()$expressions
-  options(expressions=2*max(max_depth, old_expressions))
+  options(expressions=max(max_depth, old_expressions))
 
   if (all(X %in% 0:1) && all(Y %in% 0:1) || length(X) <= 2) {
     return(list(bf=1, p_H0=1/2, p_H1=1/2))

@@ -1,6 +1,6 @@
 bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=TRUE) {
 
-  max_depth <- ifelse(max_depth < 0, floor(log2(length(X))/2), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
 
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
@@ -102,4 +102,3 @@ bayes.UCItest <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose=T
 .lmbeta <- function(...) {
   return(sum(lgamma(c(...)))-lgamma(sum(c(...))))
 }
-
