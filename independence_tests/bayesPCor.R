@@ -24,8 +24,8 @@ bayes.pcor.test <- function(X, Y, Z) {
     return(exp(a) * dinvgamma(g, shape=.5, scale=n/2))
   }
   
-  bf10 <- integrate(int, lower=0, upper=10, r=r1, p=p1, n=n)$value /
-    integrate(int, lower=0, upper=10, r=r0, p=p0, n=n)$value
+  bf10 <- integrate(int, lower=0, upper=25, r=r1, p=p1, n=n)$value /
+    integrate(int, lower=0, upper=25, r=r0, p=p0, n=n)$value
   
   return(1/bf10)
 }
@@ -41,7 +41,7 @@ bayes.pcor.test <- function(X, Y, Z) {
     return(exp(a) * dinvgamma(g, shape=.5, scale=n/2))
   }
   
-  bf10 <- integrate(int,lower=0,upper=10,r=r,n=n)$value
+  bf10 <- integrate(int,lower=0,upper=25,r=r,n=n)$value
   
   return(1/bf10)
 }
