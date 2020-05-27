@@ -16,7 +16,7 @@ library(latex2exp)
 set.seed(0)
 
 n <- 400
-m <- 200
+m <- 2000
 
 err_sd <- 0.5
 
@@ -129,13 +129,13 @@ get_results <- function(dataset, test){
 registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data())
 results <- list(
-  pcor=get_results(data, .pcor_wrapper),
-  prcor=get_results(data, .prcor_wrapper),
-  bcor=get_results(data, .bcor_wg_wrapper),
+  ppcor=get_results(data, .pcor_wrapper),
+  spcor=get_results(data, .prcor_wrapper),
+  ppcor_b=get_results(data, .bcor_wrapper),
   gcm=get_results(data, .gcm_wrapper),
   rcot=get_results(data, .rcot_wrapper),
   ccit=get_results(data, .ccit_wrapper),
-  bayes=get_results(data, .bayes_wrapper)
+  opt=get_results(data, .bayes_wrapper)
 )
 
 stopCluster(.cl)
@@ -145,12 +145,8 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  labels <- results$bayes[,{{paste('label_',type, sep='')}}]
-  if (type == "ts" || type == 'uci') {
-    labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
-  } else {
-    labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
-  }
+  labels <- results$opt[,{{paste('label_',type, sep='')}}]
+  labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
   result <- data.frame(label=labels)
   for (test in names(results)) {
     result[test] <- results[[test]][,type]
@@ -169,7 +165,7 @@ ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
 
-labels_lcd <- factor(results$bayes[,'label_lcd'], ordered = TRUE, levels = c(1,0))
+labels_lcd <- factor(results$opt[,'label_lcd'], ordered = TRUE, levels = c(1,0))
 
 .plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05)
 .plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05)
@@ -191,4 +187,4 @@ save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, '.Rdata', sep=''))
 .ggsave(paste(.path, 'plot_uci', sep=''), .plot_uci, 10, 10)
 .ggsave(paste(.path, 'plot_ci', sep=''), .plot_ci, 10, 10)
 .ggsave(paste(.path, 'plot_lcd', sep=''), .plot_lcd, 10, 10)
-.ggsave(paste(.path, 'plot_times', sep=''), .plot_time, 10, 10)
+.ggsave(paste(.path, 'plot_times', sep=''), .plot_time, 20, 10)
