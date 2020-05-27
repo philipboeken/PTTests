@@ -3,7 +3,6 @@ rm(list = ls(all.names = TRUE))
 
 # Imports
 source('independence_tests/test_wrappers.R')
-source('independence_tests/RhoBFP.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
 suppressWarnings(library(foreach))
@@ -14,10 +13,12 @@ library(latex2exp)
 
 # Input parameters
 ##############################################
-n <- 300
-m <- 500
+set.seed(0)
 
-err_sd <- 0.1
+n <- 400
+m <- 2000
+
+err_sd <- 0.5
 
 p_ci <- 0.6
 p_link <- 0.8
@@ -39,7 +40,7 @@ interv_options <- c(
 
 # Setup test
 ##############################################
-get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, interv_options) {
+get_data <- function() {
   C <- rbinom(n, 1, p_two_sample)
   
   cond_indep <- rbinom(1, 1, p_ci)
@@ -82,42 +83,39 @@ get_data <- function(n, p_two_sample, p_link, p_ci, err_sd, nonlin_options, inte
   lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
   return(list(C=C, X=X, Z=Z,
-              label_ts=as.numeric(intervene),
-              label_uci=as.numeric(link_nonlin),
+              label_ts=1-as.numeric(intervene),
+              label_uci=1-as.numeric(link_nonlin),
               label_ci=cond_indep,
               label_lcd=lcd))
 }
 
-get_results <- function(dataset, test, bayesian=FALSE){
+get_results <- function(dataset, test){
   result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
     data <- dataset[[i]]
+    
+    start_time_ts <- Sys.time()
     ts <- test(data$C, data$Z)
+    end_time_ts <- Sys.time()
+    
+    start_time_uci <- Sys.time()
     uci <- test(data$Z, data$X)
+    end_time_uci <- Sys.time()
+    
+    start_time_ci <- Sys.time()
     ci <- test(data$C, data$X, data$Z)
-    CZ <- test(data$C, data$Z)
-    
-    if (bayesian) {
-      lcd_CY <- (ts <= 1/2) * (uci <= 1/2) * (ci > 1/2) * (1-CZ)
-    } else {
-      n <- length(data$C)
-      lcd_CY <- (ts <= 1/(5*sqrt(n))) * (uci <= 1/(5*sqrt(n))) * (ci > 1/(5*sqrt(n))) * (1-CZ)
-    }
-    
-    lcd_min <- min((1 - ts), (1 - uci), ci)
+    end_time_ci <- Sys.time()
     
     return(data.frame(
       label_ts=data$label_ts,
       label_uci=data$label_uci,
       label_ci=data$label_ci,
-      label_CY=data$label_ci,
-      label_lcd_min=data$label_lcd,
-      label_lcd_CY=data$label_lcd,
-      ts=1-ts,
-      uci=1-uci,
+      label_lcd=data$label_lcd,
+      ts=ts,
+      uci=uci,
       ci=ci,
-      CY=1-CZ,
-      lcd_min=lcd_min,
-      lcd_CY=lcd_CY
+      time_ts=end_time_ts - start_time_ts,
+      time_uci=end_time_uci - start_time_uci,
+      time_ci=end_time_ci - start_time_ci
     ))
   }
   return(result)
@@ -129,21 +127,15 @@ get_results <- function(dataset, test, bayesian=FALSE){
 .cores <- detectCores()
 .cl <- makeForkCluster(.cores[1]-1)
 registerDoParallel(.cl)
-data <- lapply(1:m, function (i) get_data(n, p_two_sample, p_link, p_ci, 
-                                          err_sd, nonlin_options, interv_options))
+data <- lapply(1:m, function (i) get_data())
 results <- list(
-  # pcor=get_results(data, .pcor_wrapper),
-  bayes=get_results(data, .bayes_wrapper, TRUE),
-  # bcor_pb=get_results(data, .bayes_transform(.pcor_wrapper))
-  # bcor=get_results(data, .bcor_wg_wrapper, TRUE),
-  # bcor_approx=get_results(data, .bcor_approx_wrapper),
-  # bcor_ly=get_results(data, .bcor_ly_wrapper),
-  # gcm_bayes=get_results(data, .bayes_transform(.gcm_wrapper)),
-  gcm=get_results(data, .gcm_wrapper)
+  ppcor=get_results(data, .pcor_wrapper),
+  # spcor=get_results(data, .prcor_wrapper),
+  ppcor_b=get_results(data, .bcor_wrapper),
+  # gcm=get_results(data, .gcm_wrapper),
+  # rcot=get_results(data, .rcot_wrapper),
   # ccit=get_results(data, .ccit_wrapper),
-  # ccit_bayes=get_results(data, .bayes_transform(.ccit_wrapper)),
-  # rcot=get_results(data, .rcot_wrapper)
-  # rcot_bayes=get_results(data, .bayes_transform(.rcot_wrapper))
+  opt=get_results(data, .bayes_wrapper)
 )
 
 stopCluster(.cl)
@@ -153,7 +145,9 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  result <- data.frame(label=results$bayes[,{{paste('label_',type, sep='')}}])
+  labels <- results$opt[,{{paste('label_',type, sep='')}}]
+  labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
+  result <- data.frame(label=labels)
   for (test in names(results)) {
     result[test] <- results[[test]][,type]
   }
@@ -163,32 +157,32 @@ stopCluster(.cl)
 ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
-lcd_min_results <- .get_results_by_type(results, 'lcd_min')
-lcd_CY_results <- .get_results_by_type(results, 'lcd_CY')
-CY_results <- .get_results_by_type(results, 'CY')
 
-t1 <- TeX('$(p_{CX} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\alpha)$')
-t2 <- TeX('$(p_{CX} < \\alpha_0) \\and (p_{XY} < \\alpha_0) \\and (p_{CY|X} > \\alpha_0) \\and (p_{CY} < \\alpha)$')
-t3 <- TeX('$(p_{CX} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\min(\\alpha, \\alpha_0))$')
-t4 <- TeX('$(p_{CY} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\min(\\alpha, \\alpha_0))$')
-t5 <- TeX('$(p_{CX} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\\\alpha_0)$')
-t6 <- TeX('$(p_{CY} < \\alpha) \\and (p_{XY} < \\alpha) \\and (p_{CY|X} > \\\\alpha_0)$')
-grid <- plot_grid(
-  pplot_roc(lcd_min_results[,1], lcd_min_results[,-1], t1),
-  pplot_roc(lcd_CY_results[,1], lcd_CY_results[,-1], t2),
-  pplot_roc_custom(lcd_min_results[,1], ts_results[,-1], uci_results[,-1], ci_results[,-1], t3),
-  pplot_roc_custom(lcd_min_results[,1], CY_results[,-1], uci_results[,-1], ci_results[,-1], t4),
-  pplot_roc_custom(lcd_min_results[,1], ts_results[,-1], uci_results[,-1], ci_results[,-1], t5, 0),
-  pplot_roc_custom(lcd_min_results[,1], CY_results[,-1], uci_results[,-1], ci_results[,-1], t6, 0),
-  nrow=1
-)
-plot(grid)
+labels_lcd <- factor(results$opt[,'label_lcd'], ordered = TRUE, levels = c(1,0))
+
+t0 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
+t1 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha)$')
+t2 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > 1-\\alpha)$')
+t3 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha_0)$')
+t4 <- TeX('$(p_{CX} < \\alpha_0)$ and $(p_{XY} < \\alpha_0)$ and $(p_{CY|X} > 1-\\alpha)$')
+.plot0 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t0, option=0, plot_point=FALSE)
+.plot1 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t1, option=1, plot_point=FALSE)
+.plot2 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t2, option=2, plot_point=FALSE)
+.plot3 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t3, option=3, plot_point=FALSE)
+.plot4 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t4, option=4, plot_point=FALSE)
+
+grid <- plot_grid(.plot0, .plot1, .plot2, .plot3, .plot4, nrow=1)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-measures-roc-tests/'
 
-save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, '.Rdata', sep=''))
+save.image(file=paste(.path, timestamp, '.Rdata', sep=''))
 
-.ggsave(paste(.path, timestamp, sep=''), grid, 60, 10)
-.ggsave(paste(.path, 'last', sep=''), grid, 60, 10)
+.ggsave(paste(.path, timestamp, sep=''), grid, 50, 10)
+.ggsave(paste(.path, 'last', sep=''), grid, 50, 10)
+.ggsave(paste(.path, 'plot0', sep=''), .plot0, 10, 10)
+.ggsave(paste(.path, 'plot1', sep=''), .plot1, 10, 10)
+.ggsave(paste(.path, 'plot2', sep=''), .plot2, 10, 10)
+.ggsave(paste(.path, 'plot3', sep=''), .plot3, 10, 10)
+.ggsave(paste(.path, 'plot4', sep=''), .plot4, 10, 10)
 
