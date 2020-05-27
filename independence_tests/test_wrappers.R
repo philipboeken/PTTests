@@ -16,7 +16,7 @@ use_python('/usr/local/bin/python3')
   return(bayes.CItest(X, Y, Z, verbose=FALSE)$p_H0)
 }
 
-.bcor_wg_wrapper <- function(X, Y, Z=NULL) {
+.bcor_wrapper <- function(X, Y, Z=NULL) {
   if (is.null(Z) || length(Z) == 0) {
     return(bayes.cor.test(X, Y)$p_H0)
   }

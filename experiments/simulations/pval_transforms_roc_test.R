@@ -99,7 +99,7 @@ get_results <- function(dataset, test){
     } else if (test == 'bcor-approx') {
       f <- .bcor_approx_wrapper
     } else if (test == 'bcor-wg') {
-      f <- .bcor_wg_wrapper
+      f <- .bcor_wrapper
     }
     
     ts <- f(data$C, data$Z)
