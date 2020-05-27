@@ -52,7 +52,7 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
     name <- colnames(ts_res)[i]
-    bayes <- (name == 'opt' || name == 'ppcor_b')
+    bayes <- (name == 'polyatree' || name == 'ppcor_b')
     roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes, option)
     dot <- .lcd_roc_dot(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
     info <- paste(name, ' (', roc$auc, ')', sep="")

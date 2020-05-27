@@ -135,7 +135,7 @@ results <- list(
   gcm=get_results(data, .gcm_wrapper),
   rcot=get_results(data, .rcot_wrapper),
   ccit=get_results(data, .ccit_wrapper),
-  opt=get_results(data, .bayes_wrapper)
+  polyatree=get_results(data, .bayes_wrapper)
 )
 
 stopCluster(.cl)
@@ -145,7 +145,7 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  labels <- results$opt[,{{paste('label_',type, sep='')}}]
+  labels <- results$polyatree[,{{paste('label_',type, sep='')}}]
   labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
   result <- data.frame(label=labels)
   for (test in names(results)) {
@@ -165,7 +165,7 @@ ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
 
-labels_lcd <- factor(results$opt[,'label_lcd'], ordered = TRUE, levels = c(1,0))
+labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c(1,0))
 
 .plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05)
 .plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05)
