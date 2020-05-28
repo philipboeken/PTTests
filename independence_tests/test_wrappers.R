@@ -1,8 +1,8 @@
-source('independence_tests/splineGCM.R')
 source('independence_tests/bayesCITest.R')
 source('independence_tests/CCIT.R')
 source('independence_tests/bayesPCor.R')
 
+suppressWarnings(library(GeneralisedCovarianceMeasure))
 suppressWarnings(library(ppcor))
 suppressWarnings(library(RCIT))
 suppressWarnings(library(reticulate))
@@ -38,13 +38,7 @@ use_python('/usr/local/bin/python3')
 }
 
 .gcm_wrapper <- function(X, Y, Z=NULL) {
-  if (length(X) <= 10) {
-    return(0.5)
-  }
-  if (is.null(Z)) {
-    return(splineGCM(1, 2, c(), cbind(X, Y)))
-  }
-  return(splineGCM(1, 2, c(3), cbind(X, Y, Z)))
+  return(gcm.test(X, Y, Z, regr.method = "gam")$p.value)
 }
 
 .rcot_wrapper <- function(X, Y, Z=NULL) {
