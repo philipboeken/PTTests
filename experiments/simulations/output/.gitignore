@@ -1,6 +1,5 @@
 *
 !.gitignore
-!pval-roc-tests
 !lcd-roc-tests
 !example-pcor-fail
 !lcd-measures-roc-tests

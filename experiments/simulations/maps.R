@@ -32,7 +32,7 @@ do_intervention <- function (int_options, base, C) {
 }
 
 
-### Nonlinearities
+### Link functions
 
 linear <- function(X) {
   X
