@@ -1,6 +1,7 @@
 CCIT <- function (X, Y, Z = NULL) {
-  ## This is defined in test_wrappers.R to reduce overhead. Uncomment 
-  ## when using this without test_wrappers.R.
+  ## This is defined in test_wrappers.R to reduce overhead when 
+  ## repeatedly calling this function. Uncomment when using this 
+  ## method without test_wrappers.R.
   # library(reticulate)
   # use_python('/usr/local/bin/python3')
   # .ccit <- import('CCIT')
