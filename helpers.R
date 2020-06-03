@@ -15,7 +15,8 @@ suppressWarnings(library(dplyr))
   }
 }
 
-pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25), freq_default=0.01) {
+pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
+                      freq_default=0.05, plot_point=TRUE) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
@@ -27,7 +28,7 @@ pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
     y <- res@y.values[[1]]
     bayes <- (name == 'bayes')
     dot <- .roc_dot(labels, predictions[,i], bayes, freq_default)
-    info <- paste(name, ' (', auc, ')', sep="")
+    info <- ifelse(is.na(auc), name, paste(name, ' (', auc, ')', sep=""))
     roc_data[[name]] <- list(data=data.frame(x=x, y=y), 
                              point=data.frame(x=dot$fpr, y=dot$tpr), 
                              info=info)
@@ -40,8 +41,10 @@ pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
           plot.title = element_text(size=12, hjust=0.5))
   for (roc in roc_data) {
     c <- roc$info
-    plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}})) + 
-      geom_point(data=roc$point, aes(x, y, colour={{c}}))
+    plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
+    if (plot_point) {
+      plt <- plt + geom_point(data=roc$point, aes(x, y, colour={{c}}))
+    }
   }
   
   return(plt)
@@ -55,7 +58,7 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
     bayes <- (name == 'polyatree' || name == 'ppcor_b')
     roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes, option)
     dot <- .lcd_roc_dot(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
-    info <- paste(name, ' (', roc$auc, ')', sep="")
+    info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep=""))
     roc_data[[name]] <- list(data=data.frame(x=roc$fpr, y=roc$tpr), 
                              point=data.frame(x=dot$fpr, y=dot$tpr), 
                              info=info)
@@ -72,7 +75,7 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
     c <- roc$info
     
     if (option ==1) {
-      plt <- plt + geom_point(data=roc$data, aes(x, y, colour={{c}}), size=0.1)
+      plt <- plt + geom_path(data=roc$data, aes(x, y, colour={{c}}))
     } else {
       plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
     }
@@ -122,14 +125,14 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   fpr <- fp / length(false)
   
   if (option == 1) {
-    return(list(tpr=c(0, tpr), fpr=c(0, fpr), auc="-"))
+    return(list(tpr=c(0, tpr), fpr=c(0, fpr), auc=NaN))
   } else {
     auc <- .get_auc(tpr, fpr)
     return(list(tpr=c(0, tpr, 1), fpr=c(0, fpr, 1), auc=auc))
   }
 }
 
-.roc_dot <- function(labels, predictions, bayes, freq_default=0.01) {
+.roc_dot <- function(labels, predictions, bayes, freq_default=0.05) {
   true <- which(labels == 0)
   false <- which(labels == 1)
   n <- length(labels)
@@ -216,15 +219,20 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   context_edges <- unique(lcd_triples[,c('C', 'X')])
   system_edges <- unique(lcd_triples[,c('X', 'Y')])
   output <- "digraph G {"
-  output <- paste(output, .graph_lines(context, system, context_edges, system_edges), sep="")
+  output <- paste(output, .graph_lines(context, system, context_edges, system_edges, 
+                                       "color=\"#000000\"",
+                                       "color=\"#c4c4c4\""), sep="")
   output <- paste(output, "}", sep="\n")
   
   write(output, file=paste(path, name, ".dot", sep=""))
 }
 
-.output_graph_levels <- function(strong, substantial, weak, path, name) {
+.output_graph_levels <- function(results, path, name) {
+  strong <- filter(results, CX <= 0.09, XY <= 0.09, CY_X >= 0.91)
   strong <- strong[,c('C', 'X', 'Y')]
+  substantial <- filter(results, CX <= 0.2, XY <= 0.2, CY_X >= 0.8)
   substantial <- substantial[,c('C', 'X', 'Y')]
+  weak <- filter(results, CX <= 0.5, XY <= 0.5, CY_X >= 0.5)
   weak <- weak[,c('C', 'X', 'Y')]
   output <- "digraph G {"
   
@@ -246,15 +254,15 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
                                        "color=\"#ffa1a1\""), sep="")
   
   diff <- dplyr::setdiff(weak, substantial)
-  context3 <- dplyr::setdiff(unique(as.character(diff[,'C'])), 
+  context3 <- dplyr::setdiff(unique(as.character(diff[,'C'])),
                              c(context1, context2))
-  system3 <- dplyr::setdiff(unique(c(as.character(diff[,'X']), as.character(diff[,'Y']))), 
+  system3 <- dplyr::setdiff(unique(c(as.character(diff[,'X']), as.character(diff[,'Y']))),
                             c(system1, system2))
-  context_edges3 <- dplyr::setdiff(unique(diff[,c('C', 'X')]), 
+  context_edges3 <- dplyr::setdiff(unique(diff[,c('C', 'X')]),
                                    rbind(context_edges1, context_edges2))
-  system_edges3 <- dplyr::setdiff(unique(diff[,c('X', 'Y')]), 
+  system_edges3 <- dplyr::setdiff(unique(diff[,c('X', 'Y')]),
                                   rbind(system_edges1, system_edges2))
-  output <- paste(output, .graph_lines(context3, system3, context_edges3, system_edges3, 
+  output <- paste(output, .graph_lines(context3, system3, context_edges3, system_edges3,
                                        "color=\"#0032fa\"",
                                        "color=\"#a8baff\""), sep="")
   output <- paste(output, "}", sep="\n")
@@ -262,38 +270,19 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   write(output, file=paste(path, name, ".dot", sep=""))
 }
 
-.output_sachs_plots <- function(all_data_pooled, results, filename) {  
-  .plot_lcd_triple <- function(C, X, Y, title) {
-    idx <- which(all_data_pooled[,C] == 1 | all_data_pooled[,'experiment'] == 1)
-    data <- as.data.frame(all_data_pooled[idx, c(C, X, Y)])
-    colnames(data) <- c('C', 'X', 'Y')
-    data[,'C'] <- as.factor(data[,'C'])
-    return(ggplot() + geom_point(data=data, aes(x=X, y=Y, colour=C)) + 
-             labs(x="X", y="Y", title=title) +
-             theme(legend.title = element_blank(),
-                   legend.position = c(0.87, 0.12)) +
-             scale_color_manual(labels = c("C=0", "C=1"), values = c("blue", "red")))
-  }
-  
-  plots <- list()
-  for (i in 1:nrow(results)) {
-    C <- as.character(results[i,'C'])
-    X <- as.character(results[i,'X'])
-    Y <- as.character(results[i,'Y'])
-    plots[[i]] <- .plot_lcd_triple(
-      C, X, Y, sprintf("%s -> %s -> %s\nCX: %.3f, XY:  %.3f, CY|X:  %.3f",
-                       C, X, Y, results[i,'CX'], results[i,'XY'], results[i,'CY_X']))
-  }
-  
-  grid <- plot_grid(plotlist=as.list(plots), ncol=5, nrow=ceiling(nrow(results)/5))
-  .ggsave(filename, grid, 50, ceiling(nrow(results)/5)*12)
-}
-
 plot_times <- function(times, title=NULL) {
+  times$time <- sapply(times$time, function(x) (x < 1.1)*1.1 + (x>=1.1)*x)
   return(ggplot(data=times, aes(x=ensemble, y=time, fill=test)) +
-           geom_bar(stat="identity", position=position_dodge()) +
-           labs(x="Test ensemble", y="Runtime (sec.)", title=title) +
+           geom_col(position=position_dodge()) +
+           labs(x="Test ensemble", y="Runtime (sec.)", title=title) + 
+           scale_fill_discrete(name="",
+                               breaks=c("1_ts", "2_uci", "3_ci"),
+                               labels=c("Two-sample", "Independence", "Conditional independence")) +
+           # theme(legend.position = c(0.89, 0.793)) +
+           theme(legend.position = c(0.703, 0.915),
+                 legend.direction = "horizontal") +
            scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                          labels = trans_format("log10", math_format(10^.x)))
   )
 }
+
