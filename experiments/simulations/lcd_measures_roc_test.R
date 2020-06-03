@@ -93,17 +93,9 @@ get_results <- function(dataset, test){
   result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
     data <- dataset[[i]]
     
-    start_time_ts <- Sys.time()
     ts <- test(data$C, data$Z)
-    end_time_ts <- Sys.time()
-    
-    start_time_uci <- Sys.time()
     uci <- test(data$Z, data$X)
-    end_time_uci <- Sys.time()
-    
-    start_time_ci <- Sys.time()
     ci <- test(data$C, data$X, data$Z)
-    end_time_ci <- Sys.time()
     
     return(data.frame(
       label_ts=data$label_ts,
@@ -112,10 +104,7 @@ get_results <- function(dataset, test){
       label_lcd=data$label_lcd,
       ts=ts,
       uci=uci,
-      ci=ci,
-      time_ts=end_time_ts - start_time_ts,
-      time_uci=end_time_uci - start_time_uci,
-      time_ci=end_time_ci - start_time_ci
+      ci=ci
     ))
   }
   return(result)
@@ -130,12 +119,8 @@ registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data())
 results <- list(
   ppcor=get_results(data, .pcor_wrapper),
-  # spcor=get_results(data, .prcor_wrapper),
   ppcor_b=get_results(data, .bcor_wrapper),
-  # gcm=get_results(data, .gcm_wrapper),
-  # rcot=get_results(data, .rcot_wrapper),
-  # ccit=get_results(data, .ccit_wrapper),
-  opt=get_results(data, .bayes_wrapper)
+  polyatree=get_results(data, .bayes_wrapper)
 )
 
 stopCluster(.cl)
@@ -145,7 +130,7 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  labels <- results$opt[,{{paste('label_',type, sep='')}}]
+  labels <- results$polyatree[,{{paste('label_',type, sep='')}}]
   labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
   result <- data.frame(label=labels)
   for (test in names(results)) {
@@ -158,7 +143,7 @@ ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
 ci_results <- .get_results_by_type(results, 'ci')
 
-labels_lcd <- factor(results$opt[,'label_lcd'], ordered = TRUE, levels = c(1,0))
+labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c(1,0))
 
 t0 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
 t1 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha)$')

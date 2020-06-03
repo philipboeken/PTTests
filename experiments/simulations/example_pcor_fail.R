@@ -8,18 +8,17 @@ suppressWarnings(library(cowplot))
 
 # Input parameters
 ##############################################
-n <- 300
-m <- 500
+n <- 400
+m <- 2000
 
 err_sd <- 0.5
 
-p_link <- 0.5
+p_link <- 0.8
 p_two_sample <- 0.5
 
 # Setup test
 ##############################################
-get_data <- function(n, p_two_sample, p_link, err_sd, 
-                     nonlin_options, interv_options, link=0) {
+get_data <- function(n, p_two_sample, p_link, err_sd, link=0) {
   # C -> X <- Y
   
   C <- rbinom(n, 1, p_two_sample)
@@ -43,14 +42,13 @@ get_data <- function(n, p_two_sample, p_link, err_sd,
   return(list(C=C, Y=Y, X=X, label=cond_indep))
 }
 
-get_results <- function(n, m, p_two_sample, p_link, err_sd,
-                        nonlin_options, interv_options){
+get_results <- function(n, m, p_two_sample, p_link, err_sd){
   result <- foreach(i=1:m, .combine=rbind) %dopar% {
-    data <- get_data(n, p_two_sample, p_link, err_sd, nonlin_options, interv_options)
+    data <- get_data(n, p_two_sample, p_link, err_sd)
     return(data.frame(
       label=data$label,
-      pcor=.pcor_wrapper(data$C, data$Y, data$X),
-      bayes=.bayes_wrapper(data$C, data$Y, data$X)
+      ppcor=.pcor_wrapper(data$C, data$Y, data$X),
+      polyatree=.bayes_wrapper(data$C, data$Y, data$X)
     ))
   }
   return(result)
@@ -63,11 +61,10 @@ get_results <- function(n, m, p_two_sample, p_link, err_sd,
 .cl <- makeForkCluster(.cores[1]-1)
 registerDoParallel(.cl)
 
-results <- get_results(n, m, p_two_sample, p_link, err_sd,
-                       nonlin_options, interv_options)
+results <- get_results(n, m, p_two_sample, p_link, err_sd)
 
-data_no_link <- get_data(n, p_two_sample, p_link, err_sd, nonlin_options, interv_options, -1)
-data_linked <- get_data(n, p_two_sample, p_link, err_sd, nonlin_options, interv_options, 1)
+data_no_link <- get_data(n, p_two_sample, p_link, err_sd, -1)
+data_linked <- get_data(n, p_two_sample, p_link, err_sd, 1)
 
 stopCluster(.cl)
 
@@ -90,7 +87,7 @@ scat_plot_linked <- ggplot() +
   scale_color_manual(labels = c("C=0", "C=1"), values = c("blue", "red"))
 
 labels <- factor(results[,1], ordered = TRUE, levels=c(1,0))
-roc_plot <- pplot_roc(labels, results[,-1], NULL, c(0.8, 0.12))
+roc_plot <- pplot_roc(labels, results[,-1], NULL, c(0.8, 0.12), plot_point=FALSE)
 
 grid <- plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow=1)
 plot(grid)
@@ -100,8 +97,8 @@ timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 
 save.image(file=paste(.path, timestamp, '.Rdata', sep=''))
 
-.ggsave(paste(.path, 'scat_plot_no_link', sep=''), scat_plot_no_link, 10, 10)
-.ggsave(paste(.path, 'scat_plot_linked', sep=''), scat_plot_linked, 10, 10)
-.ggsave(paste(.path, 'roc_plot', sep=''), roc_plot, 10, 10)
+.ggsave(paste(.path, 'ppcor_fail_no_link', sep=''), scat_plot_no_link, 10, 10)
+.ggsave(paste(.path, 'ppcor_fail_linked', sep=''), scat_plot_linked, 10, 10)
+.ggsave(paste(.path, 'ppcor_fail_roc', sep=''), roc_plot, 10, 10)
 .ggsave(paste(.path, timestamp, sep=''), grid, 30, 10)
 .ggsave(paste(.path, 'last', sep=''), grid, 30, 10)
