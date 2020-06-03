@@ -12,7 +12,7 @@ library(cowplot)
 set.seed(0)
 
 n <- 400
-m <- 2000
+m <- 20
 
 err_sd <- 0.5
 
@@ -40,36 +40,36 @@ get_data <- function() {
   C <- rbinom(n, 1, p_two_sample)
   
   cond_indep <- rbinom(1, 1, p_ci)
-  if (cond_indep) { # C -> Z -> X
+  if (cond_indep) { # C -> X -> Y
     intervene <- rbinom(1, 1, p_link)
-    Z <- intervene * do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
+    X <- intervene * do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
     
     link_nonlin <- rbinom(1, 1, p_link)
-    X <- link_nonlin * nonlin(nonlin_options, Z)
-    X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
+    Y <- link_nonlin * nonlin(nonlin_options, X)
+    Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
   } else {
-    if (runif(1) <= 0.5) { # C -> Z <- X
-      X <- rnorm(n)
+    if (runif(1) <= 0.5) { # C -> X <- Y
+      Y <- rnorm(n)
       
       link_nonlin <- rbinom(1, 1, p_link)
-      Z <- link_nonlin * nonlin(nonlin_options, X)
-      Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
+      X <- link_nonlin * nonlin(nonlin_options, Y)
+      X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
-      Z <- intervene * do_intervention(interv_options, Z, C) + (1-intervene) * Z
-    } else { # C -> Z <- L -> X
+      X <- intervene * do_intervention(interv_options, X, C) + (1-intervene) * X
+    } else { # C -> X <- L -> Y
       L <- rnorm(n)
       
       link_nonlin1 <- rbinom(1, 1, p_link)
-      X <- link_nonlin1 * nonlin(nonlin_options, L)
-      X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
+      Y <- link_nonlin1 * nonlin(nonlin_options, L)
+      Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
       
       link_nonlin2 <- rbinom(1, 1, p_link)
-      Z <- link_nonlin2 * nonlin(nonlin_options, L)
-      Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
+      X <- link_nonlin2 * nonlin(nonlin_options, L)
+      X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
-      Z <- intervene * do_intervention(interv_options, Z, C) + (1-intervene) * Z
+      X <- intervene * do_intervention(interv_options, X, C) + (1-intervene) * X
       
       link_nonlin <- link_nonlin1 & link_nonlin2
     }
@@ -78,7 +78,7 @@ get_data <- function() {
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
-  return(list(C=C, X=X, Z=Z,
+  return(list(C=C, X=X, Y=Y,
               label_ts=1-as.numeric(intervene),
               label_uci=1-as.numeric(link_nonlin),
               label_ci=cond_indep,
@@ -90,15 +90,15 @@ get_results <- function(dataset, test){
     data <- dataset[[i]]
     
     start_time_ts <- Sys.time()
-    ts <- test(data$C, data$Z)
+    ts <- test(data$C, data$X)
     end_time_ts <- Sys.time()
     
     start_time_uci <- Sys.time()
-    uci <- test(data$Z, data$X)
+    uci <- test(data$X, data$Y)
     end_time_uci <- Sys.time()
     
     start_time_ci <- Sys.time()
-    ci <- test(data$C, data$X, data$Z)
+    ci <- test(data$C, data$Y, data$X)
     end_time_ci <- Sys.time()
     
     return(data.frame(

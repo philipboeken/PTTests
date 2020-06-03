@@ -79,7 +79,7 @@ get_data <- function() {
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
-  return(list(C=C, Y=Y, X=X,
+  return(list(C=C, X=X, Y=Y,
               label_ts=1-as.numeric(intervene),
               label_uci=1-as.numeric(link_nonlin),
               label_ci=cond_indep,

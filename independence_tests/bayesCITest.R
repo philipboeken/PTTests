@@ -1,5 +1,4 @@
 source('independence_tests/bayesUCITest.R')
-library(matrixStats)
 
 bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
 
@@ -77,5 +76,5 @@ bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdis
   phi_2 <- .opt_pt(data, target_idx, z_idx, (z_min + z_max)/2, z_max,
                   c, rho, depth + 1, max_depth, qdist)
   
-  return(logSumExp(c(log(rho) + logl, log(1-rho) + phi_1 + phi_2)))
+  return(matrixStats::logSumExp(c(log(rho) + logl, log(1-rho) + phi_1 + phi_2)))
 }

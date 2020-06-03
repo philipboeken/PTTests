@@ -1,6 +1,5 @@
 library(ggplot2)
 require(scales)
-# library(plotly)
 library(ROCR)
 
 plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),

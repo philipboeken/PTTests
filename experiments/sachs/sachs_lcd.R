@@ -1,9 +1,9 @@
 # Imports
 source('independence_tests/test_wrappers.R')
 source('helpers.R')
-suppressWarnings(library(foreach))
-suppressWarnings(library(doParallel))
-suppressWarnings(library(readr))
+library(foreach)
+library(doParallel)
+library(readr)
 
 
 # Setup test
