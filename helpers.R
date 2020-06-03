@@ -2,7 +2,7 @@ library(ggplot2)
 require(scales)
 library(ROCR)
 
-plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
+plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.275),
                      freq_default=0.05, plot_point=TRUE) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
@@ -23,7 +23,8 @@ plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
   
   plt <- ggplot() + 
     labs(x="False Positive Rate", y="True Positive Rate", title=title) +
-    theme(legend.title = element_blank(),
+    theme(legend.title = element_text(size = 0),
+          legend.spacing.x = unit(0.2, 'cm'),
           legend.position = legend_pos,
           plot.title = element_text(size=12, hjust=0.5))
   for (roc in roc_data) {
@@ -55,8 +56,9 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
     xlim(0, 1) +
     ylim(0, 1) +
     labs(x="False Positive Rate", y="True Positive Rate", title=title) +
-    theme(legend.title = element_blank(),
-          legend.position = c(0.78, 0.25),
+    theme(legend.title = element_text(size = 0),
+          legend.spacing.x = unit(0.2, 'cm'),
+          legend.position = c(0.78, 0.275),
           plot.title = element_text(size=12, hjust=0.5))
   for (roc in roc_data) {
     c <- roc$info
@@ -253,7 +255,6 @@ plot_times <- function(times, title=NULL) {
            scale_fill_discrete(name="",
                                breaks=c("1_ts", "2_uci", "3_ci"),
                                labels=c("Two-sample", "Independence", "Conditional independence")) +
-           # theme(legend.position = c(0.89, 0.793)) +
            theme(legend.position = c(0.703, 0.915),
                  legend.direction = "horizontal") +
            scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
