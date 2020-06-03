@@ -155,9 +155,9 @@ stopCluster(.cl)
 }
 
 times <- foreach(test=names(results), .combine=rbind) %do% {
-  rbind(c(test, 'ts', sum(results[[test]][,'time_ts'])),
-        c(test, 'uci', sum(results[[test]][,'time_uci'])),
-        c(test, 'ci', sum(results[[test]][,'time_ci'])))
+  rbind(c(test, '1_ts', sum(results[[test]][,'time_ts'])),
+        c(test, '2_uci', sum(results[[test]][,'time_uci'])),
+        c(test, '3_ci', sum(results[[test]][,'time_ci'])))
 }
 times <- data.frame(ensemble=times[,1], test=times[,2], time=as.double(times[,3]))
 
@@ -175,7 +175,7 @@ labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c
 grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow=1)
 
 .plot_time <- plot_times(times)
-
+  
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-roc-tests/'
 
@@ -187,4 +187,4 @@ save.image(file=paste(.path, 'lcd-roc-tests_', timestamp, '.Rdata', sep=''))
 .ggsave(paste(.path, 'plot_uci', sep=''), .plot_uci, 10, 10)
 .ggsave(paste(.path, 'plot_ci', sep=''), .plot_ci, 10, 10)
 .ggsave(paste(.path, 'plot_lcd', sep=''), .plot_lcd, 10, 10)
-.ggsave(paste(.path, 'plot_times', sep=''), .plot_time, 20, 10)
+.ggsave(paste(.path, 'plot_times', sep=''), .plot_time, 20, 8)
