@@ -74,7 +74,7 @@ timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 .path <- 'experiments/sachs/output/'
 
 save_results <- function (test, filename, alpha1, alpha2) {
-  lcd_triples <- filter(results[[test]], CX <= alpha1, XY <= alpha1, CY_X >= alpha2)
+  lcd_triples <- dplyr::filter(results[[test]], CX <= alpha1, XY <= alpha1, CY_X >= alpha2)
   .output_graph(lcd_triples, .path, filename)
   system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, filename, .path, filename))
 }

@@ -181,7 +181,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   }
   for (i in 1:nrow(context_edges)) {
     output <- sprintf(
-      "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"%s];",
+      "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\", style=\"dashed\"%s];",
       output, context_edges[i, 1], context_edges[i, 2], opts_context)
   }
   
@@ -203,11 +203,11 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
 }
 
 .output_graph_levels <- function(results, path, name) {
-  strong <- filter(results, CX <= 0.09, XY <= 0.09, CY_X >= 0.91)
+  strong <- dplyr::filter(results, CX <= 0.09, XY <= 0.09, CY_X >= 0.91)
   strong <- strong[,c('C', 'X', 'Y')]
-  substantial <- filter(results, CX <= 0.2, XY <= 0.2, CY_X >= 0.8)
+  substantial <- dplyr::filter(results, CX <= 0.2, XY <= 0.2, CY_X >= 0.8)
   substantial <- substantial[,c('C', 'X', 'Y')]
-  weak <- filter(results, CX <= 0.5, XY <= 0.5, CY_X >= 0.5)
+  weak <- dplyr::filter(results, CX <= 0.5, XY <= 0.5, CY_X >= 0.5)
   weak <- weak[,c('C', 'X', 'Y')]
   output <- "digraph G {"
   
