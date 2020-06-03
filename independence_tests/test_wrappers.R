@@ -1,4 +1,4 @@
-source('independence_tests/bayesCITest.R')
+source('independence_tests/polyatreeTests.R')
 source('independence_tests/CCIT.R')
 source('independence_tests/bayesPCor.R')
 
@@ -12,25 +12,25 @@ use_python('/usr/local/bin/python3')
 
 # Test wrappers
 ##############################################
-.bayes_wrapper <- function (X, Y, Z=NULL) {
-  return(bayes.CItest(X, Y, Z, verbose=FALSE)$p_H0)
+.polyatree_wrapper <- function (X, Y, Z=NULL) {
+  return(polyatree.CITest(X, Y, Z, verbose=FALSE)$p_H0)
 }
 
-.bcor_wrapper <- function(X, Y, Z=NULL) {
+.ppcor_b_wrapper <- function(X, Y, Z=NULL) {
   if (is.null(Z) || length(Z) == 0) {
     return(bayes.cor.test(X, Y)$p_H0)
   }
   return(bayes.pcor.test(X, Y, Z)$p_H0)
 }
 
-.pcor_wrapper <- function(X, Y, Z=NULL) {
+.ppcor_wrapper <- function(X, Y, Z=NULL) {
   if (is.null(Z) || length(Z) == 0) {
     return(cor.test(X, Y)$p.value)
   }
   return(pcor.test(X, Y, Z)$p.value)
 }
 
-.prcor_wrapper <- function(X, Y, Z=NULL) {
+.spcor_wrapper <- function(X, Y, Z=NULL) {
   if (is.null(Z) || length(Z) == 0) {
     return(cor.test(X, Y, method='spearman')$p.value)
   }

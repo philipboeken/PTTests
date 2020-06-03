@@ -59,9 +59,9 @@ get_results <- function(test) {
 registerDoParallel(.cl)
 
 results <- list(
-  pcor=get_results(.pcor_wrapper),
+  pcor=get_results(.ppcor_wrapper),
   rcot=get_results(.rcot_wrapper),
-  bayes=get_results(.bayes_wrapper)
+  polyatree=get_results(.polyatree_wrapper)
 )
 
 stopCluster(.cl)
@@ -82,8 +82,8 @@ save_results <- function (test, filename, alpha1, alpha2) {
 save_results('pcor', 'pcor', 0.01, 0.01)
 save_results('rcot', 'rcot', 0.01, 0.01)
 
-name <- 'bayes'
-.output_graph_levels(results$bayes, .path, name)
+name <- 'polyatree'
+.output_graph_levels(results$polyatree, .path, name)
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, name, .path, name))
 
 save.image(file=paste(.path, timestamp, ".Rdata", sep=""))

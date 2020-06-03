@@ -47,8 +47,8 @@ get_results <- function(n, m, p_two_sample, p_link, err_sd){
     data <- get_data(n, p_two_sample, p_link, err_sd)
     return(data.frame(
       label=data$label,
-      ppcor=.pcor_wrapper(data$C, data$Y, data$X),
-      polyatree=.bayes_wrapper(data$C, data$Y, data$X)
+      ppcor=.ppcor_wrapper(data$C, data$Y, data$X),
+      polyatree=.polyatree_wrapper(data$C, data$Y, data$X)
     ))
   }
   return(result)

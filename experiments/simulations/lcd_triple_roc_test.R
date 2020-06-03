@@ -12,7 +12,7 @@ library(cowplot)
 set.seed(0)
 
 n <- 400
-m <- 20
+m <- 2000
 
 err_sd <- 0.5
 
@@ -125,13 +125,13 @@ get_results <- function(dataset, test){
 registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data())
 results <- list(
-  ppcor=get_results(data, .pcor_wrapper),
-  spcor=get_results(data, .prcor_wrapper),
-  ppcor_b=get_results(data, .bcor_wrapper),
+  ppcor=get_results(data, .ppcor_wrapper),
+  spcor=get_results(data, .spcor_wrapper),
+  ppcor_b=get_results(data, .ppcor_b_wrapper),
   gcm=get_results(data, .gcm_wrapper),
   rcot=get_results(data, .rcot_wrapper),
   ccit=get_results(data, .ccit_wrapper),
-  polyatree=get_results(data, .bayes_wrapper)
+  polyatree=get_results(data, .polyatree_wrapper)
 )
 
 stopCluster(.cl)
@@ -171,7 +171,7 @@ labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c
 grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow=1)
 
 .plot_time <- plot_times(times)
-  
+
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-roc-tests/'
 

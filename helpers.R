@@ -3,7 +3,7 @@ require(scales)
 library(ROCR)
 
 plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
-                      freq_default=0.05, plot_point=TRUE) {
+                     freq_default=0.05, plot_point=TRUE) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
@@ -13,7 +13,7 @@ plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
     auc <- round(performance(pred, "auc")@y.values[[1]], 3)
     x <- res@x.values[[1]]
     y <- res@y.values[[1]]
-    bayes <- (name == 'bayes')
+    bayes <- (name == 'polyatree')
     dot <- .get_roc_point(labels, predictions[,i], bayes, freq_default)
     info <- ifelse(is.na(auc), name, paste(name, ' (', auc, ')', sep=""))
     roc_data[[name]] <- list(data=data.frame(x=x, y=y), 
@@ -38,7 +38,7 @@ plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
 }
 
 plot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
-                             title=NULL, plot_point=TRUE, option=0) {
+                            title=NULL, plot_point=TRUE, option=0) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
     name <- colnames(ts_res)[i]
@@ -177,18 +177,12 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   for (i in 1:nrow(system_edges)) {
     output <- sprintf(
       "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"%s];",
-      output,
-      system_edges[i, 1],
-      system_edges[i, 2],
-      opts)
+      output, system_edges[i, 1], system_edges[i, 2], opts)
   }
   for (i in 1:nrow(context_edges)) {
     output <- sprintf(
       "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"%s];",
-      output,
-      context_edges[i, 1],
-      context_edges[i, 2],
-      opts_context)
+      output, context_edges[i, 1], context_edges[i, 2], opts_context)
   }
   
   return(output)

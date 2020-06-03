@@ -115,9 +115,9 @@ get_results <- function(dataset, test){
 registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data())
 results <- list(
-  ppcor=get_results(data, .pcor_wrapper),
-  ppcor_b=get_results(data, .bcor_wrapper),
-  polyatree=get_results(data, .bayes_wrapper)
+  ppcor=get_results(data, .ppcor_wrapper),
+  ppcor_b=get_results(data, .ppcor_b_wrapper),
+  polyatree=get_results(data, .polyatree_wrapper)
 )
 
 stopCluster(.cl)
