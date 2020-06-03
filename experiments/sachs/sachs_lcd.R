@@ -4,13 +4,10 @@ rm(list = ls(all.names = TRUE))
 # Imports
 source('independence_tests/test_wrappers.R')
 source('helpers.R')
-source('experiments/sachs/ground_thruth.R')
 suppressWarnings(library(foreach))
 suppressWarnings(library(doParallel))
 suppressWarnings(library(cowplot))
 suppressWarnings(library(readr))
-suppressWarnings(library(Rgraphviz))
-suppressWarnings(library(fastDummies))
 
 
 # Setup test
@@ -66,8 +63,8 @@ get_results <- function(test) {
 registerDoParallel(.cl)
 
 results <- list(
-  # pcor=get_results(.pcor_wrapper),
-  # rcot=get_results(.rcot_wrapper),
+  pcor=get_results(.pcor_wrapper),
+  rcot=get_results(.rcot_wrapper),
   bayes=get_results(.bayes_wrapper)
 )
 
@@ -86,8 +83,8 @@ save_results <- function (test, filename, alpha1, alpha2) {
   system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, filename, .path, filename))
 }
 
-# save_results('pcor', 'pcor', 0.01, 0.01)
-# save_results('rcot', 'rcot', 0.01, 0.01)
+save_results('pcor', 'pcor', 0.01, 0.01)
+save_results('rcot', 'rcot', 0.01, 0.01)
 
 name <- 'bayes'
 .output_graph_levels(results$bayes, .path, name)
