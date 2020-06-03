@@ -4,38 +4,27 @@ rm(list = ls(all.names = TRUE))
 # Imports
 source('independence_tests/test_wrappers.R')
 source('helpers.R')
+source('experiments/sachs/ground_thruth.R')
 suppressWarnings(library(foreach))
 suppressWarnings(library(doParallel))
 suppressWarnings(library(cowplot))
 suppressWarnings(library(readr))
 suppressWarnings(library(Rgraphviz))
+suppressWarnings(library(fastDummies))
 
-obs <- FALSE
-no_CD <- FALSE
 
 # Setup test
 ##############################################
 .col_types <- cols('AKT inh'=col_integer(), 'G0076'=col_integer(),
-                   'LY294002'=col_integer(), 'PMA'=col_integer(), 'b2CAMP'=col_integer(), 
-                   'Psitectorigenin'=col_integer(), 'U0126'=col_integer(),
-                   'experiment'=col_integer())
+                   'LY294002'=col_integer(), 'PMA + noCD3/28'=col_integer(), 
+                   'b2CAMP + noCD3/28'=col_integer(), 'Psitectorigenin'=col_integer(), 
+                   'U0126'=col_integer(), 'experiment'=col_integer())
 
-sachs_data_pooled <- read_csv("experiments/sachs/sachs_data.csv", 
-                              col_types = .col_types)
-
-.context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA', 'b2CAMP', 'Psitectorigenin', 'U0126')
-
-if (no_CD) {
-  drop <- c('PMA', 'b2CAMP')
-  sachs_data_pooled <- sachs_data_pooled[, !(names(sachs_data_pooled) %in% drop)]
-  .context_vars <- c('AKT inh', 'G0076', 'LY294002', 'Psitectorigenin', 'U0126')
-}
+sachs_data_pooled <- read_csv("experiments/sachs/sachs_data.csv", col_types = .col_types)
+.context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA + noCD3/28', 'b2CAMP + noCD3/28', 
+                     'Psitectorigenin', 'U0126')
 
 .system_vars <- setdiff(colnames(sachs_data_pooled), c(.context_vars, 'experiment'))
-
-# Remove zero's?
-# idx <- apply(sachs_data_pooled, 1, function(row) all(row[.system_vars] !=0 ))
-# sachs_data_pooled <- sachs_data_pooled[idx,]
 
 CX_combos <- as.matrix(expand.grid(C=.context_vars, X=.system_vars))
 XY_combos <- as.matrix(expand.grid(X=.system_vars, Y=.system_vars))
@@ -49,12 +38,7 @@ get_results <- function(test) {
     C <- CX_combo[1]
     X <- CX_combo[2]
     
-    idx <- TRUE
-    if (obs) {
-      idx <- which(sachs_data_pooled[[C]] == 1 | sachs_data_pooled$experiment == 1)
-    }
-    
-    data <- sachs_data_pooled[idx, CX_combo]
+    data <- sachs_data_pooled[, CX_combo]
     CX <- test(data[[C]], data[[X]])
     return(data.frame(C=C, X=X, CX=CX))
   }
@@ -65,12 +49,7 @@ get_results <- function(test) {
     X <- lcd_triple[2]
     Y <- lcd_triple[3]
     
-    idx <- TRUE
-    if (obs) {
-      idx <- which(sachs_data_pooled[[C]] == 1 | sachs_data_pooled$experiment == 1)
-    }
-    
-    data <- sachs_data_pooled[idx, lcd_triple]
+    data <- sachs_data_pooled[, lcd_triple]
     CX <- CX_test_results[which(CX_test_results$C == C &  CX_test_results$X == X), 'CX']
     XY <- test(data[[X]], data[[Y]])
     CY_X <- test(data[[C]], data[[Y]], data[[X]])
@@ -89,7 +68,6 @@ registerDoParallel(.cl)
 results <- list(
   # pcor=get_results(.pcor_wrapper),
   # rcot=get_results(.rcot_wrapper),
-  # gcm=get_results(.gcm_wrapper),
   bayes=get_results(.bayes_wrapper)
 )
 
@@ -102,88 +80,20 @@ stopCluster(.cl)
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 .path <- 'experiments/sachs/output/'
 
-name <- 'bayes_weak'
-if (obs) {
-  name <- paste(name, '_obs', sep="")
+save_results <- function (test, filename, alpha1, alpha2) {
+  lcd_triples <- filter(results[[test]], CX <= alpha1, XY <= alpha1, CY_X >= alpha2)
+  .output_graph(lcd_triples, .path, filename)
+  system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, filename, .path, filename))
 }
-if (no_CD) {
-  name <- paste(name, '_no_CD', sep="")
-}
-bayes_triples_weak <- filter(results$bayes, CX <= 0.5, XY <= 0.5, CY_X >= 0.5)
-.output_graph(bayes_triples_weak, .path, name)
-system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
-.output_sachs_plots(sachs_data_pooled, bayes_triples_weak, paste(.path, name, sep=''))
 
-name <- 'bayes_substantial'
-if (obs) {
-  name <- paste(name, '_obs', sep="")
-}
-if (no_CD) {
-  name <- paste(name, '_no_CD', sep="")
-}
-bayes_triples_substantial <- filter(results$bayes, CX <= 0.2, XY <= 0.2, CY_X >= 0.8)
-.output_graph(bayes_triples_substantial, .path, name)
-system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
-.output_sachs_plots(sachs_data_pooled, bayes_triples_substantial, paste(.path, name, sep=''))
+# save_results('pcor', 'pcor', 0.01, 0.01)
+# save_results('rcot', 'rcot', 0.01, 0.01)
 
-name <- 'bayes_strong'
-if (obs) {
-  name <- paste(name, '_obs', sep="")
-}
-if (no_CD) {
-  name <- paste(name, '_no_CD', sep="")
-}
-bayes_triples_strong <- filter(results$bayes, CX <= 0.09, XY <= 0.09, CY_X >= 0.91)
-.output_graph(bayes_triples_strong, .path, name)
-system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
-.output_sachs_plots(sachs_data_pooled, bayes_triples_strong, paste(.path, name, sep=''))
-
-name <- 'bayes_levels'
-if (obs) {
-  name <- paste(name, '_obs', sep="")
-}
-if (no_CD) {
-  name <- paste(name, '_no_CD', sep="")
-}
-.output_graph_levels(bayes_triples_strong, bayes_triples_substantial, bayes_triples_weak, .path, name)
-system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
-
-# name <- 'pcor'
-# if (obs) {
-#   name <- paste(name, '_obs', sep="")
-# }
-# if (no_CD) {
-#   name <- paste(name, '_no_CD', sep="")
-# }
-# pcor_triples <- filter(results$pcor, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
-# .output_graph(pcor_triples, .path, name)
-# system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
-# .output_sachs_plots(sachs_data_pooled, pcor_triples, paste(.path, name, sep=''))
-# 
-# name <- 'rcot'
-# if (obs) {
-#   name <- paste(name, '_obs', sep="")
-# }
-# if (no_CD) {
-#   name <- paste(name, '_no_CD', sep="")
-# }
-# rcot_triples <- filter(results$rcot, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
-# .output_graph(rcot_triples, .path, name)
-# system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
-# .output_sachs_plots(sachs_data_pooled, rcot_triples, paste(.path, name, sep=''))
-# 
-# name <- 'gcm'
-# if (obs) {
-#   name <- paste(name, '_obs', sep="")
-# }
-# if (no_CD) {
-#   name <- paste(name, '_no_CD', sep="")
-# }
-# gcm_triples <- filter(results$gcm, CX <= 0.01, XY <= 0.01, CY_X >= 0.01)
-# .output_graph(gcm_triples, .path, name)
-# system(sprintf('dot -Tpdf %s%s.dot -o %s%s_graph.pdf', .path, name, .path, name))
-# .output_sachs_plots(sachs_data_pooled, gcm_triples, paste(.path, name, sep=''))
+name <- 'bayes'
+.output_graph_levels(results$bayes, .path, name)
+system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, name, .path, name))
 
 save.image(file=paste(.path, timestamp, ".Rdata", sep=""))
+
 
 

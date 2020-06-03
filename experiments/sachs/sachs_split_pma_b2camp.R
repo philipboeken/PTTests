@@ -12,10 +12,10 @@ sachs_data_pooled <- read_csv(file, col_types = .col_types)
 combined_intervention <- sachs_data_pooled[['PMA/beta2CAMP + noAlphaCD3/28']]
 
 PMA <- sapply(combined_intervention, function (x) (x == 1)*1)
-sachs_data_pooled[['PMA']] <- PMA
+sachs_data_pooled[['PMA + noCD3/28']] <- PMA
 
 b2CAMP <- sapply(combined_intervention, function (x) (x == 2)*1)
-sachs_data_pooled[['b2CAMP']] <- b2CAMP
+sachs_data_pooled[['b2CAMP + noCD3/28']] <- b2CAMP
 
 drop <- c('PMA/beta2CAMP + noAlphaCD3/28')
 sachs_data_pooled <- sachs_data_pooled[, !(names(sachs_data_pooled) %in% drop)]
