@@ -1,4 +1,4 @@
-suppressMessages(library(invgamma))
+library(invgamma)
 
 bayes.cor.test <- function(X, Y) {
   bf <- .jzs_corbf(cor(X, Y), length(X))
@@ -29,7 +29,6 @@ bayes.pcor.test <- function(X, Y, Z) {
   
   return(1/bf10)
 }
-
 
 # Main function to analytically calculate the BF for correlation
 # see Wetzels, R. & Wagenmakers, E.-J. (2012). A default Bayesian 

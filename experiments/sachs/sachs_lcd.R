@@ -1,12 +1,8 @@
-# Clear workspace
-rm(list = ls(all.names = TRUE))
-
 # Imports
 source('independence_tests/test_wrappers.R')
 source('helpers.R')
 suppressWarnings(library(foreach))
 suppressWarnings(library(doParallel))
-suppressWarnings(library(cowplot))
 suppressWarnings(library(readr))
 
 

@@ -1,14 +1,10 @@
-# Clear workspace
-rm(list = ls(all.names = TRUE))
-
 # Imports
 source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
-suppressWarnings(library(foreach))
-suppressWarnings(library(doParallel))
-suppressWarnings(library(cowplot))
-library(latex2exp)
+library(foreach)
+library(doParallel)
+library(cowplot)
 
 
 # Input parameters
@@ -167,10 +163,10 @@ ci_results <- .get_results_by_type(results, 'ci')
 
 labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c(1,0))
 
-.plot_ts <- pplot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05)
-.plot_uci <- pplot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05)
-.plot_ci <- pplot_roc(ci_results[,1], ci_results[,-1], freq_default=0.05)
-.plot_lcd <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1])
+.plot_ts <- plot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05)
+.plot_uci <- plot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05)
+.plot_ci <- plot_roc(ci_results[,1], ci_results[,-1], freq_default=0.05)
+.plot_lcd <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1])
 
 grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow=1)
 

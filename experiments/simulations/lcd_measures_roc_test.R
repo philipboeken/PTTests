@@ -1,13 +1,10 @@
-# Clear workspace
-rm(list = ls(all.names = TRUE))
-
 # Imports
 source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
 source('helpers.R')
-suppressWarnings(library(foreach))
-suppressWarnings(library(doParallel))
-suppressWarnings(library(cowplot))
+library(foreach)
+library(doParallel)
+library(cowplot)
 library(latex2exp)
 
 
@@ -44,36 +41,36 @@ get_data <- function() {
   C <- rbinom(n, 1, p_two_sample)
   
   cond_indep <- rbinom(1, 1, p_ci)
-  if (cond_indep) { # C -> Z -> X
+  if (cond_indep) { # C -> X -> Y
     intervene <- rbinom(1, 1, p_link)
-    Z <- intervene * do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
+    X <- intervene * do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
     
     link_nonlin <- rbinom(1, 1, p_link)
-    X <- link_nonlin * nonlin(nonlin_options, Z)
-    X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
+    Y <- link_nonlin * nonlin(nonlin_options, X)
+    Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
   } else {
-    if (runif(1) <= 0.5) { # C -> Z <- X
-      X <- rnorm(n)
+    if (runif(1) <= 0.5) { # C -> X <- Y
+      Y <- rnorm(n)
       
       link_nonlin <- rbinom(1, 1, p_link)
-      Z <- link_nonlin * nonlin(nonlin_options, X)
-      Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
+      X <- link_nonlin * nonlin(nonlin_options, Y)
+      X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
-      Z <- intervene * do_intervention(interv_options, Z, C) + (1-intervene) * Z
-    } else { # C -> Z <- L -> X
+      X <- intervene * do_intervention(interv_options, X, C) + (1-intervene) * X
+    } else { # C -> X <- L -> Y
       L <- rnorm(n)
       
       link_nonlin1 <- rbinom(1, 1, p_link)
-      X <- link_nonlin1 * nonlin(nonlin_options, L)
-      X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
+      Y <- link_nonlin1 * nonlin(nonlin_options, L)
+      Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
       
       link_nonlin2 <- rbinom(1, 1, p_link)
-      Z <- link_nonlin2 * nonlin(nonlin_options, L)
-      Z <- Z + err_sd * rnorm(n, 0, ifelse(sd(Z) > 0, sd(Z), 1/err_sd))
+      X <- link_nonlin2 * nonlin(nonlin_options, L)
+      X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
-      Z <- intervene * do_intervention(interv_options, Z, C) + (1-intervene) * Z
+      X <- intervene * do_intervention(interv_options, X, C) + (1-intervene) * X
       
       link_nonlin <- link_nonlin1 & link_nonlin2
     }
@@ -82,7 +79,7 @@ get_data <- function() {
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
-  return(list(C=C, X=X, Z=Z,
+  return(list(C=C, Y=Y, X=X,
               label_ts=1-as.numeric(intervene),
               label_uci=1-as.numeric(link_nonlin),
               label_ci=cond_indep,
@@ -93,9 +90,9 @@ get_results <- function(dataset, test){
   result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
     data <- dataset[[i]]
     
-    ts <- test(data$C, data$Z)
-    uci <- test(data$Z, data$X)
-    ci <- test(data$C, data$X, data$Z)
+    ts <- test(data$C, data$X)
+    uci <- test(data$X, data$Y)
+    ci <- test(data$C, data$Y, data$X)
     
     return(data.frame(
       label_ts=data$label_ts,
@@ -148,9 +145,9 @@ labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c
 t0 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
 t1 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha)$')
 t2 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > 1-\\alpha)$')
-.plot0 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t0, option=0, plot_point=FALSE)
-.plot1 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t1, option=1, plot_point=FALSE)
-.plot2 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t2, option=2, plot_point=FALSE)
+.plot0 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t0, option=0, plot_point=FALSE)
+.plot1 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t1, option=1, plot_point=FALSE)
+.plot2 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t2, option=2, plot_point=FALSE)
 
 grid <- plot_grid(.plot0, .plot1, .plot2, nrow=1)
 

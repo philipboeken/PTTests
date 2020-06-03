@@ -1,21 +1,9 @@
-suppressMessages(library(ggplot2))
+library(ggplot2)
 require(scales)
-suppressMessages(library(plotly))
-suppressMessages(library(ROCR))
-suppressWarnings(library(dplyr))
+# library(plotly)
+library(ROCR)
 
-.pplot <- function(x, y, count=FALSE) {
-  if (count) {
-    ggplot(data.frame(y,x), aes(x, y)) + geom_count()
-  } else {
-    result <- bayes.UCItest(x, y)
-    cat("\nBF(H0, H1):\t", result$bf, "\nP(H0 | XY):\t", result$p_H0, "\n")
-    ggplot(data.frame(y,x), aes(x, y)) + geom_point() +
-      labs(x = substitute(x), y = substitute(y))
-  }
-}
-
-pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
+plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
                       freq_default=0.05, plot_point=TRUE) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
@@ -27,7 +15,7 @@ pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
     x <- res@x.values[[1]]
     y <- res@y.values[[1]]
     bayes <- (name == 'bayes')
-    dot <- .roc_dot(labels, predictions[,i], bayes, freq_default)
+    dot <- .get_roc_point(labels, predictions[,i], bayes, freq_default)
     info <- ifelse(is.na(auc), name, paste(name, ' (', auc, ')', sep=""))
     roc_data[[name]] <- list(data=data.frame(x=x, y=y), 
                              point=data.frame(x=dot$fpr, y=dot$tpr), 
@@ -50,7 +38,7 @@ pplot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.25),
   return(plt)
 }
 
-pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
+plot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
                              title=NULL, plot_point=TRUE, option=0) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
@@ -109,12 +97,6 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
       idx <- intersect(idx, which(ci >= alpha))
     } else if (option == 2) {
       idx <- intersect(idx, which(ci >= 1-alpha))
-    } else if (option == 3) {
-      idx <- intersect(idx, which(ci >= a0))
-    } else if (option == 4) {
-      idx <- which(ts <= a0)
-      idx <- intersect(idx, which(uci <= a0))
-      idx <- intersect(idx, which(ci >= 1-alpha))
     }
     
     tp <- c(tp, length(intersect(idx, true)))
@@ -132,7 +114,7 @@ pplot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   }
 }
 
-.roc_dot <- function(labels, predictions, bayes, freq_default=0.05) {
+.get_roc_point <- function(labels, predictions, bayes, freq_default=0.05) {
   true <- which(labels == 0)
   false <- which(labels == 1)
   n <- length(labels)

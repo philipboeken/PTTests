@@ -1,5 +1,5 @@
 source('independence_tests/bayesUCITest.R')
-suppressWarnings(library(matrixStats))
+library(matrixStats)
 
 bayes.CItest <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
 
