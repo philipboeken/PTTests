@@ -148,26 +148,20 @@ labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c
 t0 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
 t1 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha)$')
 t2 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > 1-\\alpha)$')
-t3 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha_0)$')
-t4 <- TeX('$(p_{CX} < \\alpha_0)$ and $(p_{XY} < \\alpha_0)$ and $(p_{CY|X} > 1-\\alpha)$')
 .plot0 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t0, option=0, plot_point=FALSE)
 .plot1 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t1, option=1, plot_point=FALSE)
 .plot2 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t2, option=2, plot_point=FALSE)
-.plot3 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t3, option=3, plot_point=FALSE)
-.plot4 <- pplot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t4, option=4, plot_point=FALSE)
 
-grid <- plot_grid(.plot0, .plot1, .plot2, .plot3, .plot4, nrow=1)
+grid <- plot_grid(.plot0, .plot1, .plot2, nrow=1)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-measures-roc-tests/'
 
 save.image(file=paste(.path, timestamp, '.Rdata', sep=''))
 
-.ggsave(paste(.path, timestamp, sep=''), grid, 50, 10)
-.ggsave(paste(.path, 'last', sep=''), grid, 50, 10)
+.ggsave(paste(.path, timestamp, sep=''), grid, 30, 10)
+.ggsave(paste(.path, 'last', sep=''), grid, 30, 10)
 .ggsave(paste(.path, 'plot0', sep=''), .plot0, 10, 10)
 .ggsave(paste(.path, 'plot1', sep=''), .plot1, 10, 10)
 .ggsave(paste(.path, 'plot2', sep=''), .plot2, 10, 10)
-.ggsave(paste(.path, 'plot3', sep=''), .plot3, 10, 10)
-.ggsave(paste(.path, 'plot4', sep=''), .plot4, 10, 10)
 
