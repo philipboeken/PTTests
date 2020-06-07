@@ -11,11 +11,12 @@ library(readr)
 .col_types <- cols('AKT inh'=col_integer(), 'G0076'=col_integer(),
                    'LY294002'=col_integer(), 'PMA + noCD3/28'=col_integer(), 
                    'b2CAMP + noCD3/28'=col_integer(), 'Psitectorigenin'=col_integer(), 
-                   'U0126'=col_integer(), 'experiment'=col_integer())
+                   'U0126'=col_integer(), 'CD3/28'=col_integer(), 'experiment'=col_integer())
 
-sachs_data_pooled <- read_csv("experiments/sachs/sachs_data.csv", col_types = .col_types)
+sachs_data_pooled <- read_csv("experiments/sachs/sachs_data2.csv", col_types = .col_types)
+
 .context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA + noCD3/28', 'b2CAMP + noCD3/28', 
-                     'Psitectorigenin', 'U0126')
+                   'Psitectorigenin', 'U0126', 'CD3/28')
 
 .system_vars <- setdiff(colnames(sachs_data_pooled), c(.context_vars, 'experiment'))
 
@@ -60,7 +61,6 @@ registerDoParallel(.cl)
 
 results <- list(
   pcor=get_results(.ppcor_wrapper),
-  rcot=get_results(.rcot_wrapper),
   polyatree=get_results(.polyatree_wrapper)
 )
 
@@ -73,17 +73,16 @@ stopCluster(.cl)
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 .path <- 'experiments/sachs/output/'
 
-save_results <- function (test, filename, alpha1, alpha2) {
-  lcd_triples <- dplyr::filter(results[[test]], CX <= alpha1, XY <= alpha1, CY_X >= alpha2)
-  .output_graph(lcd_triples, .path, filename)
-  system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, filename, .path, filename))
-}
+name <- 'pcor2'
+.output_graph_levels(results$pcor, .path, name, 
+                     alpha1=list(strong=0.0001, substantial=0.005, weak=0.05),
+                     alpha2=list(strong=0.05, substantial=0.05, weak=0.05))
+system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, name, .path, name))
 
-save_results('pcor', 'pcor', 0.01, 0.01)
-save_results('rcot', 'rcot', 0.01, 0.01)
-
-name <- 'polyatree'
-.output_graph_levels(results$polyatree, .path, name)
+name <- 'polyatree2'
+.output_graph_levels(results$polyatree, .path, name, 
+                     alpha1=list(strong=0.09, substantial=0.2, weak=0.5),
+                     alpha2=list(strong=0.91, substantial=0.8, weak=0.5))
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, name, .path, name))
 
 save.image(file=paste(.path, timestamp, ".Rdata", sep=""))

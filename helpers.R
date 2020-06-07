@@ -204,12 +204,12 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   write(output, file=paste(path, name, ".dot", sep=""))
 }
 
-.output_graph_levels <- function(results, path, name) {
-  strong <- dplyr::filter(results, CX <= 0.09, XY <= 0.09, CY_X >= 0.91)
+.output_graph_levels <- function(results, path, name, alpha1, alpha2) {
+  strong <- dplyr::filter(results, CX <= alpha1$strong, XY <= alpha1$strong, CY_X >= alpha2$strong)
   strong <- strong[,c('C', 'X', 'Y')]
-  substantial <- dplyr::filter(results, CX <= 0.2, XY <= 0.2, CY_X >= 0.8)
+  substantial <- dplyr::filter(results, CX <= alpha1$substantial, XY <= alpha1$substantial, CY_X >= alpha2$substantial)
   substantial <- substantial[,c('C', 'X', 'Y')]
-  weak <- dplyr::filter(results, CX <= 0.5, XY <= 0.5, CY_X >= 0.5)
+  weak <- dplyr::filter(results, CX <= alpha1$weak, XY <= alpha1$weak, CY_X >= alpha2$weak)
   weak <- weak[,c('C', 'X', 'Y')]
   output <- "digraph G {"
   
