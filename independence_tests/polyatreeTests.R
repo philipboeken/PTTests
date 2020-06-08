@@ -1,5 +1,5 @@
-polyatree_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
-  
+polyatree_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1, 
+                               max_depth = -1, qdist = qnorm, verbose = TRUE) {
   if (is.null(Z)) {
     if (verbose)
       cat('Redirecting to independence test\n')
@@ -81,7 +81,8 @@ polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
                                          c, rho, depth, max_depth, qdist) {
   localData <- matrix(data[which(qdist(z_min) < data[, z_idx] & data[, z_idx] < qdist(z_max)),
                            target_idx], ncol = length(target_idx))
-  logl <- .polyatree_marginal_likelihood(localData, low = rep(0, ncol(localData)), up = rep(1, ncol(localData)),
+  logl <- .polyatree_marginal_likelihood(localData, low = rep(0, ncol(localData)), 
+                                         up = rep(1, ncol(localData)),
                                          c = c, depth = 1, max_depth, qdist)
   
   if (depth == max_depth || nrow(localData) <= 1) {
@@ -118,9 +119,12 @@ polyatree_continuous_independence_test <- function (X, Y, c = 1, max_depth = -1,
   Y <- scale(Y)
   XY <- cbind(X, Y)
   
-  p_x <- .polyatree_marginal_likelihood(X, low = 0, up = 1, c = 2*c, depth = 1, max_depth, qdist)
-  p_y <- .polyatree_marginal_likelihood(Y, low = 0, up = 1, c = 2*c, depth = 1, max_depth, qdist)
-  p_xy <- .polyatree_marginal_likelihood(XY, low = c(0, 0), up = c(1, 1), c = 1*c, depth = 1, max_depth, qdist)
+  p_x <- .polyatree_marginal_likelihood(X, low = 0, up = 1, c = 2*c, 
+                                        depth = 1, max_depth, qdist)
+  p_y <- .polyatree_marginal_likelihood(Y, low = 0, up = 1, c = 2*c, 
+                                        depth = 1, max_depth, qdist)
+  p_xy <- .polyatree_marginal_likelihood(XY, low = c(0, 0), up = c(1, 1), c = 1*c, 
+                                         depth = 1, max_depth, qdist)
   
   bf <- exp(p_x + p_y - p_xy)
   
