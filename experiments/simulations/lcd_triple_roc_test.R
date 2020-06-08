@@ -78,15 +78,15 @@ get_data <- function() {
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
-  return(list(C=C, X=X, Y=Y,
-              label_ts=1-as.numeric(intervene),
-              label_uci=1-as.numeric(link_nonlin),
-              label_ci=cond_indep,
-              label_lcd=lcd))
+  return(list(C = C, X = X, Y = Y,
+              label_ts = 1-as.numeric(intervene),
+              label_uci = 1-as.numeric(link_nonlin),
+              label_ci = cond_indep,
+              label_lcd = lcd))
 }
 
 get_results <- function(dataset, test){
-  result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
+  result <- foreach(i = 1:length(dataset), .combine = rbind) %dopar% {
     data <- dataset[[i]]
     
     start_time_ts <- Sys.time()
@@ -102,16 +102,16 @@ get_results <- function(dataset, test){
     end_time_ci <- Sys.time()
     
     return(data.frame(
-      label_ts=data$label_ts,
-      label_uci=data$label_uci,
-      label_ci=data$label_ci,
-      label_lcd=data$label_lcd,
-      ts=ts,
-      uci=uci,
-      ci=ci,
-      time_ts=end_time_ts - start_time_ts,
-      time_uci=end_time_uci - start_time_uci,
-      time_ci=end_time_ci - start_time_ci
+      label_ts = data$label_ts,
+      label_uci = data$label_uci,
+      label_ci = data$label_ci,
+      label_lcd = data$label_lcd,
+      ts = ts,
+      uci = uci,
+      ci = ci,
+      time_ts = end_time_ts - start_time_ts,
+      time_uci = end_time_uci - start_time_uci,
+      time_ci = end_time_ci - start_time_ci
     ))
   }
   return(result)
@@ -125,13 +125,13 @@ get_results <- function(dataset, test){
 registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data())
 results <- list(
-  ppcor=get_results(data, .ppcor_wrapper),
-  spcor=get_results(data, .spcor_wrapper),
-  ppcor_b=get_results(data, .ppcor_b_wrapper),
-  gcm=get_results(data, .gcm_wrapper),
-  rcot=get_results(data, .rcot_wrapper),
-  ccit=get_results(data, .ccit_wrapper),
-  polyatree=get_results(data, .polyatree_wrapper)
+  ppcor = get_results(data, .ppcor_wrapper),
+  spcor = get_results(data, .spcor_wrapper),
+  ppcor_b = get_results(data, .ppcor_b_wrapper),
+  gcm = get_results(data, .gcm_wrapper),
+  rcot = get_results(data, .rcot_wrapper),
+  ccit = get_results(data, .ccit_wrapper),
+  polyatree = get_results(data, .polyatree_wrapper)
 )
 
 stopCluster(.cl)
@@ -141,21 +141,21 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  labels <- results$polyatree[,{{paste('label_',type, sep='')}}]
+  labels <- results$polyatree[,{{paste('label_',type, sep = '')}}]
   labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
-  result <- data.frame(label=labels)
+  result <- data.frame(label = labels)
   for (test in names(results)) {
     result[test] <- results[[test]][,type]
   }
   return(result)
 }
 
-times <- foreach(test=names(results), .combine=rbind) %do% {
+times <- foreach(test = names(results), .combine = rbind) %do% {
   rbind(c(test, '1_ts', sum(results[[test]][,'time_ts'])),
         c(test, '2_uci', sum(results[[test]][,'time_uci'])),
         c(test, '3_ci', sum(results[[test]][,'time_ci'])))
 }
-times <- data.frame(ensemble=times[,1], test=times[,2], time=as.double(times[,3]))
+times <- data.frame(ensemble = times[,1], test = times[,2], time = as.double(times[,3]))
 
 ts_results <- .get_results_by_type(results, 'ts')
 uci_results <- .get_results_by_type(results, 'uci')
@@ -163,24 +163,24 @@ ci_results <- .get_results_by_type(results, 'ci')
 
 labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c(1,0))
 
-.plot_ts <- plot_roc(ts_results[,1], ts_results[,-1], freq_default=0.05)
-.plot_uci <- plot_roc(uci_results[,1], uci_results[,-1], freq_default=0.05)
-.plot_ci <- plot_roc(ci_results[,1], ci_results[,-1], freq_default=0.05)
+.plot_ts <- plot_roc(ts_results[,1], ts_results[,-1], freq_default = 0.05)
+.plot_uci <- plot_roc(uci_results[,1], uci_results[,-1], freq_default = 0.05)
+.plot_ci <- plot_roc(ci_results[,1], ci_results[,-1], freq_default = 0.05)
 .plot_lcd <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1])
 
-grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow=1)
+grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow = 1)
 
 .plot_time <- plot_times(times)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-roc-tests/'
 
-save.image(file=paste(.path, timestamp, '.Rdata', sep=''))
+save.image(file = paste(.path, timestamp, '.Rdata', sep = ''))
 
-.ggsave(paste(.path, timestamp, sep=''), grid, 40, 10)
-.ggsave(paste(.path, 'last', sep=''), grid, 40, 10)
-.ggsave(paste(.path, 'two-sample', sep=''), .plot_ts, 10, 10)
-.ggsave(paste(.path, 'marginal-independence', sep=''), .plot_uci, 10, 10)
-.ggsave(paste(.path, 'conditional-independence', sep=''), .plot_ci, 10, 10)
-.ggsave(paste(.path, 'lcd', sep=''), .plot_lcd, 10, 10)
-.ggsave(paste(.path, 'times', sep=''), .plot_time, 20, 8)
+.ggsave(paste(.path, timestamp, sep = ''), grid, 40, 10)
+.ggsave(paste(.path, 'last', sep = ''), grid, 40, 10)
+.ggsave(paste(.path, 'two-sample', sep = ''), .plot_ts, 10, 10)
+.ggsave(paste(.path, 'marginal-independence', sep = ''), .plot_uci, 10, 10)
+.ggsave(paste(.path, 'conditional-independence', sep = ''), .plot_ci, 10, 10)
+.ggsave(paste(.path, 'lcd', sep = ''), .plot_lcd, 10, 10)
+.ggsave(paste(.path, 'times', sep = ''), .plot_time, 20, 8)

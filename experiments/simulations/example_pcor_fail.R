@@ -18,7 +18,7 @@ p_two_sample <- 0.5
 
 # Setup test
 ##############################################
-get_data <- function(n, p_two_sample, p_link, err_sd, link=0) {
+get_data <- function(n, p_two_sample, p_link, err_sd, link = 0) {
   # C -> X <- Y
   
   C <- rbinom(n, 1, p_two_sample)
@@ -39,16 +39,16 @@ get_data <- function(n, p_two_sample, p_link, err_sd, link=0) {
   
   cond_indep <- as.numeric(!link_nonlin)
   
-  return(list(C=C, Y=Y, X=X, label=cond_indep))
+  return(list(C = C, Y = Y, X = X, label = cond_indep))
 }
 
 get_results <- function(n, m, p_two_sample, p_link, err_sd){
-  result <- foreach(i=1:m, .combine=rbind) %dopar% {
+  result <- foreach(i = 1:m, .combine = rbind) %dopar% {
     data <- get_data(n, p_two_sample, p_link, err_sd)
     return(data.frame(
-      label=data$label,
-      ppcor=.ppcor_wrapper(data$C, data$Y, data$X),
-      polyatree=.polyatree_wrapper(data$C, data$Y, data$X)
+      label = data$label,
+      ppcor = .ppcor_wrapper(data$C, data$Y, data$X),
+      polyatree = .polyatree_wrapper(data$C, data$Y, data$X)
     ))
   }
   return(result)
@@ -71,33 +71,33 @@ stopCluster(.cl)
 
 # Process results
 ##############################################
-no_link <- data.frame(C=as.factor(data_no_link$C), Y=data_no_link$Y, X=data_no_link$X)
-linked <- data.frame(C=as.factor(data_linked$C), Y=data_linked$Y, X=data_linked$X)
+no_link <- data.frame(C = as.factor(data_no_link$C), Y = data_no_link$Y, X = data_no_link$X)
+linked <- data.frame(C = as.factor(data_linked$C), Y = data_linked$Y, X = data_linked$X)
 
 scat_plot_no_link <- ggplot() + 
-  geom_point(data=no_link, aes(x=Y, y=X, colour=C)) + 
+  geom_point(data = no_link, aes(x = Y, y = X, colour = C)) + 
   theme(legend.title = element_blank(),
         legend.position = c(0.87, 0.12)) +
-  scale_color_manual(labels = c("C=0", "C=1"), values = c("blue", "red"))
+  scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red"))
 
 scat_plot_linked <- ggplot() + 
-  geom_point(data=linked, aes(x=Y, y=X, colour=C)) + 
+  geom_point(data = linked, aes(x = Y, y = X, colour = C)) + 
   theme(legend.title = element_blank(),
         legend.position = c(0.87, 0.12)) +
-  scale_color_manual(labels = c("C=0", "C=1"), values = c("blue", "red"))
+  scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red"))
 
-labels <- factor(results[,1], ordered=TRUE, levels=c(1,0))
-roc_plot <- plot_roc(labels, results[,-1], NULL, c(0.8, 0.12), plot_point=FALSE)
+labels <- factor(results[,1], ordered = TRUE, levels = c(1,0))
+roc_plot <- plot_roc(labels, results[,-1], NULL, c(0.8, 0.12), plot_point = FALSE)
 
-grid <- plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow=1)
+grid <- plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow = 1)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/example-pcor-fail/'
 
-save.image(file=paste(.path, timestamp, '.Rdata', sep=''))
+save.image(file = paste(.path, timestamp, '.Rdata', sep = ''))
 
-.ggsave(paste(.path, 'ppcor_fail_no_link', sep=''), scat_plot_no_link, 10, 10)
-.ggsave(paste(.path, 'ppcor_fail_linked', sep=''), scat_plot_linked, 10, 10)
-.ggsave(paste(.path, 'ppcor_fail_roc', sep=''), roc_plot, 10, 10)
-.ggsave(paste(.path, timestamp, sep=''), grid, 30, 10)
-.ggsave(paste(.path, 'last', sep=''), grid, 30, 10)
+.ggsave(paste(.path, 'ppcor_fail_no_link', sep = ''), scat_plot_no_link, 10, 10)
+.ggsave(paste(.path, 'ppcor_fail_linked', sep = ''), scat_plot_linked, 10, 10)
+.ggsave(paste(.path, 'ppcor_fail_roc', sep = ''), roc_plot, 10, 10)
+.ggsave(paste(.path, timestamp, sep = ''), grid, 30, 10)
+.ggsave(paste(.path, 'last', sep = ''), grid, 30, 10)

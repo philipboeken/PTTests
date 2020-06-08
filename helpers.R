@@ -2,8 +2,8 @@ library(ggplot2)
 require(scales)
 library(ROCR)
 
-plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.275),
-                     freq_default=0.05, plot_point=TRUE) {
+plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.275),
+                     freq_default = 0.05, plot_point = TRUE) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
@@ -15,23 +15,23 @@ plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.275),
     y <- res@y.values[[1]]
     bayes <- (name == 'polyatree')
     dot <- .get_roc_point(labels, predictions[,i], bayes, freq_default)
-    info <- ifelse(is.na(auc), name, paste(name, ' (', auc, ')', sep=""))
-    roc_data[[name]] <- list(data=data.frame(x=x, y=y), 
-                             point=data.frame(x=dot$fpr, y=dot$tpr), 
-                             info=info)
+    info <- ifelse(is.na(auc), name, paste(name, ' (', auc, ')', sep = ""))
+    roc_data[[name]] <- list(data = data.frame(x = x, y = y), 
+                             point = data.frame(x = dot$fpr, y = dot$tpr), 
+                             info = info)
   }
   
   plt <- ggplot() + 
-    labs(x="False Positive Rate", y="True Positive Rate", title=title) +
+    labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
     theme(legend.title = element_text(size = 0),
           legend.spacing.x = unit(0.2, 'cm'),
           legend.position = legend_pos,
-          plot.title = element_text(size=12, hjust=0.5))
+          plot.title = element_text(size = 12, hjust = 0.5))
   for (roc in roc_data) {
     c <- roc$info
-    plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
+    plt <- plt + geom_line(data = roc$data, aes(x, y, colour = {{c}}))
     if (plot_point) {
-      plt <- plt + geom_point(data=roc$point, aes(x, y, colour={{c}}))
+      plt <- plt + geom_point(data = roc$point, aes(x, y, colour = {{c}}))
     }
   }
   
@@ -39,45 +39,45 @@ plot_roc <- function(labels, predictions, title=NULL, legend_pos=c(0.78, 0.275),
 }
 
 plot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
-                            title=NULL, plot_point=TRUE, option=0) {
+                            title = NULL, plot_point = TRUE, option = 0) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
     name <- colnames(ts_res)[i]
     bayes <- (name == 'polyatree' || name == 'ppcor_b')
     roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes, option)
     dot <- .lcd_roc_dot(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
-    info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep=""))
-    roc_data[[name]] <- list(data=data.frame(x=roc$fpr, y=roc$tpr), 
-                             point=data.frame(x=dot$fpr, y=dot$tpr), 
-                             info=info)
+    info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
+    roc_data[[name]] <- list(data = data.frame(x = roc$fpr, y = roc$tpr), 
+                             point = data.frame(x = dot$fpr, y = dot$tpr), 
+                             info = info)
   }
   
   plt <- ggplot() +
     xlim(0, 1) +
     ylim(0, 1) +
-    labs(x="False Positive Rate", y="True Positive Rate", title=title) +
+    labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
     theme(legend.title = element_text(size = 0),
           legend.spacing.x = unit(0.2, 'cm'),
           legend.position = c(0.78, 0.275),
-          plot.title = element_text(size=12, hjust=0.5))
+          plot.title = element_text(size = 12, hjust = 0.5))
   for (roc in roc_data) {
     c <- roc$info
     
-    if (option ==1) {
-      plt <- plt + geom_path(data=roc$data, aes(x, y, colour={{c}}))
+    if (option == 1) {
+      plt <- plt + geom_path(data = roc$data, aes(x, y, colour = {{c}}))
     } else {
-      plt <- plt + geom_line(data=roc$data, aes(x, y, colour={{c}}))
+      plt <- plt + geom_line(data = roc$data, aes(x, y, colour = {{c}}))
     }
     
     if (plot_point) {
-      plt <- plt + geom_point(data=roc$point, aes(x, y, colour={{c}}))
+      plt <- plt + geom_point(data = roc$point, aes(x, y, colour = {{c}}))
     }
   }
   
   return(plt)
 }
 
-.lcd_roc <- function(labels, ts, uci, ci, bayes, option=0) {
+.lcd_roc <- function(labels, ts, uci, ci, bayes, option = 0) {
   alphas <- sort(c(ts, uci, ci), TRUE)
   alphas <- alphas[alphas != 0]
   
@@ -108,14 +108,14 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   fpr <- fp / length(false)
   
   if (option == 1) {
-    return(list(tpr=c(0, tpr), fpr=c(0, fpr), auc=NaN))
+    return(list(tpr = c(0, tpr), fpr = c(0, fpr), auc = NaN))
   } else {
     auc <- .get_auc(tpr, fpr)
-    return(list(tpr=c(0, tpr, 1), fpr=c(0, fpr, 1), auc=auc))
+    return(list(tpr = c(0, tpr, 1), fpr = c(0, fpr, 1), auc = auc))
   }
 }
 
-.get_roc_point <- function(labels, predictions, bayes, freq_default=0.05) {
+.get_roc_point <- function(labels, predictions, bayes, freq_default = 0.05) {
   true <- which(labels == 0)
   false <- which(labels == 1)
   n <- length(labels)
@@ -123,7 +123,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   idx <- which(predictions <= alpha)
   tpr <- length(intersect(idx, true)) / length(true)
   fpr <- length(intersect(idx, false)) / length(false)
-  return(list(tpr=tpr, fpr=fpr))
+  return(list(tpr = tpr, fpr = fpr))
 }
 
 .lcd_roc_dot <- function(labels, ts, uci, ci, bayes) {
@@ -136,7 +136,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   idx <- intersect(idx, which(ci >= alpha))
   tpr <- length(intersect(idx, true)) / length(true)
   fpr <- length(intersect(idx, false)) / length(false)
-  return(list(tpr=tpr, fpr=fpr))
+  return(list(tpr = tpr, fpr = fpr))
 }
 
 .get_auc <- function(tpr, fpr) {
@@ -154,7 +154,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
 
 .ggsave <- function (name, grid, width, height) {
   ggsave(
-    paste(name, ".pdf", sep=""),
+    paste(name, ".pdf", sep = ""),
     plot = grid, scale = 1,
     width = width,
     height = height,
@@ -162,13 +162,13 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   )
 }
 
-.graph_lines <- function(context, system, context_edges, system_edges, opts="", opts_context="") {
+.graph_lines <- function(context, system, context_edges, system_edges, opts = "", opts_context = "") {
   opts <- ifelse(opts != "", sprintf(", %s", opts), "")
   opts_context <- ifelse(opts_context != "", sprintf(", %s", opts_context), "")
   output <- ""
   for (node in context) {
     output <- sprintf(
-      "%s\n\"%s\"[label=\"%s\", shape=box%s];", 
+      "%s\n\"%s\"[label = \"%s\", shape = box%s];", 
       output, node, node, opts_context)
   }
   for (node in system) {
@@ -205,7 +205,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   system_edges1 <- unique(strong[,c('X', 'Y')])
   output <- paste(output, .graph_lines(context1, system1, context_edges1, system_edges1, 
                                        "color=\"#000000\"",
-                                       "color=\"#c4c4c4\""), sep="")
+                                       "color=\"#c4c4c4\""), sep = "")
   
   diff <- dplyr::setdiff(substantial, strong)
   context2 <- dplyr::setdiff(unique(as.character(diff[,'C'])), context1)
@@ -214,7 +214,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   system_edges2 <- dplyr::setdiff(unique(diff[,c('X', 'Y')]), system_edges1)
   output <- paste(output, .graph_lines(context2, system2, context_edges2, system_edges2, 
                                        "color=\"#e30505\"",
-                                       "color=\"#ffa1a1\""), sep="")
+                                       "color=\"#ffa1a1\""), sep = "")
   
   diff <- dplyr::setdiff(weak, substantial)
   context3 <- dplyr::setdiff(unique(as.character(diff[,'C'])),
@@ -227,20 +227,20 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
                                   rbind(system_edges1, system_edges2))
   output <- paste(output, .graph_lines(context3, system3, context_edges3, system_edges3,
                                        "color=\"#0032fa\"",
-                                       "color=\"#a8baff\""), sep="")
-  output <- paste(output, "}", sep="\n")
+                                       "color=\"#a8baff\""), sep = "")
+  output <- paste(output, "}", sep = "\n")
   
-  write(output, file=paste(path, name, ".dot", sep=""))
+  write(output, file = paste(path, name, ".dot", sep = ""))
 }
 
-plot_times <- function(times, title=NULL) {
-  times$time <- sapply(times$time, function(x) (x < 1.1)*1.1 + (x>=1.1)*x)
-  return(ggplot(data=times, aes(x=ensemble, y=time, fill=test)) +
-           geom_col(position=position_dodge()) +
-           labs(x="Test ensemble", y="Runtime (sec.)", title=title) + 
-           scale_fill_discrete(name="",
-                               breaks=c("1_ts", "2_uci", "3_ci"),
-                               labels=c("Two-sample", "Independence", "Conditional independence")) +
+plot_times <- function(times, title = NULL) {
+  times$time <- sapply(times$time, function(x) (x < 1.1)*1.1 + (x>= 1.1)*x)
+  return(ggplot(data = times, aes(x = ensemble, y = time, fill = test)) +
+           geom_col(position = position_dodge()) +
+           labs(x = "Test ensemble", y = "Runtime (sec.)", title = title) + 
+           scale_fill_discrete(name = "",
+                               breaks = c("1_ts", "2_uci", "3_ci"),
+                               labels = c("Two-sample", "Independence", "Conditional independence")) +
            theme(legend.position = c(0.703, 0.915),
                  legend.direction = "horizontal") +
            scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),

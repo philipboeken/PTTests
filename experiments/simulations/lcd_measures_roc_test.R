@@ -79,15 +79,15 @@ get_data <- function() {
   cond_indep <- as.numeric(cond_indep | !link_nonlin | !intervene)
   lcd <- as.numeric(intervene & link_nonlin & cond_indep)
   
-  return(list(C=C, X=X, Y=Y,
-              label_ts=1-as.numeric(intervene),
-              label_uci=1-as.numeric(link_nonlin),
-              label_ci=cond_indep,
-              label_lcd=lcd))
+  return(list(C = C, X = X, Y = Y,
+              label_ts = 1-as.numeric(intervene),
+              label_uci = 1-as.numeric(link_nonlin),
+              label_ci = cond_indep,
+              label_lcd = lcd))
 }
 
 get_results <- function(dataset, test){
-  result <- foreach(i=1:length(dataset), .combine=rbind) %dopar% {
+  result <- foreach(i = 1:length(dataset), .combine = rbind) %dopar% {
     data <- dataset[[i]]
     
     ts <- test(data$C, data$X)
@@ -95,13 +95,13 @@ get_results <- function(dataset, test){
     ci <- test(data$C, data$Y, data$X)
     
     return(data.frame(
-      label_ts=data$label_ts,
-      label_uci=data$label_uci,
-      label_ci=data$label_ci,
-      label_lcd=data$label_lcd,
-      ts=ts,
-      uci=uci,
-      ci=ci
+      label_ts = data$label_ts,
+      label_uci = data$label_uci,
+      label_ci = data$label_ci,
+      label_lcd = data$label_lcd,
+      ts = ts,
+      uci = uci,
+      ci = ci
     ))
   }
   return(result)
@@ -115,9 +115,9 @@ get_results <- function(dataset, test){
 registerDoParallel(.cl)
 data <- lapply(1:m, function (i) get_data())
 results <- list(
-  ppcor=get_results(data, .ppcor_wrapper),
-  ppcor_b=get_results(data, .ppcor_b_wrapper),
-  polyatree=get_results(data, .polyatree_wrapper)
+  ppcor = get_results(data, .ppcor_wrapper),
+  ppcor_b = get_results(data, .ppcor_b_wrapper),
+  polyatree = get_results(data, .polyatree_wrapper)
 )
 
 stopCluster(.cl)
@@ -127,9 +127,9 @@ stopCluster(.cl)
 ##############################################
 
 .get_results_by_type <- function (results, type) {
-  labels <- results$polyatree[,{{paste('label_',type, sep='')}}]
+  labels <- results$polyatree[,{{paste('label_',type, sep = '')}}]
   labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
-  result <- data.frame(label=labels)
+  result <- data.frame(label = labels)
   for (test in names(results)) {
     result[test] <- results[[test]][,type]
   }
@@ -145,20 +145,20 @@ labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c
 t0 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
 t1 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha)$')
 t2 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > 1-\\alpha)$')
-.plot0 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t0, option=0, plot_point=FALSE)
-.plot1 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t1, option=1, plot_point=FALSE)
-.plot2 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t2, option=2, plot_point=FALSE)
+.plot0 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t0, option = 0, plot_point = FALSE)
+.plot1 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t1, option = 1, plot_point = FALSE)
+.plot2 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t2, option = 2, plot_point = FALSE)
 
-grid <- plot_grid(.plot0, .plot1, .plot2, nrow=1)
+grid <- plot_grid(.plot0, .plot1, .plot2, nrow = 1)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-measures-roc-tests/'
 
-save.image(file=paste(.path, timestamp, '.Rdata', sep=''))
+save.image(file = paste(.path, timestamp, '.Rdata', sep = ''))
 
-.ggsave(paste(.path, timestamp, sep=''), grid, 30, 10)
-.ggsave(paste(.path, 'last', sep=''), grid, 30, 10)
-.ggsave(paste(.path, 'plot0', sep=''), .plot0, 10, 10)
-.ggsave(paste(.path, 'plot1', sep=''), .plot1, 10, 10)
-.ggsave(paste(.path, 'plot2', sep=''), .plot2, 10, 10)
+.ggsave(paste(.path, timestamp, sep = ''), grid, 30, 10)
+.ggsave(paste(.path, 'last', sep = ''), grid, 30, 10)
+.ggsave(paste(.path, 'plot0', sep = ''), .plot0, 10, 10)
+.ggsave(paste(.path, 'plot1', sep = ''), .plot1, 10, 10)
+.ggsave(paste(.path, 'plot2', sep = ''), .plot2, 10, 10)
 

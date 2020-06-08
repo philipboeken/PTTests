@@ -45,7 +45,7 @@ install_github("ericstrobl/RCIT")
 
 ## Python Dependencies
 
-We run the CCIT test using the provided python package, and approach this python package in R using ``reticulate``. For this to work, it is required to have python3 installed, and have a binary located at ``/usr/local/bin/python3``. To install the CCIT package, run ``pip install CCIT==0.4`` or ``sudo -H pip install CCIT==0.4``.
+We run the CCIT test using the provided python package, and approach this python package in R using ``reticulate``. For this to work, it is required to have python3 installed, and have a binary located at ``/usr/local/bin/python3``. To install the CCIT package, run ``pip install CCIT == 0.4`` or ``sudo -H pip install CCIT == 0.4``.
 
 To skip this step and not use the CCIT, comment out the following lines from ``/independence_tests/test_wrappers.R``
 
@@ -58,5 +58,5 @@ use_python('/usr/local/bin/python3')
 and comment out from ``experiments/simulations/lcd_triple_roc_test.R``:
 
 ```R
-  ccit=get_results(data, .ccit_wrapper),
+  ccit = get_results(data, .ccit_wrapper),
 ```
