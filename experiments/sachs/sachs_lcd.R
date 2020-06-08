@@ -74,13 +74,13 @@ timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 .path <- 'experiments/sachs/output/'
 
 name <- 'pcor2'
-.output_graph_levels(results$pcor, .path, name, 
+.output_graph(results$pcor, .path, name, 
                      alpha1=list(strong=0.0001, substantial=0.005, weak=0.05),
                      alpha2=list(strong=0.05, substantial=0.05, weak=0.05))
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, name, .path, name))
 
 name <- 'polyatree2'
-.output_graph_levels(results$polyatree, .path, name, 
+.output_graph(results$polyatree, .path, name, 
                      alpha1=list(strong=0.09, substantial=0.2, weak=0.5),
                      alpha2=list(strong=0.91, substantial=0.8, weak=0.5))
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, name, .path, name))

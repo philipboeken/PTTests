@@ -190,21 +190,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   return(output)
 }
 
-.output_graph <- function(lcd_triples, path, name) {
-  context <- unique(as.character(lcd_triples[,'C']))
-  system <- unique(c(as.character(lcd_triples[,'X']), as.character(lcd_triples[,'Y'])))
-  context_edges <- unique(lcd_triples[,c('C', 'X')])
-  system_edges <- unique(lcd_triples[,c('X', 'Y')])
-  output <- "digraph G {"
-  output <- paste(output, .graph_lines(context, system, context_edges, system_edges, 
-                                       "color=\"#000000\"",
-                                       "color=\"#c4c4c4\""), sep="")
-  output <- paste(output, "}", sep="\n")
-  
-  write(output, file=paste(path, name, ".dot", sep=""))
-}
-
-.output_graph_levels <- function(results, path, name, alpha1, alpha2) {
+.output_graph <- function(results, path, name, alpha1, alpha2) {
   strong <- dplyr::filter(results, CX <= alpha1$strong, XY <= alpha1$strong, CY_X >= alpha2$strong)
   strong <- strong[,c('C', 'X', 'Y')]
   substantial <- dplyr::filter(results, CX <= alpha1$substantial, XY <= alpha1$substantial, CY_X >= alpha2$substantial)

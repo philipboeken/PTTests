@@ -7,11 +7,11 @@ This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-s
 The main file is ``independence_tests/polyatreeTests.R``, which implements the following:
 
 - conditional two-sample test (this work)
-- two-sample test (Holmes 2015)
+- two-sample test (Holmes et. al., 2015)
 - continuous conditional independence test (Teymur and Filippi, 2019)
 - continuous independence test (Filippi and Holmes, 2017).
 
-These tests should be called through the wrapper method ``polyatree.CITest``.
+These tests should be called through the wrapper method ``polyatree_ci_test``.
 
 The experiments from the paper can be reproduced by sourcing from the project root:
 

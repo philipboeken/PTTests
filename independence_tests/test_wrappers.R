@@ -13,7 +13,7 @@ use_python('/usr/local/bin/python3')
 # Test wrappers
 ##############################################
 .polyatree_wrapper <- function (X, Y, Z=NULL) {
-  return(polyatree.CITest(X, Y, Z, verbose=FALSE)$p_H0)
+  return(polyatree_ci_test(X, Y, Z, verbose=FALSE)$p_H0)
 }
 
 .ppcor_b_wrapper <- function(X, Y, Z=NULL) {
