@@ -12,17 +12,17 @@ License: What license it uses
 Encoding: UTF-8
 LazyData: true
 Imports:
-	cowplot
-    foreach
-    doParallel
-    GeneralisedCovarianceMeasure
-    invgamma
-    latex2exp
-    matrixStats
-    ppcor
-    RCIT
-    ggplot2
-    ROCR
-    readr
+	cowplot,
+    foreach,
+    doParallel,
+    GeneralisedCovarianceMeasure,
+    invgamma,
+    latex2exp,
+    matrixStats,
+    ppcor,
+    RCIT,
+    ggplot2,
+    ROCR,
+    readr,
     reticulate
 Remotes: ericstrobl/RCIT
