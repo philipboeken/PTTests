@@ -1,10 +1,11 @@
-run_pcor_fail_experiment <- function(n = 400, m = 2000, err_sd = 0.5, 
-                                     p_link = 0.8, p_two_sample = 0.5 ,
-                                     seed = 0) {
+experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5, 
+                                 p_link = 0.8, p_two_sample = 0.5 ,
+                                 seed = 0,
+                                 path = 'R/output/pcor_fail/') {
   library(doParallel)
   library(ggplot2)
   
-  sed.seed(seed)
+  set.seed(seed)
   
   # Setup test
   ##############################################
@@ -33,9 +34,9 @@ run_pcor_fail_experiment <- function(n = 400, m = 2000, err_sd = 0.5,
   }
   
   get_results <- function(n, m, p_two_sample, p_link, err_sd){
-    get_data_placeholder <- get_data
+    getdata <- get_data
     result <- foreach::foreach(i = 1:m, .combine = rbind) %dopar% {
-      data <- get_data_placeholder(n, p_two_sample, p_link, err_sd)
+      data <- getdata(n, p_two_sample, p_link, err_sd)
       return(data.frame(
         label = data$label,
         ppcor = .ppcor_wrapper(data$C, data$Y, data$X),
@@ -48,16 +49,16 @@ run_pcor_fail_experiment <- function(n = 400, m = 2000, err_sd = 0.5,
   
   # Do test
   ##############################################
-  .cores <- detectCores()
-  .cl <- makeForkCluster(.cores[1]-1)
-  registerDoParallel(.cl)
+  cores <- detectCores()
+  cl <- makeForkCluster(cores[1]-1)
+  registerDoParallel(cl)
   
   results <- get_results(n, m, p_two_sample, p_link, err_sd)
   
   data_no_link <- get_data(n, p_two_sample, p_link, err_sd, -1)
   data_linked <- get_data(n, p_two_sample, p_link, err_sd, 1)
   
-  stopCluster(.cl)
+  stopCluster(cl)
   
   
   # Process results
@@ -83,13 +84,10 @@ run_pcor_fail_experiment <- function(n = 400, m = 2000, err_sd = 0.5,
   grid <- cowplot::plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow = 1)
   
   timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
-  .path <- 'R/experiments/simulations/output/example-pcor-fail/'
   
-  save.image(file = paste(.path, timestamp, '.Rdata', sep = ''))
-  
-  .ggsave(paste(.path, 'ppcor_fail_no_link', sep = ''), scat_plot_no_link, 10, 10)
-  .ggsave(paste(.path, 'ppcor_fail_linked', sep = ''), scat_plot_linked, 10, 10)
-  .ggsave(paste(.path, 'ppcor_fail_roc', sep = ''), roc_plot, 10, 10)
-  .ggsave(paste(.path, timestamp, sep = ''), grid, 30, 10)
-  .ggsave(paste(.path, 'last', sep = ''), grid, 30, 10)
+  .ggsave(paste(path, 'ppcor_fail_no_link', sep = ''), scat_plot_no_link, 10, 10)
+  .ggsave(paste(path, 'ppcor_fail_linked', sep = ''), scat_plot_linked, 10, 10)
+  .ggsave(paste(path, 'ppcor_fail_roc', sep = ''), roc_plot, 10, 10)
+  .ggsave(paste(path, timestamp, sep = ''), grid, 30, 10)
+  .ggsave(paste(path, 'last', sep = ''), grid, 30, 10)
 }

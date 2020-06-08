@@ -15,9 +15,9 @@ These tests should be called through the wrapper method ``polyatree_ci_test``.
 
 The experiments from the paper can be reproduced by sourcing from the project root:
 
-- ``experiments/simulations/example_pcor_fail.R``
-- ``experiments/simulations/lcd_triple_roc_test.R``
-- ``experiments/simulations/lcd_measures_roc_test.R``
+- ``example_pcor_fail.R``
+- ``lcd_triple_roc_test.R``
+- ``lcd_measures_roc_test.R``
 - ``experiments/sachs/sachs_lcd.R``
 
 ## Installation
@@ -40,7 +40,7 @@ use_python('/usr/local/bin/python3')
 .ccit <- .ccit$CCIT$CCIT
 ```
 
-and comment out from ``experiments/simulations/lcd_triple_roc_test.R``:
+and comment out from ``lcd_triple_roc_test.R``:
 
 ```R
   ccit = get_results(data, .ccit_wrapper),

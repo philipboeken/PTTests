@@ -1,8 +1,5 @@
-library(ggplot2)
-require(scales)
-
 .plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.275),
-                     freq_default = 0.05, plot_point = TRUE) {
+                      freq_default = 0.05, plot_point = TRUE) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
@@ -20,17 +17,17 @@ require(scales)
                              info = info)
   }
   
-  plt <- ggplot() + 
-    labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
-    theme(legend.title = element_text(size = 0),
-          legend.spacing.x = unit(0.2, 'cm'),
-          legend.position = legend_pos,
-          plot.title = element_text(size = 12, hjust = 0.5))
+  plt <- ggplot2::ggplot() + 
+    ggplot2::labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
+    ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
+                   legend.spacing.x = ggplot2::unit(0.2, 'cm'),
+                   legend.position = legend_pos,
+                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5))
   for (roc in roc_data) {
     c <- roc$info
-    plt <- plt + geom_line(data = roc$data, aes(x, y, colour = {{c}}))
+    plt <- plt + ggplot2::geom_line(data = roc$data, ggplot2::aes(x, y, colour = {{c}}))
     if (plot_point) {
-      plt <- plt + geom_point(data = roc$point, aes(x, y, colour = {{c}}))
+      plt <- plt + ggplot2::geom_point(data = roc$point, ggplot2::aes(x, y, colour = {{c}}))
     }
   }
   
@@ -38,7 +35,7 @@ require(scales)
 }
 
 .plot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
-                            title = NULL, plot_point = TRUE, option = 0) {
+                             title = NULL, plot_point = TRUE, option = 0) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
     name <- colnames(ts_res)[i]
@@ -51,25 +48,25 @@ require(scales)
                              info = info)
   }
   
-  plt <- ggplot() +
-    xlim(0, 1) +
-    ylim(0, 1) +
-    labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
-    theme(legend.title = element_text(size = 0),
-          legend.spacing.x = unit(0.2, 'cm'),
-          legend.position = c(0.78, 0.275),
-          plot.title = element_text(size = 12, hjust = 0.5))
+  plt <- ggplot2::ggplot() +
+    ggplot2::xlim(0, 1) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
+    ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
+                   legend.spacing.x = ggplot2::unit(0.2, 'cm'),
+                   legend.position = c(0.78, 0.275),
+                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5))
   for (roc in roc_data) {
     c <- roc$info
     
     if (option == 1) {
-      plt <- plt + geom_path(data = roc$data, aes(x, y, colour = {{c}}))
+      plt <- plt + ggplot2::geom_path(data = roc$data, ggplot2::aes(x, y, colour = {{c}}))
     } else {
-      plt <- plt + geom_line(data = roc$data, aes(x, y, colour = {{c}}))
+      plt <- plt + ggplot2::geom_line(data = roc$data, ggplot2::aes(x, y, colour = {{c}}))
     }
     
     if (plot_point) {
-      plt <- plt + geom_point(data = roc$point, aes(x, y, colour = {{c}}))
+      plt <- plt + ggplot2::geom_point(data = roc$point, ggplot2::aes(x, y, colour = {{c}}))
     }
   }
   
@@ -152,7 +149,7 @@ require(scales)
 }
 
 .ggsave <- function (name, grid, width, height) {
-  ggsave(
+  ggplot2::ggsave(
     paste(name, ".pdf", sep = ""),
     plot = grid, scale = 1,
     width = width,
@@ -234,16 +231,14 @@ require(scales)
 
 .plot_times <- function(times, title = NULL) {
   times$time <- sapply(times$time, function(x) (x < 1.1)*1.1 + (x>= 1.1)*x)
-  return(ggplot(data = times, aes(x = ensemble, y = time, fill = test)) +
-           geom_col(position = position_dodge()) +
-           labs(x = "Test ensemble", y = "Runtime (sec.)", title = title) + 
-           scale_fill_discrete(name = "",
-                               breaks = c("1_ts", "2_uci", "3_ci"),
-                               labels = c("Two-sample", "Independence", "Conditional independence")) +
-           theme(legend.position = c(0.703, 0.915),
-                 legend.direction = "horizontal") +
-           scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
-                         labels = trans_format("log10", math_format(10^.x)))
-  )
+  ggplot2::ggplot(data = times, ggplot2::aes(x = ensemble, y = time, fill = test)) +
+    ggplot2::geom_col(position = ggplot2::position_dodge()) +
+    ggplot2::labs(x = "Test ensemble", y = "Runtime (sec.)", title = title) + 
+    ggplot2::scale_fill_discrete(name = "",
+                                 breaks = c("1_ts", "2_uci", "3_ci"),
+                                 labels = c("Two-sample", "Independence", "Conditional independence")) +
+    ggplot2::theme(legend.position = c(0.703, 0.915),
+                   legend.direction = "horizontal") +
+    ggplot2::scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 10^x),
+                           labels = scales::trans_format("log10", scales::math_format(10^.x)))
 }
-

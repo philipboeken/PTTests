@@ -30,11 +30,8 @@
 }
 
 .rcot_wrapper <- function(X, Y, Z = NULL) {
+  library(RCIT)
   RCoT(X, Y, Z)$p
-}
-
-.rcit_wrapper <- function(X, Y, Z = NULL) {
-  RCIT::RCIT(X, Y, Z)$p
 }
 
 reticulate::use_python('/usr/local/bin/python3')
