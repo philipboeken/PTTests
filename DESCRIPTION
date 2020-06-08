@@ -21,6 +21,8 @@ Imports:
     matrixStats
     ppcor
     RCIT
+    ggplot2
+    ROCR
     readr
     reticulate
 Remotes: ericstrobl/RCIT
