@@ -1,6 +1,3 @@
-source('independence_tests/polyatreeTests.R')
-source('independence_tests/bayes_pcor.R')
-
 # Test wrappers
 ##############################################
 .polyatree_wrapper <- function (X, Y, Z = NULL) {

@@ -1,9 +1,7 @@
-source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
-source('helpers.R')
+source('experiments/helpers.R')
 library(foreach)
 library(doParallel)
-library(cowplot)
 
 
 # Input parameters
@@ -89,7 +87,7 @@ scat_plot_linked <- ggplot() +
 labels <- factor(results[,1], ordered = TRUE, levels = c(1,0))
 roc_plot <- plot_roc(labels, results[,-1], NULL, c(0.8, 0.12), plot_point = FALSE)
 
-grid <- plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow = 1)
+grid <- cowplot::plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow = 1)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/example-pcor-fail/'

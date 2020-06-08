@@ -1,9 +1,7 @@
 # Imports
-source('independence_tests/test_wrappers.R')
-source('helpers.R')
+source('experiments/helpers.R')
 library(foreach)
 library(doParallel)
-library(readr)
 
 
 # Setup test
@@ -13,7 +11,7 @@ library(readr)
                    'b2CAMP + noCD3/28' = col_integer(), 'Psitectorigenin' = col_integer(), 
                    'U0126' = col_integer(), 'CD3/28' = col_integer(), 'experiment' = col_integer())
 
-sachs_data_pooled <- read_csv("experiments/sachs/sachs_data2.csv", col_types = .col_types)
+sachs_data_pooled <- readr::read_csv("experiments/sachs/sachs_data2.csv", col_types = .col_types)
 
 .context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA + noCD3/28', 'b2CAMP + noCD3/28', 
                    'Psitectorigenin', 'U0126', 'CD3/28')
@@ -73,13 +71,13 @@ stopCluster(.cl)
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 .path <- 'experiments/sachs/output/'
 
-name <- 'pcor2'
+name <- 'pcor'
 .output_graph(results$pcor, .path, name, 
                      alpha1 = list(strong = 0.0001, substantial = 0.005, weak = 0.05),
                      alpha2 = list(strong = 0.05, substantial = 0.05, weak = 0.05))
 system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', .path, name, .path, name))
 
-name <- 'polyatree2'
+name <- 'polyatree'
 .output_graph(results$polyatree, .path, name, 
                      alpha1 = list(strong = 0.09, substantial = 0.2, weak = 0.5),
                      alpha2 = list(strong = 0.91, substantial = 0.8, weak = 0.5))

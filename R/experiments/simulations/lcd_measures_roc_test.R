@@ -1,10 +1,8 @@
 # Imports
-source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
-source('helpers.R')
+source('experiments/helpers.R')
 library(foreach)
 library(doParallel)
-library(cowplot)
 library(latex2exp)
 
 
@@ -149,7 +147,7 @@ t2 <- TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > 1-\\al
 .plot1 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t1, option = 1, plot_point = FALSE)
 .plot2 <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1], t2, option = 2, plot_point = FALSE)
 
-grid <- plot_grid(.plot0, .plot1, .plot2, nrow = 1)
+grid <- cowplot::plot_grid(.plot0, .plot1, .plot2, nrow = 1)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 .path <- 'experiments/simulations/output/lcd-measures-roc-tests/'

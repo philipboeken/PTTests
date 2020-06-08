@@ -1,10 +1,8 @@
 # Imports
-source('independence_tests/test_wrappers.R')
 source('experiments/simulations/maps.R')
-source('helpers.R')
+source('experiments/helpers.R')
 library(foreach)
 library(doParallel)
-library(cowplot)
 
 
 # Input parameters
@@ -168,7 +166,7 @@ labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c
 .plot_ci <- plot_roc(ci_results[,1], ci_results[,-1], freq_default = 0.05)
 .plot_lcd <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1])
 
-grid <- plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow = 1)
+grid <- cowplot::plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow = 1)
 
 .plot_time <- plot_times(times)
 
