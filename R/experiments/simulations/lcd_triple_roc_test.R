@@ -130,7 +130,7 @@ results <- list(
   ppcor_b = get_results(data, .ppcor_b_wrapper),
   gcm = get_results(data, .gcm_wrapper),
   rcot = get_results(data, .rcot_wrapper),
-  ccit = get_results(data, .ccit_wrapper),
+  # ccit = get_results(data, .ccit_wrapper),
   polyatree = get_results(data, .polyatree_wrapper)
 )
 
