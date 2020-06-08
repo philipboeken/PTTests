@@ -1,5 +1,5 @@
 Package: polyatreelcd
-Title: What the Package Does (One Line, Title Case)
+Title: 
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "First",
@@ -7,7 +7,20 @@ Authors@R:
            role = c("aut", "cre"),
            email = "first.last@example.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Description: This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery'.
 License: What license it uses
 Encoding: UTF-8
 LazyData: true
+Imports:
+	cowplot
+    foreach
+    doParallel
+    GeneralisedCovarianceMeasure
+    invgamma
+    latex2exp
+    matrixStats
+    ppcor
+    RCIT
+    readr
+    reticulate
+Remotes: ericstrobl/RCIT
