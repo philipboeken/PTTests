@@ -34,10 +34,9 @@
   RCoT(X, Y, Z)$p
 }
 
-reticulate::use_python('/usr/local/bin/python3')
-.ccit <- reticulate::import('CCIT')
-.ccit <- .ccit$CCIT$CCIT
 .ccit_wrapper <- function(X, Y, Z = NULL) {
+  .ccit <- reticulate::import('CCIT')
+  .ccit <- .ccit$CCIT$CCIT
   if (is.null(Z) || length(Z) == 0) {
     return(.ccit(matrix(X, ncol = 1), matrix(Y, ncol = 1), NULL))
   }
