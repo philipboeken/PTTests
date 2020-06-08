@@ -1,7 +1,6 @@
 # Imports
 source('experiments/simulations/maps.R')
 source('experiments/helpers.R')
-library(foreach)
 library(doParallel)
 
 
@@ -18,17 +17,17 @@ p_ci <- 0.6
 p_link <- 0.8
 p_two_sample <- 0.5
 
-nonlin_options <- c(
-  linear,
-  parabolic,
-  sinusoidal
+.nonlin_options <- c(
+  .linear,
+  .parabolic,
+  .sinusoidal
 )
 
 interv_options <- c(
-  mean_shift,
-  variance_shift,
-  fixed_point,
-  mixture
+  .mean_shift,
+  .variance_shift,
+  .fixed_point,
+  .mixture
 )
 
 
@@ -40,34 +39,34 @@ get_data <- function() {
   cond_indep <- rbinom(1, 1, p_ci)
   if (cond_indep) { # C -> X -> Y
     intervene <- rbinom(1, 1, p_link)
-    X <- intervene * do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
+    X <- intervene * .do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
     
     link_nonlin <- rbinom(1, 1, p_link)
-    Y <- link_nonlin * nonlin(nonlin_options, X)
+    Y <- link_nonlin * .nonlin(.nonlin_options, X)
     Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
   } else {
     if (runif(1) <= 0.5) { # C -> X <- Y
       Y <- rnorm(n)
       
       link_nonlin <- rbinom(1, 1, p_link)
-      X <- link_nonlin * nonlin(nonlin_options, Y)
+      X <- link_nonlin * .nonlin(.nonlin_options, Y)
       X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
-      X <- intervene * do_intervention(interv_options, X, C) + (1-intervene) * X
+      X <- intervene * .do_intervention(interv_options, X, C) + (1-intervene) * X
     } else { # C -> X <- L -> Y
       L <- rnorm(n)
       
       link_nonlin1 <- rbinom(1, 1, p_link)
-      Y <- link_nonlin1 * nonlin(nonlin_options, L)
+      Y <- link_nonlin1 * .nonlin(.nonlin_options, L)
       Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
       
       link_nonlin2 <- rbinom(1, 1, p_link)
-      X <- link_nonlin2 * nonlin(nonlin_options, L)
+      X <- link_nonlin2 * .nonlin(.nonlin_options, L)
       X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
       
       intervene <- rbinom(1, 1, p_link)
-      X <- intervene * do_intervention(interv_options, X, C) + (1-intervene) * X
+      X <- intervene * .do_intervention(interv_options, X, C) + (1-intervene) * X
       
       link_nonlin <- link_nonlin1 & link_nonlin2
     }
@@ -84,7 +83,7 @@ get_data <- function() {
 }
 
 get_results <- function(dataset, test){
-  result <- foreach(i = 1:length(dataset), .combine = rbind) %dopar% {
+  result <- foreach::foreach(i = 1:length(dataset), .combine = rbind) %dopar% {
     data <- dataset[[i]]
     
     start_time_ts <- Sys.time()
@@ -148,7 +147,7 @@ stopCluster(.cl)
   return(result)
 }
 
-times <- foreach(test = names(results), .combine = rbind) %do% {
+times <- foreach::foreach(test = names(results), .combine = rbind) %do% {
   rbind(c(test, '1_ts', sum(results[[test]][,'time_ts'])),
         c(test, '2_uci', sum(results[[test]][,'time_uci'])),
         c(test, '3_ci', sum(results[[test]][,'time_ci'])))
@@ -161,17 +160,17 @@ ci_results <- .get_results_by_type(results, 'ci')
 
 labels_lcd <- factor(results$polyatree[,'label_lcd'], ordered = TRUE, levels = c(1,0))
 
-.plot_ts <- plot_roc(ts_results[,1], ts_results[,-1], freq_default = 0.05)
-.plot_uci <- plot_roc(uci_results[,1], uci_results[,-1], freq_default = 0.05)
-.plot_ci <- plot_roc(ci_results[,1], ci_results[,-1], freq_default = 0.05)
-.plot_lcd <- plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1])
+.plot_ts <- .plot_roc(ts_results[,1], ts_results[,-1], freq_default = 0.05)
+.plot_uci <- .plot_roc(uci_results[,1], uci_results[,-1], freq_default = 0.05)
+.plot_ci <- .plot_roc(ci_results[,1], ci_results[,-1], freq_default = 0.05)
+.plot_lcd <- .plot_roc_custom(labels_lcd, ts_results[,-1], uci_results[,-1], ci_results[,-1])
 
 grid <- cowplot::plot_grid(.plot_ts, .plot_uci, .plot_ci, .plot_lcd, nrow = 1)
 
-.plot_time <- plot_times(times)
+.plot_time <- .plot_times(times)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
-.path <- 'experiments/simulations/output/lcd-roc-tests/'
+.path <- 'R/experiments/simulations/output/lcd-roc-tests/'
 
 save.image(file = paste(.path, timestamp, '.Rdata', sep = ''))
 

@@ -1,16 +1,15 @@
 library(ggplot2)
 require(scales)
-library(ROCR)
 
-plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.275),
+.plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.275),
                      freq_default = 0.05, plot_point = TRUE) {
   predictions <- as.matrix(predictions)
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
     name <- colnames(predictions)[i]
-    pred <- prediction(-predictions[,i], labels)
-    res <- performance(pred, "tpr", "fpr")
-    auc <- round(performance(pred, "auc")@y.values[[1]], 3)
+    pred <- ROCR::prediction(-predictions[,i], labels)
+    res <- ROCR::performance(pred, "tpr", "fpr")
+    auc <- round(ROCR::performance(pred, "auc")@y.values[[1]], 3)
     x <- res@x.values[[1]]
     y <- res@y.values[[1]]
     bayes <- (name == 'polyatree')
@@ -38,7 +37,7 @@ plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.2
   return(plt)
 }
 
-plot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
+.plot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
                             title = NULL, plot_point = TRUE, option = 0) {
   roc_data <- c()
   for (i in 1:ncol(ts_res)) {
@@ -233,7 +232,7 @@ plot_roc_custom <- function(labels, ts_res, uci_res, ci_res,
   write(output, file = paste(path, name, ".dot", sep = ""))
 }
 
-plot_times <- function(times, title = NULL) {
+.plot_times <- function(times, title = NULL) {
   times$time <- sapply(times$time, function(x) (x < 1.1)*1.1 + (x>= 1.1)*x)
   return(ggplot(data = times, aes(x = ensemble, y = time, fill = test)) +
            geom_col(position = position_dodge()) +

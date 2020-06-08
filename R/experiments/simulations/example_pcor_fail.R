@@ -1,6 +1,5 @@
 source('experiments/simulations/maps.R')
 source('experiments/helpers.R')
-library(foreach)
 library(doParallel)
 
 
@@ -41,7 +40,7 @@ get_data <- function(n, p_two_sample, p_link, err_sd, link = 0) {
 }
 
 get_results <- function(n, m, p_two_sample, p_link, err_sd){
-  result <- foreach(i = 1:m, .combine = rbind) %dopar% {
+  result <- foreach::foreach(i = 1:m, .combine = rbind) %dopar% {
     data <- get_data(n, p_two_sample, p_link, err_sd)
     return(data.frame(
       label = data$label,
@@ -85,12 +84,12 @@ scat_plot_linked <- ggplot() +
   scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red"))
 
 labels <- factor(results[,1], ordered = TRUE, levels = c(1,0))
-roc_plot <- plot_roc(labels, results[,-1], NULL, c(0.8, 0.12), plot_point = FALSE)
+roc_plot <- .plot_roc(labels, results[,-1], NULL, c(0.8, 0.12), plot_point = FALSE)
 
 grid <- cowplot::plot_grid(scat_plot_no_link, scat_plot_linked, roc_plot, nrow = 1)
 
 timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
-.path <- 'experiments/simulations/output/example-pcor-fail/'
+.path <- 'R/experiments/simulations/output/example-pcor-fail/'
 
 save.image(file = paste(.path, timestamp, '.Rdata', sep = ''))
 

@@ -1,6 +1,5 @@
 # Imports
 source('experiments/helpers.R')
-library(foreach)
 library(doParallel)
 
 
@@ -11,7 +10,7 @@ library(doParallel)
                    'b2CAMP + noCD3/28' = col_integer(), 'Psitectorigenin' = col_integer(), 
                    'U0126' = col_integer(), 'CD3/28' = col_integer(), 'experiment' = col_integer())
 
-sachs_data_pooled <- readr::read_csv("experiments/sachs/sachs_data2.csv", col_types = .col_types)
+sachs_data_pooled <- readr::read_csv("R/experiments/sachs/sachs_data2.csv", col_types = .col_types)
 
 .context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA + noCD3/28', 'b2CAMP + noCD3/28', 
                    'Psitectorigenin', 'U0126', 'CD3/28')
@@ -25,7 +24,7 @@ lcd_triples <- as.matrix(expand.grid(C = .context_vars, X = .system_vars, Y = .s
 lcd_triples <- lcd_triples[which(lcd_triples[ ,2] != lcd_triples[ ,3]), ]
 
 get_results <- function(test) {
-  CX_test_results <- foreach(i = 1:nrow(CX_combos), .combine = rbind) %dopar% {
+  CX_test_results <- foreach::foreach(i = 1:nrow(CX_combos), .combine = rbind) %dopar% {
     CX_combo <- CX_combos[i,]
     C <- CX_combo[1]
     X <- CX_combo[2]
@@ -35,7 +34,7 @@ get_results <- function(test) {
     return(data.frame(C = C, X = X, CX = CX))
   }
   
-  result <- foreach(i = 1:nrow(lcd_triples), .combine = rbind) %dopar% {
+  result <- foreach::foreach(i = 1:nrow(lcd_triples), .combine = rbind) %dopar% {
     lcd_triple <- lcd_triples[i,]
     C <- lcd_triple[1]
     X <- lcd_triple[2]
@@ -69,7 +68,7 @@ stopCluster(.cl)
 ##############################################
 
 timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-.path <- 'experiments/sachs/output/'
+.path <- 'R/experiments/sachs/output/'
 
 name <- 'pcor'
 .output_graph(results$pcor, .path, name, 

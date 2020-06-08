@@ -30,7 +30,7 @@
 }
 
 .rcot_wrapper <- function(X, Y, Z = NULL) {
-  (RCoT(X, Y, Z)$p
+  RCoT(X, Y, Z)$p
 }
 
 .rcit_wrapper <- function(X, Y, Z = NULL) {
