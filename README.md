@@ -20,27 +20,12 @@ The experiments from the paper can be reproduced by sourcing from the project ro
 - ``experiments/simulations/lcd_measures_roc_test.R``
 - ``experiments/sachs/sachs_lcd.R``
 
-## R Dependencies
+## Installation
 
-This R package requires installation of the following R packages
-
-- cowplot
-- foreach
-- doParallel
-- GeneralisedCovarianceMeasure
-- invgamma
-- latex2exp
-- matrixStats
-- ppcor
-- RCIT (via GitHub)
-- readr
-- reticulate
-
-To install the RCIT package, run:
+To install this R package, open an R console and type
 
 ```R
-library(devtools)
-install_github("ericstrobl/RCIT")
+devtools::install_local("<path to package>/polyatreelcd")
 ```
 
 ## Python Dependencies
