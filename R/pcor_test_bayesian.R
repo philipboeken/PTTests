@@ -1,10 +1,10 @@
-bayes_cor_test <- function(X, Y) {
+cor_test_bayesian <- function(X, Y) {
   bf <- .jzs_corbf(cor(X, Y), length(X))
   
   return(list(bf = bf, p_H0 = 1-1/(1+bf), p_H1 = 1/(1+bf)))
 }
 
-bayes_pcor_test <- function(X, Y, Z) {
+pcor_test_bayesian <- function(X, Y, Z) {
   r0 <- sqrt(summary(lm(Y~Z))$r.squared)
   r1 <- sqrt(summary(lm(Y~Z+X))$r.squared)
   bf <- .jzs_partcorbf(r0, r1, 1, 2, length(X))

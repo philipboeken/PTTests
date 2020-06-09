@@ -6,9 +6,9 @@
 
 .ppcor_b_wrapper <- function(X, Y, Z = NULL) {
   if (is.null(Z) || length(Z) == 0) {
-    return(bayes_cor_test(X, Y)$p_H0)
+    return(cor_test_bayesian(X, Y)$p_H0)
   }
-  bayes_pcor_test(X, Y, Z)$p_H0
+  pcor_test_bayesian(X, Y, Z)$p_H0
 }
 
 .ppcor_wrapper <- function(X, Y, Z = NULL) {
