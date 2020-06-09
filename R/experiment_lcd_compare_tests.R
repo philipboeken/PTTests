@@ -4,7 +4,7 @@ experiment_lcd_compare_tests <- function (n = 400, m = 2000, err_sd = 0.5,
                                           interv_options = c(.mean_shift, .variance_shift, 
                                                              .fixed_point, .mixture),
                                           seed = 0,
-                                          path = 'R/output/lcd_compare_tests/') {
+                                          path = 'output/lcd_compare_tests/') {
   library(doParallel)
   library(RCIT)
   

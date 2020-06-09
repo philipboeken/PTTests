@@ -4,7 +4,7 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
                                        interv_options = c(.mean_shift, .variance_shift, 
                                                           .fixed_point, .mixture),
                                        seed = 0,
-                                       path = 'R/output/lcd_roc_curves/') {
+                                       path = 'output/lcd_roc_curves/') {
   library(doParallel)
   
   set.seed(seed)

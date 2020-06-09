@@ -1,4 +1,4 @@
-experiment_sachs_lcd <- function (path = 'R/output/sachs/') {
+experiment_sachs_lcd <- function (path = 'output/sachs/') {
   library(doParallel)
   
   # Setup test
@@ -11,7 +11,7 @@ experiment_sachs_lcd <- function (path = 'R/output/sachs/') {
                            # 'CD3/28' = readr::col_integer(), 
                            'experiment' = readr::col_integer())
   
-  sachs_data_pooled <- readr::read_csv("R/data/sachs_data.csv", col_types = col_types)
+  sachs_data_pooled <- readr::read_csv("data/sachs_data.csv", col_types = col_types)
   
   context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA + noCD3/28', 'b2CAMP + noCD3/28', 
                     # 'CD3/28',

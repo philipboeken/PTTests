@@ -1,7 +1,7 @@
 experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5, 
                                  p_link = 0.8, p_two_sample = 0.5 ,
                                  seed = 0,
-                                 path = 'R/output/pcor_fail/') {
+                                 path = 'output/pcor_fail/') {
   library(doParallel)
   library(ggplot2)
   
