@@ -4,9 +4,11 @@ This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-s
 
 ## Installation
 
-To install this R package, open an R console and type
+To install this R package, make sure you have R installed (version >= 3.5.0), open an R console and execute
 
 ```R
+install.packages("devtools")
+library(devtools)
 devtools::install_local("<full path to package>/polyatreelcd")
 ```
 
@@ -32,7 +34,7 @@ The output is saved to the ``/output`` folder. You may provide a path to your cu
 
 ## Graphviz dependency
 
-We make use of the graphviz to generate .pdf files from .dot files. To ensure this works correctly, make sure you [have graphviz installed](http://www.graphviz.org/download/), and have the path to the binary of the ``dot`` command copied to your PATH variable.
+We make use of graphviz to generate .pdf files from .dot files. To ensure this works correctly, make sure you [have graphviz installed](http://www.graphviz.org/download/), and have ``dot`` cli command working.
 
 ## Python dependency
 
