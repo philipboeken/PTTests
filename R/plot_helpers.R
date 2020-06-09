@@ -189,7 +189,8 @@
 .output_graph <- function(results, path, name, alpha1, alpha2) {
   strong <- dplyr::filter(results, CX <= alpha1$strong, XY <= alpha1$strong, CY_X >= alpha2$strong)
   strong <- strong[,c('C', 'X', 'Y')]
-  substantial <- dplyr::filter(results, CX <= alpha1$substantial, XY <= alpha1$substantial, CY_X >= alpha2$substantial)
+  substantial <- dplyr::filter(results, CX <= alpha1$substantial, 
+                               XY <= alpha1$substantial, CY_X >= alpha2$substantial)
   substantial <- substantial[,c('C', 'X', 'Y')]
   weak <- dplyr::filter(results, CX <= alpha1$weak, XY <= alpha1$weak, CY_X >= alpha2$weak)
   weak <- weak[,c('C', 'X', 'Y')]
@@ -241,4 +242,12 @@
                    legend.direction = "horizontal") +
     ggplot2::scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 10^x),
                            labels = scales::trans_format("log10", scales::math_format(10^.x)))
+}
+
+.scatterplot <- function(data) {
+  ggplot2::ggplot() + 
+    ggplot2::geom_point(data = data, ggplot2::aes(x = Y, y = X, colour = C)) + 
+    ggplot2::theme(legend.title = ggplot2::element_blank(),
+                   legend.position = c(0.87, 0.12)) +
+    ggplot2::scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red"))
 }

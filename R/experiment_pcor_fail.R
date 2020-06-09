@@ -3,7 +3,6 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
                                  seed = 0,
                                  path = 'output/pcor_fail/') {
   library(doParallel)
-  library(ggplot2)
   
   set.seed(seed)
   
@@ -66,17 +65,8 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   no_link <- data.frame(C = as.factor(data_no_link$C), Y = data_no_link$Y, X = data_no_link$X)
   linked <- data.frame(C = as.factor(data_linked$C), Y = data_linked$Y, X = data_linked$X)
   
-  scat_plot_no_link <- ggplot() + 
-    geom_point(data = no_link, aes(x = Y, y = X, colour = C)) + 
-    theme(legend.title = element_blank(),
-          legend.position = c(0.87, 0.12)) +
-    scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red"))
-  
-  scat_plot_linked <- ggplot() + 
-    geom_point(data = linked, aes(x = Y, y = X, colour = C)) + 
-    theme(legend.title = element_blank(),
-          legend.position = c(0.87, 0.12)) +
-    scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red"))
+  scat_plot_no_link <- .scatterplot(no_link)
+  scat_plot_linked <- .scatterplot(linked)
   
   labels <- factor(results[,1], ordered = TRUE, levels = c(1,0))
   roc_plot <- .plot_roc(labels, results[,-1], NULL, c(0.8, 0.12), plot_point = FALSE)

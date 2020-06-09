@@ -69,8 +69,8 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
   
   timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
   
-  save(results, file = sprintf("%s.Rdata", timestamp))
-
+  save(results, file = sprintf("%s%s.Rdata", path, timestamp))
+  
   name <- 'pcor'
   .output_graph(results$pcor, path, name, 
                 alpha1 = list(strong = 0.0001, substantial = 0.005, weak = 0.05),
