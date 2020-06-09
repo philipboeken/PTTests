@@ -11,25 +11,25 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
                            # 'CD3/28' = readr::col_integer(), 
                            'experiment' = readr::col_integer())
   
-  sachs_data_pooled <- readr::read_csv("data/sachs_data.csv", col_types = col_types)
+  sachs_data <- readr::read_csv("data/sachs_data.csv", col_types = col_types)
   
   context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA + noCD3/28', 'b2CAMP + noCD3/28', 
                     # 'CD3/28',
                     'Psitectorigenin', 'U0126')
   
-  system_vars <- setdiff(colnames(sachs_data_pooled), c(context_vars, 'experiment'))
+  system_vars <- setdiff(colnames(sachs_data), c(context_vars, 'experiment'))
   
   CX_combos <- as.matrix(expand.grid(C = context_vars, X = system_vars))
   lcd_triples <- as.matrix(expand.grid(C = context_vars, X = system_vars, Y = system_vars))
   lcd_triples <- lcd_triples[which(lcd_triples[ ,2] != lcd_triples[ ,3]), ]
   
-  get_results <- function(test, sachs_data_pooled, CX_combos, lcd_triples) {
+  get_results <- function(test, sachs_data, CX_combos, lcd_triples) {
     CX_test_results <- foreach::foreach(i = 1:nrow(CX_combos), .combine = rbind) %dopar% {
       CX_combo <- CX_combos[i,]
       C <- CX_combo[1]
       X <- CX_combo[2]
       
-      data <- sachs_data_pooled[, CX_combo]
+      data <- sachs_data[, CX_combo]
       CX <- test(data[[C]], data[[X]])
       return(data.frame(C = C, X = X, CX = CX))
     }
@@ -40,7 +40,7 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
       X <- lcd_triple[2]
       Y <- lcd_triple[3]
       
-      data <- sachs_data_pooled[, lcd_triple]
+      data <- sachs_data[, lcd_triple]
       CX <- CX_test_results[which(CX_test_results$C == C &  CX_test_results$X == X), 'CX']
       XY <- test(data[[X]], data[[Y]])
       CY_X <- test(data[[C]], data[[Y]], data[[X]])
@@ -57,8 +57,8 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
   registerDoParallel(cl)
   
   results <- list(
-    pcor = get_results(.ppcor_wrapper, sachs_data_pooled, CX_combos, lcd_triples),
-    polyatree = get_results(.polyatree_wrapper, sachs_data_pooled, CX_combos, lcd_triples)
+    pcor = get_results(.ppcor_wrapper, sachs_data, CX_combos, lcd_triples),
+    polyatree = get_results(.polyatree_wrapper, sachs_data, CX_combos, lcd_triples)
   )
   
   stopCluster(cl)
@@ -69,6 +69,8 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
   
   timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
   
+  save(results, file = sprintf("%s.Rdata", timestamp))
+
   name <- 'pcor'
   .output_graph(results$pcor, path, name, 
                 alpha1 = list(strong = 0.0001, substantial = 0.005, weak = 0.05),

@@ -127,6 +127,7 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
   
   timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
   
+  save(results, file = sprintf("%s%s.Rdata", path, timestamp))
   .ggsave(paste(path, timestamp, sep = ''), grid, 30, 10)
   .ggsave(paste(path, 'last', sep = ''), grid, 30, 10)
   .ggsave(paste(path, 'plot0', sep = ''), .plot0, 10, 10)

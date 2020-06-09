@@ -85,6 +85,7 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   
   timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
   
+  save(results, file = sprintf("%s%s.Rdata", path, timestamp))
   .ggsave(paste(path, 'ppcor_fail_no_link', sep = ''), scat_plot_no_link, 10, 10)
   .ggsave(paste(path, 'ppcor_fail_linked', sep = ''), scat_plot_linked, 10, 10)
   .ggsave(paste(path, 'ppcor_fail_roc', sep = ''), roc_plot, 10, 10)
