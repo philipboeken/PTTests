@@ -47,5 +47,5 @@ Then uncomment from ``experiment_lcd_compare_tests``:
 and reinstall the package by running from an R console:
 
 ```R
-devtools::install_local("<path to package>/polyatreelcd")
+devtools::install_local("<path to package>/polyatreelcd", force = TRUE)
 ```
