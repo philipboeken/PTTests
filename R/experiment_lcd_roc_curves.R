@@ -1,6 +1,6 @@
 experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5, 
                                        p_ci = 0.6, p_link = 0.8, p_two_sample = 0.5 ,
-                                       .nonlin_options = c(.linear, .parabolic, .sinusoidal),
+                                       nonlin_options = c(.linear, .parabolic, .sinusoidal),
                                        interv_options = c(.mean_shift, .variance_shift, 
                                                           .fixed_point, .mixture),
                                        seed = 0,
@@ -20,14 +20,14 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
       X <- intervene * .do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
       
       link_nonlin <- rbinom(1, 1, p_link)
-      Y <- link_nonlin * .nonlin(.nonlin_options, X)
+      Y <- link_nonlin * .nonlin(nonlin_options, X)
       Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
     } else {
       if (runif(1) <= 0.5) { # C -> X <- Y
         Y <- rnorm(n)
         
         link_nonlin <- rbinom(1, 1, p_link)
-        X <- link_nonlin * .nonlin(.nonlin_options, Y)
+        X <- link_nonlin * .nonlin(nonlin_options, Y)
         X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
         
         intervene <- rbinom(1, 1, p_link)
@@ -36,11 +36,11 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
         L <- rnorm(n)
         
         link_nonlin1 <- rbinom(1, 1, p_link)
-        Y <- link_nonlin1 * .nonlin(.nonlin_options, L)
+        Y <- link_nonlin1 * .nonlin(nonlin_options, L)
         Y <- Y + err_sd * rnorm(n, 0, ifelse(sd(Y) > 0, sd(Y), 1/err_sd))
         
         link_nonlin2 <- rbinom(1, 1, p_link)
-        X <- link_nonlin2 * .nonlin(.nonlin_options, L)
+        X <- link_nonlin2 * .nonlin(nonlin_options, L)
         X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
         
         intervene <- rbinom(1, 1, p_link)
