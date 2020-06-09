@@ -7,7 +7,7 @@ This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-s
 To install this R package, open an R console and type
 
 ```R
-devtools::install_local("<path to package>/polyatreelcd")
+devtools::install_local("<full path to package>/polyatreelcd")
 ```
 
 ## Contents
@@ -28,7 +28,7 @@ The experiments from the paper can be reproduced by executing the following meth
 - ``experiment_lcd_compare_tests``
 - ``experiment_sachs_lcd``
 
-The output is saved to the ``R/output`` folder.
+The output is saved to the ``/output`` folder. You may provide a path to your custom output folder using the ``path`` argument when invoking one of the above methods.
 
 ## Graphviz dependency
 
