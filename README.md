@@ -33,11 +33,11 @@ The output is saved to the ``/output`` folder. You may provide a path to your cu
 
 ## Graphviz dependency
 
-We make use of graphviz to generate .pdf files from .dot files. To ensure this works correctly, make sure you [have graphviz installed](http://www.graphviz.org/download/), and have ``dot`` cli command working.
+We make use of graphviz to generate .pdf files from .dot files. To ensure this works correctly, make sure you [have graphviz installed](http://www.graphviz.org/download/), and have the cli command ``dot`` working.
 
 ## Python dependency
 
-By default, we don't invoke the CCIT test in the ``experiment_lcd_compare_tests`` method. If you wish to obtain results for this test, some steps have to be taken. We run the CCIT test using the [provided python package](https://github.com/rajatsen91/CCIT), and approach this python package in R using ``reticulate``. For this to work, it is required to have python3 installed, and have a binary located at ``/usr/local/bin/python3``. To install the CCIT package, run ``pip install CCIT == 0.4`` or ``sudo -H pip install CCIT == 0.4``.
+By default, we don't invoke the CCIT test in the ``experiment_lcd_compare_tests`` method. If you wish to obtain results for this test, some steps have to be taken. We run the CCIT test using the [provided python package](https://github.com/rajatsen91/CCIT), and approach this python package in R using ``reticulate``. For this to work, it is required to have python3 installed, and have the cli command ``python`` working. To install the CCIT package, run ``pip install CCIT == 0.4`` or ``sudo -H pip install CCIT == 0.4``.
 
 Then uncomment from ``experiment_lcd_compare_tests``:
 
