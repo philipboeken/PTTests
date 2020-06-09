@@ -4,11 +4,10 @@ This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-s
 
 ## Installation
 
-To install this R package, make sure you have R installed (version >= 3.5.0), open an R console and execute
+To install this R package, make sure you have R installed (version >= 3.5.0). Open an R console and execute
 
 ```R
 install.packages("devtools")
-library(devtools)
 devtools::install_local("<full path to package>/polyatreelcd")
 ```
 
@@ -26,8 +25,8 @@ These tests may be called through the wrapper method ``polyatree_ci_test``.
 The experiments from the paper can be reproduced by executing the following methods:
 
 - ``experiment_pcor_fail``
-- ``experiment_lcd_roc_curves``
 - ``experiment_lcd_compare_tests``
+- ``experiment_lcd_roc_curves``
 - ``experiment_sachs_lcd``
 
 The output is saved to the ``/output`` folder. You may provide a path to your custom output folder using the ``path`` argument when invoking one of the above methods.
