@@ -85,8 +85,8 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
   
   # Do test
   ##############################################
-  cores <- doParallel::detectCores()
-  cl <- doParallel::makeForkCluster(cores[1]-1)
+  cores <- parallel::detectCores()
+  cl <- parallel::makeForkCluster(cores[1]-1)
   doParallel::registerDoParallel(cl)
   
   data <- lapply(1:m, function (i) get_data())
@@ -96,7 +96,7 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
     polyatree = get_results(data, .polyatree_wrapper)
   )
   
-  doParallel::stopCluster(cl)
+  parallel::stopCluster(cl)
   
   
   # Process results

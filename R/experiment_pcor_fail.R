@@ -49,8 +49,8 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   
   # Do test
   ##############################################
-  cores <- doParallel::detectCores()
-  cl <- doParallel::makeForkCluster(cores[1]-1)
+  cores <- parallel::detectCores()
+  cl <- parallel::makeForkCluster(cores[1]-1)
   doParallel::registerDoParallel(cl)
   
   results <- get_results(n, m, p_two_sample, p_link, err_sd)
@@ -58,7 +58,7 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   data_no_link <- get_data(n, p_two_sample, p_link, err_sd, -1)
   data_linked <- get_data(n, p_two_sample, p_link, err_sd, 1)
   
-  doParallel::stopCluster(cl)
+  parallel::stopCluster(cl)
   
   
   # Process results
