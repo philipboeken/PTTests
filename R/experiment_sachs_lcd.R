@@ -5,7 +5,7 @@ experiment_sachs_lcd <- function (path = 'output/sachs/', observational = 1:8) {
   
   context_vars <- c('AKT inh', 'G0076', 'Psitectorigenin', 'LY294002', 'U0126', 
                     'PMA + noCD3/28', 'b2CAMP + noCD3/28')
-  context_vars <- if(observational == 1) context_vars else c('CD3/28', context_vars)
+  context_vars <- if(all(observational == 1)) context_vars else c('CD3/28', context_vars)
   
   system_vars <- setdiff(colnames(sachs_data), c(context_vars, 'experiment', 'CD3/28'))
   
