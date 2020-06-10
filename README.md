@@ -38,7 +38,7 @@ In the ``experiment_sachs_lcd()`` method, we make use of graphviz to generate .p
 
 ## Python dependency
 
-In the ``experiment_lcd_compare_tests()`` method we don't invoke the CCIT test by default. If you wish to obtain results for this test, some steps have to be taken. We run the CCIT test using the [provided python package](https://github.com/rajatsen91/CCIT), and approach this python package in R using ``reticulate``. For this to work, it is required to have python3 installed, and have the cli command ``python`` working. To install the CCIT package, run ``pip install CCIT == 0.4`` or ``sudo -H pip install CCIT == 0.4``.
+In the ``experiment_lcd_compare_tests()`` method we don't invoke the CCIT test by default. If you wish to obtain results for this test, some steps have to be taken. We run the CCIT test using the [provided python package](https://github.com/rajatsen91/CCIT), and approach this python package in R using ``reticulate``. For this to work, it is required to have python 3 installed, and have the cli command ``python`` working. To install the CCIT package, run ``pip install CCIT == 0.4`` or ``sudo -H pip install CCIT == 0.4``.
 
 Then uncomment from ``experiment_lcd_compare_tests``:
 
