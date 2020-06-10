@@ -13,16 +13,17 @@ Encoding: UTF-8
 LazyData: true
 Imports:
 	cowplot,
-    foreach,
     doParallel,
+    dplyr,
+    foreach,
     GeneralisedCovarianceMeasure,
+    ggplot2,
     invgamma,
     latex2exp,
     matrixStats,
     ppcor,
     RCIT,
-    ggplot2,
-    ROCR,
     readr,
-    reticulate
+    reticulate,
+    ROCR
 Remotes: ericstrobl/RCIT
