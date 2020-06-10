@@ -1,35 +1,35 @@
-experiment_sachs_lcd <- function (path = 'output/sachs/') {
+experiment_sachs_lcd <- function (path = 'output/sachs/', observational = 1:8) {
   library(doParallel)
   
-  # Setup test
+  # Setup
   ##############################################
-  col_types <- readr::cols('AKT inh' = readr::col_integer(), 'G0076' = readr::col_integer(),
+  
+  col_types <- readr::cols('experiment' = readr::col_integer(), 'CD3/28' = readr::col_integer(),
+                           'AKT inh' = readr::col_integer(), 'G0076' = readr::col_integer(),
+                           'Psitectorigenin' = readr::col_integer(), 'U0126' = readr::col_integer(), 
                            'LY294002' = readr::col_integer(), 'PMA + noCD3/28' = readr::col_integer(), 
-                           'b2CAMP + noCD3/28' = readr::col_integer(), 
-                           'Psitectorigenin' = readr::col_integer(), 
-                           'U0126' = readr::col_integer(), 
-                           # 'CD3/28' = readr::col_integer(), 
-                           'experiment' = readr::col_integer())
+                           'b2CAMP + noCD3/28' = readr::col_integer())
   
   sachs_data <- readr::read_csv("data/sachs_data.csv", col_types = col_types)
   
-  context_vars <- c('AKT inh', 'G0076', 'LY294002', 'PMA + noCD3/28', 'b2CAMP + noCD3/28', 
-                    # 'CD3/28',
-                    'Psitectorigenin', 'U0126')
+  context_vars <- c('AKT inh', 'G0076', 'Psitectorigenin', 'LY294002', 'U0126', 
+                    'PMA + noCD3/28', 'b2CAMP + noCD3/28')
+  context_vars <- if(observational == 1) context_vars else c('CD3/28', context_vars)
   
-  system_vars <- setdiff(colnames(sachs_data), c(context_vars, 'experiment'))
+  system_vars <- setdiff(colnames(sachs_data), c(context_vars, 'experiment', 'CD3/28'))
   
   CX_combos <- as.matrix(expand.grid(C = context_vars, X = system_vars))
   lcd_triples <- as.matrix(expand.grid(C = context_vars, X = system_vars, Y = system_vars))
   lcd_triples <- lcd_triples[which(lcd_triples[ ,2] != lcd_triples[ ,3]), ]
   
-  get_results <- function(test, sachs_data, CX_combos, lcd_triples) {
+  get_results <- function(test, sachs_data, CX_combos, lcd_triples, observational) {
     CX_test_results <- foreach::foreach(i = 1:nrow(CX_combos), .combine = rbind) %dopar% {
       CX_combo <- CX_combos[i,]
       C <- CX_combo[1]
       X <- CX_combo[2]
       
-      data <- sachs_data[, CX_combo]
+      rows <- which(sachs_data$experiment %in% observational | sachs_data[[C]] == 1)
+      data <- sachs_data[rows, CX_combo]
       CX <- test(data[[C]], data[[X]])
       return(data.frame(C = C, X = X, CX = CX))
     }
@@ -40,7 +40,8 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
       X <- lcd_triple[2]
       Y <- lcd_triple[3]
       
-      data <- sachs_data[, lcd_triple]
+      rows <- which(sachs_data$experiment %in% observational | sachs_data[[C]] == 1)
+      data <- sachs_data[rows, lcd_triple]
       CX <- CX_test_results[which(CX_test_results$C == C &  CX_test_results$X == X), 'CX']
       XY <- test(data[[X]], data[[Y]])
       CY_X <- test(data[[C]], data[[Y]], data[[X]])
@@ -52,13 +53,14 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
   
   # Do test
   ##############################################
+  
   cores <- detectCores()
   cl <- makeForkCluster(cores[1]-1)
   registerDoParallel(cl)
   
   results <- list(
-    pcor = get_results(.ppcor_wrapper, sachs_data, CX_combos, lcd_triples),
-    polyatree = get_results(.polyatree_wrapper, sachs_data, CX_combos, lcd_triples)
+    pcor = get_results(.ppcor_wrapper, sachs_data, CX_combos, lcd_triples, observational),
+    polyatree = get_results(.polyatree_wrapper, sachs_data, CX_combos, lcd_triples, observational)
   )
   
   stopCluster(cl)
@@ -71,13 +73,13 @@ experiment_sachs_lcd <- function (path = 'output/sachs/') {
   
   save(results, file = sprintf("%s%s.Rdata", path, timestamp))
   
-  name <- 'pcor'
+  name <- 'sachs_pcor'
   .output_graph(results$pcor, path, name, 
                 alpha1 = list(strong = 0.0001, substantial = 0.005, weak = 0.05),
                 alpha2 = list(strong = 0.05, substantial = 0.05, weak = 0.05))
   system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', path, name, path, name))
   
-  name <- 'polyatree'
+  name <- 'sachs_polyatree'
   .output_graph(results$polyatree, path, name, 
                 alpha1 = list(strong = 0.09, substantial = 0.2, weak = 0.5),
                 alpha2 = list(strong = 0.91, substantial = 0.8, weak = 0.5))
