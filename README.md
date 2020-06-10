@@ -9,6 +9,7 @@ To install this R package, make sure you have R installed (version >= 3.5.0). Op
 ```R
 install.packages("devtools")
 devtools::install_local("<full path to package>/polyatreelcd")
+library(polyatreelcd)
 ```
 
 ## Contents

@@ -2,12 +2,12 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
                                  p_link = 0.8, p_two_sample = 0.5 ,
                                  seed = 0,
                                  path = 'output/pcor_fail/') {
-  library(doParallel)
-  
-  set.seed(seed)
   
   # Setup test
   ##############################################
+  
+  set.seed(seed)
+  
   get_data <- function(n, p_two_sample, p_link, err_sd, link = 0) {
     # C -> X <- Y
     
@@ -34,6 +34,7 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   
   get_results <- function(n, m, p_two_sample, p_link, err_sd){
     getdata <- get_data
+    `%dopar%` <- foreach::`%dopar%`
     result <- foreach::foreach(i = 1:m, .combine = rbind) %dopar% {
       data <- getdata(n, p_two_sample, p_link, err_sd)
       return(data.frame(
@@ -48,16 +49,16 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   
   # Do test
   ##############################################
-  cores <- detectCores()
-  cl <- makeForkCluster(cores[1]-1)
-  registerDoParallel(cl)
+  cores <- doParallel::detectCores()
+  cl <- doParallel::makeForkCluster(cores[1]-1)
+  doParallel::registerDoParallel(cl)
   
   results <- get_results(n, m, p_two_sample, p_link, err_sd)
   
   data_no_link <- get_data(n, p_two_sample, p_link, err_sd, -1)
   data_linked <- get_data(n, p_two_sample, p_link, err_sd, 1)
   
-  stopCluster(cl)
+  doParallel::stopCluster(cl)
   
   
   # Process results

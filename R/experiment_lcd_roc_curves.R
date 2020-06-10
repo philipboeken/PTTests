@@ -5,12 +5,12 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
                                                           .fixed_point, .mixture),
                                        seed = 0,
                                        path = 'output/lcd_roc_curves/') {
-  library(doParallel)
-  
-  set.seed(seed)
   
   # Setup test
   ##############################################
+  
+  set.seed(seed)
+  
   get_data <- function() {
     C <- rbinom(n, 1, p_two_sample)
     
@@ -61,6 +61,7 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
   }
   
   get_results <- function(dataset, test){
+    `%dopar%` <- foreach::`%dopar%`
     result <- foreach::foreach(i = 1:length(dataset), .combine = rbind) %dopar% {
       data <- dataset[[i]]
       
@@ -84,9 +85,10 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
   
   # Do test
   ##############################################
-  cores <- detectCores()
-  cl <- makeForkCluster(cores[1]-1)
-  registerDoParallel(cl)
+  cores <- doParallel::detectCores()
+  cl <- doParallel::makeForkCluster(cores[1]-1)
+  doParallel::registerDoParallel(cl)
+  
   data <- lapply(1:m, function (i) get_data())
   results <- list(
     ppcor = get_results(data, .ppcor_wrapper),
@@ -94,7 +96,7 @@ experiment_lcd_roc_curves <- function (n = 400, m = 2000, err_sd = 0.5,
     polyatree = get_results(data, .polyatree_wrapper)
   )
   
-  stopCluster(cl)
+  doParallel::stopCluster(cl)
   
   
   # Process results

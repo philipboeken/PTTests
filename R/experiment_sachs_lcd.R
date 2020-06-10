@@ -1,16 +1,7 @@
 experiment_sachs_lcd <- function (path = 'output/sachs/', observational = 1:8) {
-  library(doParallel)
   
   # Setup
   ##############################################
-  
-  col_types <- readr::cols('experiment' = readr::col_integer(), 'CD3/28' = readr::col_integer(),
-                           'AKT inh' = readr::col_integer(), 'G0076' = readr::col_integer(),
-                           'Psitectorigenin' = readr::col_integer(), 'U0126' = readr::col_integer(), 
-                           'LY294002' = readr::col_integer(), 'PMA + noCD3/28' = readr::col_integer(), 
-                           'b2CAMP + noCD3/28' = readr::col_integer())
-  
-  sachs_data <- readr::read_csv("data/sachs_data.csv", col_types = col_types)
   
   context_vars <- c('AKT inh', 'G0076', 'Psitectorigenin', 'LY294002', 'U0126', 
                     'PMA + noCD3/28', 'b2CAMP + noCD3/28')
@@ -23,6 +14,7 @@ experiment_sachs_lcd <- function (path = 'output/sachs/', observational = 1:8) {
   lcd_triples <- lcd_triples[which(lcd_triples[ ,2] != lcd_triples[ ,3]), ]
   
   get_results <- function(test, sachs_data, CX_combos, lcd_triples, observational) {
+    `%dopar%` <- foreach::`%dopar%`
     CX_test_results <- foreach::foreach(i = 1:nrow(CX_combos), .combine = rbind) %dopar% {
       CX_combo <- CX_combos[i,]
       C <- CX_combo[1]
@@ -54,16 +46,16 @@ experiment_sachs_lcd <- function (path = 'output/sachs/', observational = 1:8) {
   # Do test
   ##############################################
   
-  cores <- detectCores()
-  cl <- makeForkCluster(cores[1]-1)
-  registerDoParallel(cl)
+  cores <- doParallel::detectCores()
+  cl <- doParallel::makeForkCluster(cores[1]-1)
+  doParallel::registerDoParallel(cl)
   
   results <- list(
     pcor = get_results(.ppcor_wrapper, sachs_data, CX_combos, lcd_triples, observational),
     polyatree = get_results(.polyatree_wrapper, sachs_data, CX_combos, lcd_triples, observational)
   )
   
-  stopCluster(cl)
+  doParallel::stopCluster(cl)
   
   
   # Process results

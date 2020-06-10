@@ -3,25 +3,23 @@
 
 ### Interventions
 
-ran <- c(2, 3, 4, 5, 6)
-
 .mean_shift <- function(base, C) {
-  theta <- sample(ran, 1)
+  theta <- sample(c(2, 3, 4, 5, 6), 1)
   (1-C) * base + C * (base + theta)
 }
 
 .variance_shift <- function(base, C) {
-  theta <- sample(ran, 1)
+  theta <- sample(c(2, 3, 4, 5, 6), 1)
   (1-C) * base + C * (1+theta) * base
 }
 
 .fixed_point <- function(base, C) {
-  theta <- sample(ran, 1)
+  theta <- sample(c(2, 3, 4, 5, 6), 1)
   (1-C) * base + C * theta
 }
 
 .mixture <- function(base, C) {
-  theta <- sample(ran, 1)
+  theta <- sample(c(2, 3, 4, 5, 6), 1)
   idx <- sample(c(-1,theta), length(C), replace = TRUE)
   (1-C) * base + C * (base + idx)
 }

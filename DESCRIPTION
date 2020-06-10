@@ -27,3 +27,5 @@ Imports:
     reticulate,
     ROCR
 Remotes: ericstrobl/RCIT
+Depends:
+    R (>= 3.5.0)
