@@ -16,7 +16,7 @@ digraph G {
 15[label="U0126",shape=rectangle, color="#c4c4c4"];
 16[label="LY294002",shape=rectangle, color="#c4c4c4"];
 17[label="PMA + noCD3/28",shape=rectangle, color="#c4c4c4"];
-18[label="beta2CAMP + noCD3/28",shape=rectangle, color="#c4c4c4"];
+18[label="b2CAMP + noCD3/28",shape=rectangle, color="#c4c4c4"];
 13->1[arrowtail="none", arrowhead="normal", style="dashed", color="#c4c4c4"];
 13->2[arrowtail="none", arrowhead="normal", style="dashed", color="#c4c4c4"];
 13->10[arrowtail="none", arrowhead="normal", style="dashed", color="#c4c4c4"];
