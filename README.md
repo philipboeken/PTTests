@@ -4,17 +4,17 @@ This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-s
 
 ## Installation
 
-To install this R package, make sure you have R installed (version >= 3.5.0). Open ``polyatreelcd.Rproj`` when you have RStudio installed or open an R console in your terminal and execute
+To install this R package, make sure you have R (version >= 3.5.0) and RStudio installed. Open ``polyatreelcd.Rproj`` in RStudio and execute:
 
 ```R
 install.packages("devtools")
-devtools::install_local("<full path to package>/polyatreelcd")
+devtools::install_local("./")
 library(polyatreelcd)
 ```
 
 ## Contents
 
-This package implements the following Pólya tree based hypothesis tests:
+This package implements the following Pólya tree-based hypothesis tests:
 
 - ``polyatree_two_sample_ci_test`` (this work)
 - ``polyatree_two_sample_test`` (Holmes et al., 2015)
