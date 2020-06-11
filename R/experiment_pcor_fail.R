@@ -32,11 +32,10 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
     return(list(C = C, Y = Y, X = X, label = cond_indep))
   }
   
-  get_results <- function(n, m, p_two_sample, p_link, err_sd){
-    getdata <- get_data
+  get_results <- function(n, m, p_two_sample, p_link, err_sd, get_data){
     `%dopar%` <- foreach::`%dopar%`
     result <- foreach::foreach(i = 1:m, .combine = rbind) %dopar% {
-      data <- getdata(n, p_two_sample, p_link, err_sd)
+      data <- get_data(n, p_two_sample, p_link, err_sd)
       return(data.frame(
         label = data$label,
         ppcor = .ppcor_wrapper(data$C, data$Y, data$X),
@@ -49,16 +48,13 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   
   # Do test
   ##############################################
-  cores <- parallel::detectCores()
-  cl <- parallel::makeForkCluster(cores[1]-1)
-  doParallel::registerDoParallel(cl)
   
-  results <- get_results(n, m, p_two_sample, p_link, err_sd)
+  doParallel::registerDoParallel()
+  
+  results <- get_results(n, m, p_two_sample, p_link, err_sd, get_data)
   
   data_no_link <- get_data(n, p_two_sample, p_link, err_sd, -1)
   data_linked <- get_data(n, p_two_sample, p_link, err_sd, 1)
-  
-  parallel::stopCluster(cl)
   
   
   # Process results

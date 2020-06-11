@@ -94,11 +94,11 @@ experiment_lcd_compare_tests <- function (n = 400, m = 2000, err_sd = 0.5,
   
   # Do test
   ##############################################
-  cores <- parallel::detectCores()
-  cl <- parallel::makeForkCluster(cores[1]-1)
-  doParallel::registerDoParallel(cl)
+  
+  doParallel::registerDoParallel()
   
   data <- lapply(1:m, function (i) get_data())
+  
   results <- list(
     ppcor = get_results(data, .ppcor_wrapper),
     spcor = get_results(data, .spcor_wrapper),
@@ -108,8 +108,6 @@ experiment_lcd_compare_tests <- function (n = 400, m = 2000, err_sd = 0.5,
     # ccit = get_results(data, .ccit_wrapper),
     polyatree = get_results(data, .polyatree_wrapper)
   )
-  
-  parallel::stopCluster(cl)
   
   
   # Process results
