@@ -34,14 +34,14 @@
   return(plt)
 }
 
-.plot_roc_custom <- function(labels, ts_res, uci_res, ci_res, 
+.plot_roc_custom <- function(labels, CX_results, XY_results, CY_X_results, 
                              title = NULL, plot_point = TRUE, option = 0) {
   roc_data <- c()
-  for (i in 1:ncol(ts_res)) {
-    name <- colnames(ts_res)[i]
+  for (i in 1:ncol(CX_results)) {
+    name <- colnames(CX_results)[i]
     bayes <- (name == 'polyatree' || name == 'ppcor_b')
-    roc <- .lcd_roc(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes, option)
-    dot <- .lcd_roc_dot(labels, ts_res[,i], uci_res[,i], ci_res[,i], bayes)
+    roc <- .lcd_roc(labels, CX_results[,i], XY_results[,i], CY_X_results[,i], bayes, option)
+    dot <- .lcd_roc_dot(labels, CX_results[,i], XY_results[,i], CY_X_results[,i], bayes)
     info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
     roc_data[[name]] <- list(data = data.frame(x = roc$fpr, y = roc$tpr), 
                              point = data.frame(x = dot$fpr, y = dot$tpr), 
@@ -73,8 +73,8 @@
   return(plt)
 }
 
-.lcd_roc <- function(labels, ts, uci, ci, bayes, option = 0) {
-  alphas <- sort(c(ts, uci, ci), TRUE)
+.lcd_roc <- function(labels, CX_results, XY_results, CY_X_results, bayes, option = 0) {
+  alphas <- sort(c(CX_results, XY_results, CY_X_results), TRUE)
   alphas <- alphas[alphas != 0]
   
   false <- which(labels == 0)
@@ -86,14 +86,14 @@
   fp <- c()
   tp <- c()
   for (alpha in rev(alphas)) {
-    idx <- which(ts <= alpha)
-    idx <- intersect(idx, which(uci <= alpha))
+    idx <- which(CX_results <= alpha)
+    idx <- intersect(idx, which(XY_results <= alpha))
     if (option == 0) {
-      idx <- intersect(idx, which(ci >= min(a0, 1-alpha)))
+      idx <- intersect(idx, which(CY_X_results >= min(a0, 1-alpha)))
     } else if (option == 1) {
-      idx <- intersect(idx, which(ci >= alpha))
+      idx <- intersect(idx, which(CY_X_results >= alpha))
     } else if (option == 2) {
-      idx <- intersect(idx, which(ci >= 1-alpha))
+      idx <- intersect(idx, which(CY_X_results >= 1-alpha))
     }
     
     tp <- c(tp, length(intersect(idx, true)))
@@ -122,14 +122,14 @@
   return(list(tpr = tpr, fpr = fpr))
 }
 
-.lcd_roc_dot <- function(labels, ts, uci, ci, bayes) {
+.lcd_roc_dot <- function(labels, CX_results, XY_results, CY_X_results, bayes) {
   false <- which(labels == 0)
   true <- which(labels == 1)
   n <- length(labels)
   alpha <- ifelse(bayes, 0.5, 0.01)
-  idx <- which(ts <= alpha)
-  idx <- intersect(idx, which(uci <= alpha))
-  idx <- intersect(idx, which(ci >= alpha))
+  idx <- which(CX_results <= alpha)
+  idx <- intersect(idx, which(XY_results <= alpha))
+  idx <- intersect(idx, which(CY_X_results >= alpha))
   tpr <- length(intersect(idx, true)) / length(true)
   fpr <- length(intersect(idx, false)) / length(false)
   return(list(tpr = tpr, fpr = fpr))
@@ -236,7 +236,7 @@
     ggplot2::geom_col(position = ggplot2::position_dodge()) +
     ggplot2::labs(x = "Test ensemble", y = "Runtime (sec.)", title = title) + 
     ggplot2::scale_fill_discrete(name = "",
-                                 breaks = c("1_ts", "2_uci", "3_ci"),
+                                 breaks = c("1_CX", "2_XY", "3_CY_X"),
                                  labels = c("Two-sample", "Independence", "Conditional independence")) +
     ggplot2::theme(legend.position = c(0.703, 0.915),
                    legend.direction = "horizontal") +

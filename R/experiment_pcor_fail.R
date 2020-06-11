@@ -1,5 +1,5 @@
-experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5, 
-                                 p_link = 0.8, p_two_sample = 0.5 ,
+experiment_pcor_fail <- function(m = 2000, n = 400, err_sd = 0.5, 
+                                 p_link = 0.8, p_C = 0.5,
                                  seed = 0,
                                  path = 'output/pcor_fail/') {
   
@@ -8,23 +8,15 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   
   set.seed(seed)
   
-  get_data <- function(n, p_two_sample, p_link, err_sd, link = 0) {
+  get_data <- function(n, p_C, err_sd, p_link, link = 0) {
     # C -> X <- Y
     
-    C <- rbinom(n, 1, p_two_sample)
+    C <- rbinom(n, 1, p_C)
     Y <- rnorm(n)
     
-    if (link < 0) {
-      link_nonlin <- 0
-    } else if (link == 0) {
-      link_nonlin <- rbinom(1, 1, p_link)
-    } else if (link > 0) {
-      link_nonlin <- 1
-    }
-    
+    link_nonlin <- if (link < 0) 0 else if (link == 0) rbinom(1, 1, p_link) else 1
     X <- link_nonlin * Y^2
     X <- X + err_sd * rnorm(n, 0, ifelse(sd(X) > 0, sd(X), 1/err_sd))
-    
     X <- C * X + (1-C) * (X + 3)
     
     cond_indep <- as.numeric(!link_nonlin)
@@ -32,17 +24,16 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
     return(list(C = C, Y = Y, X = X, label = cond_indep))
   }
   
-  get_results <- function(n, m, p_two_sample, p_link, err_sd, get_data){
+  get_results <- function(m, n, p_C, err_sd, p_link, get_data){
     `%dopar%` <- foreach::`%dopar%`
     result <- foreach::foreach(i = 1:m, .combine = rbind) %dopar% {
-      data <- get_data(n, p_two_sample, p_link, err_sd)
+      data <- get_data(n, p_C, err_sd, p_link)
       return(data.frame(
         label = data$label,
         ppcor = .ppcor_wrapper(data$C, data$Y, data$X),
         polyatree = .polyatree_wrapper(data$C, data$Y, data$X)
       ))
     }
-    return(result)
   }
   
   
@@ -51,10 +42,10 @@ experiment_pcor_fail <- function(n = 400, m = 2000, err_sd = 0.5,
   
   doParallel::registerDoParallel()
   
-  results <- get_results(n, m, p_two_sample, p_link, err_sd, get_data)
+  results <- get_results(m, n, p_C, err_sd, p_link, get_data)
   
-  data_no_link <- get_data(n, p_two_sample, p_link, err_sd, -1)
-  data_linked <- get_data(n, p_two_sample, p_link, err_sd, 1)
+  data_no_link <- get_data(n, p_C, err_sd, p_link, -1)
+  data_linked <- get_data(n, p_C, err_sd, p_link, 1)
   
   
   # Process results
