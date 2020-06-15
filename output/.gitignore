@@ -1,5 +1,6 @@
 *
 !.gitignore
+!discrete_c
 !lcd_compare_tests
 !lcd_roc_curves
 !pcor_fail

@@ -9,7 +9,7 @@
     auc <- round(ROCR::performance(pred, "auc")@y.values[[1]], 3)
     x <- res@x.values[[1]]
     y <- res@y.values[[1]]
-    bayes <- (name == 'polyatree')
+    bayes <- (name == 'polyatree' || name == 'polyatree_c')
     dot <- .get_roc_point(labels, predictions[,i], bayes, freq_default)
     info <- ifelse(is.na(auc), name, paste(name, ' (', auc, ')', sep = ""))
     roc_data[[name]] <- list(data = data.frame(x = x, y = y), 
@@ -39,7 +39,7 @@
   roc_data <- c()
   for (i in 1:ncol(CX_results)) {
     name <- colnames(CX_results)[i]
-    bayes <- (name == 'polyatree' || name == 'ppcor_b')
+    bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c')
     roc <- .lcd_roc(labels, CX_results[,i], XY_results[,i], CY_X_results[,i], bayes, option)
     dot <- .lcd_roc_dot(labels, CX_results[,i], XY_results[,i], CY_X_results[,i], bayes)
     info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
