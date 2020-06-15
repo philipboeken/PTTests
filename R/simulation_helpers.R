@@ -4,24 +4,24 @@
 ### Interventions
 
 mean_shift <- function(base, C) {
-  theta <- sample(c(2, 3, 4, 5, 6), 1)
-  (1-C) * base + C * (base + theta)
+  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 1
+  base + C * theta
 }
 
 variance_shift <- function(base, C) {
-  theta <- sample(c(2, 3, 4, 5, 6), 1)
-  (1-C) * base + C * (1+theta) * base
+  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 0
+  base * (1 + C * theta)
 }
 
 fixed_point <- function(base, C) {
-  theta <- sample(c(2, 3, 4, 5, 6), 1)
-  (1-C) * base + C * theta
+  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 1
+  (C == 0) * base + C * theta
 }
 
 mixture <- function(base, C) {
-  theta <- sample(c(2, 3, 4, 5, 6), 1)
+  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 1
   idx <- sample(c(-1,theta), length(C), replace = TRUE)
-  (1-C) * base + C * (base + idx)
+  base + C * idx
 }
 
 .do_intervention <- function (int_options, base, C) {
@@ -52,10 +52,10 @@ sinusoidal <- function(X) {
 
 ### Generate data ##########################
 
-.graph_1 <- function (n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+.graph_1 <- function (n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X -> Y
   
-  C <- rbinom(n, 1, p_C)
+  C <- sample(0:(dim_C-1), n, replace = TRUE)
   
   intervene <- rbinom(1, 1, p_link)
   X <- intervene * .do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
@@ -68,10 +68,10 @@ sinusoidal <- function(X) {
        label_CY_X = 1, label_lcd = intervene * link_nonlin)
 }
 
-.graph_2 <- function (n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+.graph_2 <- function (n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X <- Y
   
-  C <- rbinom(n, 1, p_C)
+  C <- sample(0:(dim_C-1), n, replace = TRUE)
   
   Y <- rnorm(n)
   
@@ -86,10 +86,10 @@ sinusoidal <- function(X) {
        label_CY_X = 1 - link_nonlin * intervene, label_lcd = 0)
 }
 
-.graph_3 <- function (n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+.graph_3 <- function (n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X <- L -> Y
   
-  C <- rbinom(n, 1, p_C)
+  C <- sample(0:(dim_C-1), n, replace = TRUE)
   
   L <- rnorm(n)
   
@@ -110,9 +110,9 @@ sinusoidal <- function(X) {
        label_CY_X = 1 - link_nonlin * intervene, label_lcd = 0)
 }
 
-get_data <- function(graph_probs, n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+get_data <- function(graph_probs, n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   graph <- sample(c(.graph_1, .graph_2, .graph_3), 1, prob=graph_probs)[[1]]
   
-  graph(n, p_C, err_sd, p_link, interv_options, nonlin_options)
+  graph(n, dim_C, err_sd, p_link, interv_options, nonlin_options)
 }
 

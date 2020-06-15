@@ -1,5 +1,5 @@
 experiment_lcd_compare_tests <- function (m = 2000, n = 400, graph_probs = c(3/5, 1/5, 1/5), 
-                                          p_C = 1/2, err_sd = 1/2, p_link = 4/5, 
+                                          dim_C = 2, err_sd = 1/2, p_link = 4/5, 
                                           interv_options = c(mean_shift, variance_shift, 
                                                              fixed_point, mixture),
                                           nonlin_options = c(linear, parabolic, sinusoidal),
@@ -46,7 +46,7 @@ experiment_lcd_compare_tests <- function (m = 2000, n = 400, graph_probs = c(3/5
   
   doParallel::registerDoParallel()
   
-  data <- lapply(1:m, function (i) get_data(graph_probs, n, p_C, err_sd, p_link, 
+  data <- lapply(1:m, function (i) get_data(graph_probs, n, dim_C, err_sd, p_link, 
                                             interv_options, nonlin_options))
   
   results <- list(
