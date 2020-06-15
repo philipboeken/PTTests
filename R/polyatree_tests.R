@@ -6,7 +6,7 @@ polyatree_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
     return(polyatree_independence_test(X, Y, c, max_depth, qdist, verbose))
   }
   
-  if (all(X %in% 0:1) || all(Y %in% 0:1)) {
+  if (.is_discrete(X) || .is_discrete(Y)) {
     if (verbose)
       cat('Performing conditional two-sample test\n')
     return(polyatree_two_sample_ci_test(X, Y, Z, rho = rho, c = c, max_depth = max_depth, qdist = qdist))
@@ -24,30 +24,38 @@ polyatree_two_sample_ci_test <- function (X, Y, Z, rho = 0.5, c = 1, max_depth =
   
   max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
   
-  if (all(X %in% 0:1) && all(Y %in% 0:1) || length(X) <= 2) {
+  if (.is_discrete(X) && .is_discrete(Y) || length(X) <= 2) {
     return(list(bf = 1, p_H0 = 1/2, p_H1 = 1/2))
   }
   
-  if (all(X %in% 0:1)) {
+  if (.is_discrete(X)) {
     binary <- X
     continuous <- Y
   } else {
     binary <- Y
     continuous <- X
   }
+  
   data <- cbind(scale(continuous), binary, scale(Z))
   XZ <- data[, c(1, 3)]
-  X1Z <- data[data[,2] == 0, c(1, 3)]
-  X2Z <- data[data[,2] == 1, c(1, 3)]
   
-  p_x <- .condopt_marginal_likelihood(XZ, 1, 2, z_min = 0, z_max = 1, c = c, 
-                                      rho = rho, depth = 1, max_depth, qdist)
-  p_x1 <- .condopt_marginal_likelihood(X1Z, 1, 2, z_min = 0, z_max = 1, c = c, 
-                                       rho = rho, depth = 1, max_depth, qdist)
-  p_x2 <- .condopt_marginal_likelihood(X2Z, 1, 2, z_min = 0, z_max = 1, c = c, 
+  p_H0 <- .condopt_marginal_likelihood(XZ, 1, 2, z_min = 0, z_max = 1, c = c, 
                                        rho = rho, depth = 1, max_depth, qdist)
   
-  bf <- exp(p_x - p_x1 - p_x2)
+  p_H1 <- max(sapply(unique(binary), function (i) {
+    X1Z <- data[data[,2] == i, c(1, 3)]
+    X2Z <- data[data[,2] != i, c(1, 3)]
+    
+    p_x1 <- .condopt_marginal_likelihood(X1Z, 1, 2, z_min = 0, z_max = 1, c = c, 
+                                         rho = rho, depth = 1, max_depth, qdist)
+    p_x2 <- .condopt_marginal_likelihood(X2Z, 1, 2, z_min = 0, z_max = 1, c = c, 
+                                         rho = rho, depth = 1, max_depth, qdist)
+    
+    p_x1 + p_x2
+  }))
+  
+  n_hypotheses <- length(unique(binary))
+  bf <- exp(p_H0 - p_H1) * (n_hypotheses - 1) # Bayes Factor with a Bonferroni-type correction
   
   options(expressions = old_expressions)
   
@@ -98,7 +106,7 @@ polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
 }
 
 polyatree_independence_test <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
-  if (all(X %in% 0:1) || all(Y %in% 0:1)) {
+  if (.is_discrete(X) || .is_discrete(Y)) {
     if (verbose)
       cat('Performing two-sample test\n')
     return(polyatree_two_sample_test(X, Y, c = c, max_depth = max_depth, qdist = qdist))
@@ -139,29 +147,36 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
   
   max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
   
-  if (all(X %in% 0:1)) {
+  if (.is_discrete(X)) {
     binary <- X
     continuous <- Y
   } else {
     binary <- Y
     continuous <- X
   }
+  
   data <- cbind(scale(continuous), binary)
   X <- data[, 1]
-  X1 <- data[data[,2] == 0, 1]
-  X2 <- data[data[,2] == 1, 1]
   
-  p_xy <- .polyatree_marginal_likelihood(X, low = 0, up = 1, c = c, depth = 1, max_depth, qdist)
-  p_x <- .polyatree_marginal_likelihood(X1, low = 0, up = 1, c = c, depth = 1, max_depth, qdist)
-  p_y <- .polyatree_marginal_likelihood(X2, low = 0, up = 1, c = c, depth = 1, max_depth, qdist)
+  p_H0 <- .polyatree_marginal_likelihood(X, low = 0, up = 1, c = c, depth = 1, max_depth, qdist)
   
-  bf <- exp(p_xy - p_x - p_y)
+  p_H1 <- max(sapply(unique(binary), function (i) {
+    X1 <- data[data[,2] == i, 1]
+    X2 <- data[data[,2] != i, 1]
+    
+    p_x1 <- .polyatree_marginal_likelihood(X1, low = 0, up = 1, c = c, depth = 1, max_depth, qdist)
+    p_x2 <- .polyatree_marginal_likelihood(X2, low = 0, up = 1, c = c, depth = 1, max_depth, qdist)
+    
+    p_x1 + p_x2
+  }))
+  
+  n_hypotheses <- length(unique(binary))
+  bf <- exp(p_H0 - p_H1) * (n_hypotheses - 1) # Bayes Factor with a Bonferroni-type correction
   
   options(expressions = old_expressions)
   
   return(list(bf = bf, p_H0 = 1-1/(1+bf), p_H1 = 1/(1+bf)))
 }
-
 
 .polyatree_marginal_likelihood <- function(data, low, up, c, depth, max_depth, qdist) {
   if (depth == max_depth) {
@@ -182,11 +197,13 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
                             (qdist((low[2] + up[2])/2) < data[,2]) & (data[,2] < qdist(up[2])))))
   }
   
-  if (sum(n_j) < 1) {
+  if (sum(n_j) == 0) {
     return(0)
   }
-  
+
+  # a_j <- 2^(-depth)
   a_j <- c * depth^2
+  
   if (length(n_j) == 2) {
     logl <- lbeta(n_j[1] + a_j, n_j[2] + a_j) - lbeta(a_j, a_j)
   } else {
@@ -214,5 +231,9 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
 }
 
 .lmbeta <- function(...) {
-  return(sum(lgamma(c(...)))-lgamma(sum(c(...))))
+  sum(lgamma(c(...)))-lgamma(sum(c(...)))
+}
+
+.is_discrete <- function(X) {
+  length(unique(X)) < length(X)/4
 }
