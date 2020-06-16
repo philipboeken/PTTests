@@ -28,13 +28,8 @@ polyatree_two_sample_ci_test <- function (X, Y, Z, rho = 0.5, c = 1, max_depth =
     return(list(bf = 1, p_H0 = 1/2, p_H1 = 1/2))
   }
   
-  if (.is_discrete(X)) {
-    binary <- X
-    continuous <- Y
-  } else {
-    binary <- Y
-    continuous <- X
-  }
+  binary <- if (.is_discrete(X)) X else Y
+  continuous <- if (.is_discrete(X)) Y else X
   
   Z <- matrix(Z, nrow=length(X))
   data <- cbind(scale(continuous), binary, scale(Z))
@@ -161,13 +156,8 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
   
   max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
   
-  if (.is_discrete(X)) {
-    binary <- X
-    continuous <- Y
-  } else {
-    binary <- Y
-    continuous <- X
-  }
+  binary <- if (.is_discrete(X)) X else Y
+  continuous <- if (.is_discrete(X)) Y else X
   
   data <- cbind(scale(continuous), binary)
   X <- data[, 1]
