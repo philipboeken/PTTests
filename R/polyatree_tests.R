@@ -36,20 +36,24 @@ polyatree_two_sample_ci_test <- function (X, Y, Z, rho = 0.5, c = 1, max_depth =
     continuous <- X
   }
   
+  Z <- matrix(Z, nrow=length(X))
   data <- cbind(scale(continuous), binary, scale(Z))
   XZ <- data[, c(1, 3)]
   
-  p_H0 <- .condopt_marginal_likelihood(XZ, 1, 2, z_min = 0, z_max = 1, c = c, 
-                                       rho = rho, depth = 1, max_depth, qdist)
+  p_H0 <- .condopt_marginal_likelihood(XZ, target_idx = 1, z_idx = 2,
+                                       z_min = 0, z_max = 1,
+                                       c = c, rho = rho, depth = 1, max_depth, qdist)
   
   p_H1 <- max(sapply(unique(binary), function (i) {
     X1Z <- data[data[,2] == i, c(1, 3)]
     X2Z <- data[data[,2] != i, c(1, 3)]
     
-    p_x1 <- .condopt_marginal_likelihood(X1Z, 1, 2, z_min = 0, z_max = 1, c = c, 
-                                         rho = rho, depth = 1, max_depth, qdist)
-    p_x2 <- .condopt_marginal_likelihood(X2Z, 1, 2, z_min = 0, z_max = 1, c = c, 
-                                         rho = rho, depth = 1, max_depth, qdist)
+    p_x1 <- .condopt_marginal_likelihood(X1Z, target_idx = 1, z_idx = 2,
+                                         z_min = 0, z_max = 1, 
+                                         c = c, rho = rho, depth = 1, max_depth, qdist)
+    p_x2 <- .condopt_marginal_likelihood(X2Z, target_idx = 1, z_idx = 2,
+                                         z_min = 0, z_max = 1,
+                                         c = c, rho = rho, depth = 1, max_depth, qdist)
     
     p_x1 + p_x2
   }))
@@ -69,13 +73,17 @@ polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
   
   max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
   
+  Z <- matrix(Z, nrow=length(X))
   XYZ <- cbind(scale(X), scale(Y), scale(Z))
   
-  phi_x <- .condopt_marginal_likelihood(XYZ, 1, 3, z_min = 0, z_max = 1, c = 2*c, 
-                                        rho = rho, depth = 1, max_depth, qdist)
-  phi_y <- .condopt_marginal_likelihood(XYZ, 2, 3, z_min = 0, z_max = 1, c = 2*c, 
-                                        rho = rho, depth = 1, max_depth, qdist)
-  phi_xy <- .condopt_marginal_likelihood(XYZ, c(1, 2), 3, z_min = 0, z_max = 1, 
+  phi_x <- .condopt_marginal_likelihood(XYZ, target_idx = 1, z_idx = 3:(2+ncol(Z)), 
+                                        z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+                                        c = 2*c, rho = rho, depth = 1, max_depth, qdist)
+  phi_y <- .condopt_marginal_likelihood(XYZ, target_idx = 2, z_idx = 3:(2+ncol(Z)), 
+                                        z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+                                        c = 2*c, rho = rho, depth = 1, max_depth, qdist)
+  phi_xy <- .condopt_marginal_likelihood(XYZ, target_idx = c(1, 2), z_idx = 3:(2+ncol(Z)), 
+                                         z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
                                          c = 1*c, rho = rho, depth = 1, max_depth, qdist)
   
   bf <- exp(phi_x + phi_y - phi_xy)
@@ -87,9 +95,10 @@ polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
 
 .condopt_marginal_likelihood <- function(data, target_idx, z_idx, z_min, z_max,
                                          c, rho, depth, max_depth, qdist) {
-  localData <- matrix(data[which(qdist(z_min) < data[, z_idx] & data[, z_idx] < qdist(z_max)),
-                           target_idx], ncol = length(target_idx))
-  logl <- .polyatree_marginal_likelihood(localData, low = rep(0, ncol(localData)), 
+  rows <- which(apply(qdist(z_min) < matrix(data[, c(z_idx)], ncol=length(z_idx)), 1, all) &
+                  apply(matrix(data[, z_idx], ncol=length(z_idx)) < qdist(z_max), 1, all))
+  localData <- matrix(data[rows, target_idx], ncol = length(target_idx))
+  logl <- .polyatree_marginal_likelihood(localData, low = rep(0, ncol(localData)),
                                          up = rep(1, ncol(localData)),
                                          c = c, depth = 1, max_depth, qdist)
   
@@ -97,12 +106,17 @@ polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
     return(logl)
   }
   
-  phi_1 <- .condopt_marginal_likelihood(data, target_idx, z_idx, z_min, (z_min + z_max)/2,
-                                        c, rho, depth + 1, max_depth, qdist)
-  phi_2 <- .condopt_marginal_likelihood(data, target_idx, z_idx, (z_min + z_max)/2, z_max,
-                                        c, rho, depth + 1, max_depth, qdist)
+  idxs <- expand.grid(replicate(length(z_idx), 0:1, simplify = FALSE))
+  get_z_mins <- function (idx) z_min * idx + (rep(1, length(idx)) - idx) * (z_min + z_max) / 2
+  z_mins <- apply(idxs, 2, get_z_mins)
+  z_maxes <- z_mins + (z_max - z_min) / 2
   
-  return(matrixStats::logSumExp(c(log(rho) + logl, log(1-rho) + phi_1 + phi_2)))
+  phis <- sapply(1:nrow(idxs), function (i) {
+    .condopt_marginal_likelihood(data[rows,], target_idx, z_idx, z_mins[i,], z_maxes[i,],
+                                 c, rho, depth + 1, max_depth, qdist)
+  })
+  
+  return(matrixStats::logSumExp(c(log(rho) + logl, log(1-rho) + sum(phis))))
 }
 
 polyatree_independence_test <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
@@ -201,7 +215,6 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
     return(0)
   }
 
-  # a_j <- 2^(-depth)
   a_j <- c * depth^2
   
   if (length(n_j) == 2) {
@@ -237,3 +250,4 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
 .is_discrete <- function(X) {
   length(unique(X)) < length(X)/4
 }
+
