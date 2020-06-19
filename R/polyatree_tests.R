@@ -91,7 +91,7 @@ polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
 .condopt_marginal_likelihood <- function(data, target_idx, z_idx, z_min, z_max,
                                          c, rho, depth, max_depth, qdist) {
   rows <- which(apply(qdist(z_min) < matrix(data[, c(z_idx)], ncol=length(z_idx)), 1, all) &
-                  apply(matrix(data[, z_idx], ncol=length(z_idx)) < qdist(z_max), 1, all))
+                  apply(matrix(data[, z_idx], ncol=length(z_idx)) <= qdist(z_max), 1, all))
   localData <- matrix(data[rows, target_idx], ncol = length(target_idx))
   logl <- .polyatree_marginal_likelihood(localData, low = rep(0, ncol(localData)),
                                          up = rep(1, ncol(localData)),
@@ -188,17 +188,17 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
   }
   
   if (length(low) == 1) {
-    n_j <- c(length(which((qdist(low) < data) & (data < qdist((low + up)/2)))),
-             length(which((qdist((low + up)/2) < data) & (data < qdist(up)))))
+    n_j <- c(length(which((qdist(low) < data) & (data <= qdist((low + up)/2)))),
+             length(which((qdist((low + up)/2) < data) & (data <= qdist(up)))))
   } else {
-    n_j <- c(length(which((qdist(low[1]) < data[,1]) & (data[,1] < qdist((low[1] + up[1])/2)) &
-                            (qdist(low[2]) < data[,2]) & (data[,2] < qdist((low[2] + up[2])/2)))),
-             length(which((qdist((low[1] + up[1])/2) < data[,1]) & (data[,1] < qdist(up[1])) &
-                            (qdist(low[2]) < data[,2]) & (data[,2] < qdist((low[2] + up[2])/2)))),
-             length(which((qdist(low[1]) < data[,1]) & (data[,1] < qdist((low[1] + up[1])/2)) &
-                            (qdist((low[2] + up[2])/2) < data[,2]) & (data[,2] < qdist(up[2])))),
-             length(which((qdist((low[1] + up[1])/2) < data[,1]) & (data[,1] < qdist(up[1])) &
-                            (qdist((low[2] + up[2])/2) < data[,2]) & (data[,2] < qdist(up[2])))))
+    n_j <- c(length(which((qdist(low[1]) < data[,1]) & (data[,1] <= qdist((low[1] + up[1])/2)) &
+                            (qdist(low[2]) < data[,2]) & (data[,2] <= qdist((low[2] + up[2])/2)))),
+             length(which((qdist((low[1] + up[1])/2) < data[,1]) & (data[,1] <= qdist(up[1])) &
+                            (qdist(low[2]) < data[,2]) & (data[,2] <= qdist((low[2] + up[2])/2)))),
+             length(which((qdist(low[1]) < data[,1]) & (data[,1] <= qdist((low[1] + up[1])/2)) &
+                            (qdist((low[2] + up[2])/2) < data[,2]) & (data[,2] <= qdist(up[2])))),
+             length(which((qdist((low[1] + up[1])/2) < data[,1]) & (data[,1] <= qdist(up[1])) &
+                            (qdist((low[2] + up[2])/2) < data[,2]) & (data[,2] <= qdist(up[2])))))
   }
   
   if (sum(n_j) == 0) {
