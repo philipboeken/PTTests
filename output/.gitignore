@@ -3,5 +3,6 @@
 !discrete_c
 !lcd_compare_tests
 !lcd_roc_curves
+!multidimensional_z
 !pcor_fail
 !sachs
