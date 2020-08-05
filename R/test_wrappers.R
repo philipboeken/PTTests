@@ -34,6 +34,11 @@
   RCoT(X, Y, Z)$p
 }
 
+.kcit_wrapper <- function(X, Y, Z = NULL) {
+  library(RCIT)
+  KCIT(X, Y, Z)
+}
+
 .ccit_wrapper <- function(X, Y, Z = NULL) {
   .ccit <- reticulate::import('CCIT')
   .ccit <- .ccit$CCIT$CCIT
