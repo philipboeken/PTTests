@@ -47,3 +47,27 @@
   }
   .ccit(matrix(X, ncol = 1), matrix(Y, ncol = 1), matrix(Z, ncol = 1))
 }
+
+.kruskal_wrapper <- function (X, Y, Z=NULL) {
+  if (is.null(Z) || length(Z) == 0) {
+    return(kruskal.test(Y, X)$p.value)
+  }
+  .ppcor_wrapper(X, Y, Z)
+}
+
+.kolmogorov_wrapper <- function (X, Y, Z=NULL) {
+  if ((is.null(Z) || length(Z) == 0) && .is_discrete(X)) {
+    data <- cbind(X, Y)
+    X1 <- data[data[,1] == 0, 2]
+    X2 <- data[data[,1] == 1, 2]
+    return(ks.test(X1, X2)$p.value)
+  }
+  .ppcor_wrapper(X, Y, Z)
+}
+
+.wilcoxon_wrapper <- function (X, Y, Z=NULL) {
+  if (is.null(Z) || length(Z) == 0) {
+    return(wilcox.test(Y, X)$p.value)
+  }
+  .ppcor_wrapper(X, Y, Z)
+}
