@@ -3,26 +3,27 @@ polyatree_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
   if (is.null(Z)) {
     if (verbose)
       cat('Redirecting to independence test\n')
-    return(polyatree_independence_test(X, Y, c, max_depth, qdist, verbose))
+    return(polyatree_independence_test(X, Y, c, max_depth, 1, qdist, verbose))
   }
   
   if (.is_discrete(X) || .is_discrete(Y)) {
     if (verbose)
       cat('Performing conditional two-sample test\n')
-    return(polyatree_two_sample_ci_test(X, Y, Z, rho = rho, c = c, max_depth = max_depth, qdist = qdist))
+    return(polyatree_d_sample_ci_test(X, Y, Z, rho, c, max_depth, 10, qdist))
     
   }
   
   if (verbose)
     cat('Performing continuous conditional independence test\n')
-  return(polyatree_continuous_ci_test(X, Y, Z, rho = rho, c = c, max_depth = max_depth, qdist = qdist))
+  return(polyatree_continuous_ci_test(X, Y, Z, rho, c, max_depth, 10, qdist))
 }
 
-polyatree_two_sample_ci_test <- function (X, Y, Z, rho = 0.5, c = 1, max_depth = -1, qdist = qnorm) {
+polyatree_d_sample_ci_test <- function (X, Y, Z, rho = 0.5, c = 1, 
+                                        max_depth = -1, N = 10, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
   
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)/N))), max_depth)
   
   if (.is_discrete(X) && .is_discrete(Y) || length(X) <= 2) {
     return(list(bf = 1, p_H0 = 1/2, p_H1 = 1/2))
@@ -54,7 +55,7 @@ polyatree_two_sample_ci_test <- function (X, Y, Z, rho = 0.5, c = 1, max_depth =
   }))
   
   n_hypotheses <- length(unique(binary))
-  bf <- exp(p_H0 - p_H1) * (n_hypotheses - 1) # Bayes Factor with a Bonferroni-type correction
+  bf <- exp(p_H0 - p_H1) * (n_hypotheses - (n_hypotheses == 2)) # Bayes Factor with a Bonferroni-type correction
   
   options(expressions = old_expressions)
   
@@ -62,26 +63,28 @@ polyatree_two_sample_ci_test <- function (X, Y, Z, rho = 0.5, c = 1, max_depth =
 }
 
 polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1, 
-                                          max_depth = -1, qdist = qnorm, verbose = TRUE) {
+                                          max_depth = -1, N = 10, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
   
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)/N)/2)), max_depth)
   
   Z <- matrix(Z, nrow=length(X))
   XYZ <- cbind(scale(X), scale(Y), scale(Z))
   
-  phi_x <- .condopt_marginal_likelihood(XYZ, target_idx = 1, z_idx = 3:(2+ncol(Z)), 
+  phi_x <- .condopt_marginal_likelihood(XYZ, target_idx = 1, z_idx = 3:(2+ncol(Z)),
                                         z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
                                         c = 2*c, rho = rho, depth = 1, max_depth, qdist)
-  phi_y <- .condopt_marginal_likelihood(XYZ, target_idx = 2, z_idx = 3:(2+ncol(Z)), 
+  phi_y <- .condopt_marginal_likelihood(XYZ, target_idx = 2, z_idx = 3:(2+ncol(Z)),
                                         z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
                                         c = 2*c, rho = rho, depth = 1, max_depth, qdist)
-  phi_xy <- .condopt_marginal_likelihood(XYZ, target_idx = c(1, 2), z_idx = 3:(2+ncol(Z)), 
-                                         z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
-                                         c = 1*c, rho = rho, depth = 1, max_depth, qdist)
+  phi_xy_indep <- phi_x + phi_y
   
-  bf <- exp(phi_x + phi_y - phi_xy)
+  phi_xy_dep <- .condopt_marginal_likelihood(XYZ, target_idx = c(1, 2), z_idx = 3:(1+ncol(Z)), 
+                                             z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+                                             c = 1*c, rho = rho, depth = 1, max_depth, qdist)
+  
+  bf <- exp(phi_xy_indep - phi_xy_dep)
   
   options(expressions = old_expressions)
   
@@ -107,18 +110,18 @@ polyatree_continuous_ci_test <- function (X, Y, Z = NULL, rho = 0.5, c = 1,
   z_maxes <- z_mins + (z_max - z_min) / 2
   
   phis <- sapply(1:nrow(idxs), function (i) {
-    .condopt_marginal_likelihood(data[rows,], target_idx, z_idx, z_mins[i,], z_maxes[i,],
+    .condopt_marginal_likelihood(data, target_idx, z_idx, z_mins[i,], z_maxes[i,],
                                  c, rho, depth + 1, max_depth, qdist)
   })
   
   return(matrixStats::logSumExp(c(log(rho) + logl, log(1-rho) + sum(phis))))
 }
 
-polyatree_independence_test <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
+polyatree_independence_test <- function (X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm, verbose = TRUE) {
   if (.is_discrete(X) || .is_discrete(Y)) {
     if (verbose)
       cat('Performing two-sample test\n')
-    return(polyatree_two_sample_test(X, Y, c = c, max_depth = max_depth, qdist = qdist))
+    return(polyatree_d_sample_test(X, Y, c = c, max_depth = max_depth, qdist = qdist))
   }
   
   if (verbose)
@@ -126,11 +129,11 @@ polyatree_independence_test <- function (X, Y, c = 1, max_depth = -1, qdist = qn
   return(polyatree_continuous_independence_test(X, Y, c = c, max_depth = max_depth, qdist = qdist))
 }
 
-polyatree_continuous_independence_test <- function (X, Y, c = 1, max_depth = -1, qdist = qnorm) {
+polyatree_continuous_independence_test <- function (X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
   
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)/N)/2)), max_depth)
   
   X <- scale(X)
   Y <- scale(Y)
@@ -150,11 +153,11 @@ polyatree_continuous_independence_test <- function (X, Y, c = 1, max_depth = -1,
   return(list(bf = bf, p_H0 = 1-1/(1+bf), p_H1 = 1/(1+bf)))
 }
 
-polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm) {
+polyatree_d_sample_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
   
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X))/2)), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)/N))), max_depth)
   
   binary <- if (.is_discrete(X)) X else Y
   continuous <- if (.is_discrete(X)) Y else X
@@ -175,7 +178,7 @@ polyatree_two_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm
   }))
   
   n_hypotheses <- length(unique(binary))
-  bf <- exp(p_H0 - p_H1) * (n_hypotheses - 1) # Bayes Factor with a Bonferroni-type correction
+  bf <- exp(p_H0 - p_H1) * (n_hypotheses - (n_hypotheses == 2)) # Bayes Factor with a Bonferroni-type correction
   
   options(expressions = old_expressions)
   

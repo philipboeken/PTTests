@@ -16,8 +16,8 @@ library(polyatreelcd)
 
 This package implements the following Pólya tree-based hypothesis tests:
 
-- ``polyatree_two_sample_ci_test`` (this work)
-- ``polyatree_two_sample_test`` (Holmes et al., 2015)
+- ``polyatree_d_sample_ci_test`` (Boeken, 2020)
+- ``polyatree_d_sample_test`` (Holmes et al., 2015; Boeken, 2020)
 - ``polyatree_continuous_ci_test`` (Teymur and Filippi, 2019)
 - ``polyatree_continuous_independence_test`` (Filippi and Holmes, 2017).
 
