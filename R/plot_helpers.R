@@ -55,7 +55,9 @@
     ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
                    legend.spacing.x = ggplot2::unit(0.2, 'cm'),
                    legend.position = c(0.78, 0.275),
-                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5))
+                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5)) +
+    ggplot2::scale_color_manual(values=c(polyatree = "#6F9AF8", ppcor = "#E87D7E", spcor = "#B3A033", gcm = "#53B74C",
+                                         rcot = "#55BCC2", ccit = "#E46DDD"))
   for (roc in roc_data) {
     c <- roc$info
     
@@ -244,10 +246,19 @@
                            labels = scales::trans_format("log10", scales::math_format(10^.x)))
 }
 
+.gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
 .scatterplot <- function(data) {
-  ggplot2::ggplot() + 
-    ggplot2::geom_point(data = data, ggplot2::aes(x = Y, y = X, colour = C)) + 
-    ggplot2::theme(legend.title = ggplot2::element_blank(),
-                   legend.position = c(0.87, 0.12)) +
-    ggplot2::scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red"))
+  plt <- ggplot2::ggplot() + ggplot2::geom_point(data = data, ggplot2::aes(x = Y, y = X, colour = C))
+  if (length(unique(data$C)) == 2) {
+    return(plt + ggplot2::scale_color_manual(labels = c("C = 0", "C = 1"), values = c("blue", "red")) + 
+             ggplot2::theme(legend.title = ggplot2::element_blank(), legend.position = c(0.87, 0.12)))
+  } else {
+    labels <- sapply(sort(unique(data$C)), function(c) paste("C = ", c, sep=""))
+    return(plt + ggplot2::scale_colour_manual(labels = labels, values = .gg_color_hue(length(labels))) + 
+             ggplot2::theme(legend.title = ggplot2::element_blank(), legend.position = c(0.50, 0.5)))
+  }
 }

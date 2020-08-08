@@ -10,7 +10,7 @@ experiment_discrete_c <- function (m = 1000, n = -1, graph_probs = c(3/5, 1/5, 1
   ##############################################
   set.seed(seed)
   
-  n <- if (n < 0) 40 * dim_C else n
+  n <- if (n < 0) 60 * dim_C else n
   
   get_results <- function(dataset, test){
     `%dopar%` <- foreach::`%dopar%`
@@ -62,8 +62,8 @@ experiment_discrete_c <- function (m = 1000, n = -1, graph_probs = c(3/5, 1/5, 1
   results <- list(
     # ppcor = get_results(data, .ppcor_wrapper),
     rcot = get_results(data, .rcot_wrapper),
-    polyatree = get_results(data, .polyatree_wrapper),
-    polyatree_c = get_results(data, .polyatree_wrapper_continuous)
+    # polyatree_c = get_results(data, .polyatree_wrapper_continuous),
+    polyatree = get_results(data, .polyatree_wrapper)
   )
   
   

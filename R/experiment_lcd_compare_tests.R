@@ -1,7 +1,6 @@
 experiment_lcd_compare_tests <- function (m = 2000, n = 400, graph_probs = c(3/5, 1/5, 1/5), 
                                           dim_C = 2, err_sd = 1/2, p_link = 4/5, 
-                                          interv_options = c(mean_shift, variance_shift, 
-                                                             fixed_point, mixture),
+                                          interv_options = c(mean_shift, variance_shift, mixture),
                                           nonlin_options = c(linear, parabolic, sinusoidal),
                                           seed = 0,
                                           path = 'output/lcd_compare_tests/') {
@@ -51,9 +50,9 @@ experiment_lcd_compare_tests <- function (m = 2000, n = 400, graph_probs = c(3/5
   
   results <- list(
     ppcor = get_results(data, .ppcor_wrapper),
-    spcor = get_results(data, .spcor_wrapper),
-    ppcor_b = get_results(data, .ppcor_b_wrapper),
-    gcm = get_results(data, .gcm_wrapper),
+    # spcor = get_results(data, .spcor_wrapper),
+    # ppcor_b = get_results(data, .ppcor_b_wrapper),
+    # gcm = get_results(data, .gcm_wrapper),
     rcot = get_results(data, .rcot_wrapper),
     # ccit = get_results(data, .ccit_wrapper),
     polyatree = get_results(data, .polyatree_wrapper)

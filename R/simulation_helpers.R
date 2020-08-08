@@ -3,25 +3,24 @@
 
 ### Interventions
 
+no_intervention <- function(base, C) {
+  base
+}
+
 mean_shift <- function(base, C) {
-  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 1
-  base + C * theta
+  base + C
 }
 
 variance_shift <- function(base, C) {
-  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 0
-  base * (1 + C * theta)
+  base * (1 + C)
 }
 
 fixed_point <- function(base, C) {
-  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 1
-  (C == 0) * base + C * theta
+  C
 }
 
 mixture <- function(base, C) {
-  theta <- if (length(unique(C)) == 2) sample(c(2, 3, 4, 5, 6), 1) else 1
-  idx <- sample(c(-1,theta), length(C), replace = TRUE)
-  base + C * idx
+  base + 2*(C > max(C)/2)
 }
 
 .do_intervention <- function (int_options, base, C) {
@@ -42,7 +41,7 @@ parabolic <- function(X) {
 }
 
 sinusoidal <- function(X) {
-  sin(6*2*pi*X / (max(X)-min(X)))
+  sin(2*pi*X / sd(X))
 }
 
 .nonlin <- function(opts, X) {
@@ -55,7 +54,7 @@ sinusoidal <- function(X) {
 .graph_1 <- function (n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X -> Y
   
-  C <- sample(0:(dim_C-1), n, replace = TRUE)
+  C <- sample(1:dim_C, n, replace = TRUE)
   
   intervene <- rbinom(1, 1, p_link)
   X <- intervene * .do_intervention(interv_options, rnorm(n), C) + (1-intervene) * rnorm(n)
@@ -71,7 +70,7 @@ sinusoidal <- function(X) {
 .graph_2 <- function (n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X <- Y
   
-  C <- sample(0:(dim_C-1), n, replace = TRUE)
+  C <- sample(1:dim_C, n, replace = TRUE)
   
   Y <- rnorm(n)
   
@@ -89,7 +88,7 @@ sinusoidal <- function(X) {
 .graph_3 <- function (n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X <- L -> Y
   
-  C <- sample(0:(dim_C-1), n, replace = TRUE)
+  C <- sample(1:dim_C, n, replace = TRUE)
   
   L <- rnorm(n)
   

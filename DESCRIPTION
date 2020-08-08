@@ -24,6 +24,7 @@ Imports:
     ppcor,
     RCIT,
     readr,
+    reshape,
     reticulate,
     ROCR
 Remotes: ericstrobl/RCIT
