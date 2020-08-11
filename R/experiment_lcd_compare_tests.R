@@ -54,13 +54,13 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
 
   results <- list(
     ppcor = get_results(data, .ppcor_wrapper),
-  # spcor = get_results(data, .spcor_wrapper),
+    spcor = get_results(data, .spcor_wrapper),
   # ppcor_b = get_results(data, .ppcor_b_wrapper),
-  # gcm = get_results(data, .gcm_wrapper),
+    gcm = get_results(data, .gcm_wrapper),
     rcot = get_results(data, .rcot_wrapper),
-  # ccit = get_results(data, .ccit_wrapper),
-    polyatree = get_results(data, .polyatree_wrapper),
-    polyatree_c = get_results(data, .polyatree_wrapper_continuous)
+    ccit = get_results(data, .ccit_wrapper),
+    polyatree_c = get_results(data, .polyatree_wrapper_continuous),
+    polyatree = get_results(data, .polyatree_wrapper)
   )
 
 
