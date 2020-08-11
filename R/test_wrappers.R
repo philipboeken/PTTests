@@ -51,9 +51,9 @@
   .ccit <- reticulate::import('CCIT')
   .ccit <- .ccit$CCIT$CCIT
   if (is.null(Z) || length(Z) == 0) {
-    return(.ccit(matrix(X, ncol = 1), matrix(Y, ncol = 1), NULL))
+    return(reticulate::py_suppress_warnings(.ccit(matrix(X, ncol = 1), matrix(Y, ncol = 1), NULL)))
   }
-  .ccit(matrix(X, ncol = 1), matrix(Y, ncol = 1), matrix(Z, ncol = 1))
+  reticulate::py_suppress_warnings(.ccit(matrix(X, ncol = 1), matrix(Y, ncol = 1), matrix(Z, ncol = 1)))
 }
 
 .kruskal_wrapper <- function (X, Y, Z=NULL) {

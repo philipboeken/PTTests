@@ -1,9 +1,8 @@
-experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
-                              Ns = c(seq(40, 100, by = 20), seq(200, 500, by = 100), 600, 800, 1000),
+experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
+                              Ns = c(25, 30, seq(40, 100, by = 20), 150, seq(200, 500, by = 100), 600, 800, 1000),
                               save_legend = FALSE) {
-  discrete_v_continuous <- function(m = 100, dim_C = 4, err_sd = 1 / 2,
-                                    Ns = c(10, seq(20, 100, by = 20), seq(200, 500, by = 100), 600, 800, 1000),
-                                    save_legend = FALSE, seed = 0, path = 'output/thesis/discrete/') {
+  discrete_v_continuous <- function(m, dim_C, err_sd, Ns,
+                                    save_legend = FALSE, seed = 1, path = 'output/thesis/discrete/') {
     set.seed(seed)
     results_1 <- do_test(1, m, dim_C, err_sd, Ns, graph_probs = c(1, 0, 0),
                          p_link = 0, interv = c(mean_shift), link = c(linear),
@@ -47,8 +46,7 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
     .ggsave(paste(path, 'discrete', sep = ''), grid, 30, 30)
   }
   
-  continuous_v_continuous <- function(m = 100, dim_C = 4, err_sd = 1 / 2,
-                                      Ns = c(10, seq(20, 100, by = 20), seq(200, 500, by = 100), 600, 800, 1000),
+  continuous_v_continuous <- function(m, dim_C, err_sd, Ns,
                                       seed = 0, path = 'output/thesis/continuous/') {
     set.seed(seed)
     results_1 <- do_test(1, m, dim_C, err_sd, Ns, graph_probs = c(1, 0, 0),
@@ -96,8 +94,7 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
     .ggsave(paste(path, 'continuous', sep = ''), grid, 40, 40)
   }
   
-  discrete_v_continuous_ci <- function(m = 100, dim_C = 4, err_sd = 1 / 2,
-                                       Ns = c(10, seq(20, 100, by = 20), seq(200, 500, by = 100), 600, 800, 1000),
+  discrete_v_continuous_ci <- function(m, dim_C, err_sd, Ns,
                                        save_legend = FALSE, seed = 0, path = 'output/thesis/discrete_ci/') {
     set.seed(seed)
     results_1 <- do_test(1, m, dim_C, err_sd, Ns, graph_probs = c(1, 0, 0),
@@ -142,7 +139,7 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
     .ggsave(paste(path, 'discrete_ci', sep = ''), grid, 30, 30)
   }
   
-  do_test <- function(testnr, m = 200, dim_C = 4, err_sd = 1 / 2, Ns = c(50, 100),
+  do_test <- function(testnr, m, dim_C, err_sd, Ns,
                       graph_probs, p_link, interv, link, var1, var2, var3 = NULL, save_legend = FALSE) {
     
     cores <- parallel::detectCores()
@@ -265,12 +262,10 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
     
   }
   
-  lcd_aucs <- function(m = 200, dim_C = 4,
-                       Ns = c(seq(40, 100, by = 20), seq(200, 500, by = 100), 600, 800, 1000),
-                       path = 'output/thesis/compare_tests_auc/') {
-    aucs <- experiment_lcd_compare_tests(m = 10, n = Ns[[1]], dim_C = dim_C, save_figures = FALSE)
+  lcd_aucs <- function(m, dim_C, Ns, path = 'output/thesis/compare_tests_auc/') {
+    aucs <- experiment_lcd_compare_tests(m = m, n = Ns[[1]], dim_C = dim_C, save_figures = FALSE)
     for (n in Ns[-1]) {
-      res <- experiment_lcd_compare_tests(m = 10, n = n, dim_C = dim_C, save_figures = FALSE)
+      res <- experiment_lcd_compare_tests(m = m, n = n, dim_C = dim_C, save_figures = FALSE)
       for (type in names(aucs)) {
         for (test in names(aucs[[type]])) {
           aucs[[type]][[test]] <- c(aucs[[type]][[test]], res[[type]][[test]])
@@ -312,7 +307,7 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
   experiment_lcd_roc_curves(path = 'output/thesis/compare_roc_curves/')
   
   cat(format(Sys.time(), "%X"), "LCD compare tests\n")
-  experiment_lcd_compare_tests(m = 1000, n = 400, dim_C = 3, path = 'output/thesis/compare_tests_roc/')
+  experiment_lcd_compare_tests(m = 1000, n = 400, dim_C = 3, path = 'output/thesis/compare_tests_roc/', pt_c = TRUE)
   
   cat(format(Sys.time(), "%X"), "LCD AUC scores, d=2\n")
   lcd_aucs(m, dim_C=2, Ns)
@@ -323,6 +318,3 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
   cat(format(Sys.time(), "%X"), "LCD AUC scores, d=8\n")
   lcd_aucs(m, dim_C=8, Ns)
 }
-
-# experiment_thesis(m=200, Ns = c(seq(40, 100, by = 20), seq(200, 500, by = 100), 600, 800, 1000))
-
