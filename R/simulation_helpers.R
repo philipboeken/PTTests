@@ -20,7 +20,7 @@ fixed_point <- function(base, C) {
 }
 
 mixture <- function(base, C) {
-  base + 2*(C > max(C)/2)
+  base + (C > max(C)/2)
 }
 
 .do_intervention <- function (int_options, base, C) {

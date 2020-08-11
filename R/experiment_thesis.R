@@ -149,7 +149,7 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
                       graph_probs, p_link, interv, link, var1, var2, var3 = NULL, save_legend = FALSE) {
 
     cores <- parallel::detectCores()
-    cl <-parallel:: makeForkCluster(cores[1]-1)
+    cl <- parallel::makeForkCluster(cores[1] - 1)
     doParallel::registerDoParallel(cl)
     # doParallel::registerDoParallel()
 
@@ -268,9 +268,9 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
 
   }
 
-  discrete_v_continuous(m, dim_C, err_sd, Ns, save_legend=save_legend)
+  discrete_v_continuous(m, dim_C, err_sd, Ns, save_legend = save_legend)
   continuous_v_continuous(m, dim_C, err_sd, Ns)
-  discrete_v_continuous_ci(m, dim_C, err_sd, Ns, save_legend=save_legend)
+  discrete_v_continuous_ci(m, dim_C, err_sd, Ns, save_legend = save_legend)
 }
 
 # experiment_thesis(m=20, Ns = c(50, 60))

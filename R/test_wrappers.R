@@ -4,6 +4,14 @@
   polyatree_ci_test(X, Y, Z, verbose = FALSE)$p_H0
 }
 
+.polyatree_wrapper_continuous <- function (X, Y, Z = NULL) {
+  if (is.null(Z)) {
+    return(polyatree_independence_test(X, Y, verbose = FALSE)$p_H0)
+  }
+  
+  return(polyatree_continuous_ci_test(X, Y, Z)$p_H0)
+}
+
 .ppcor_b_wrapper <- function(X, Y, Z = NULL) {
   if (is.null(Z) || length(Z) == 0) {
     return(cor_test_bayesian(X, Y)$p_H0)

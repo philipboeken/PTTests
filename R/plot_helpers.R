@@ -55,9 +55,7 @@
     ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
                    legend.spacing.x = ggplot2::unit(0.2, 'cm'),
                    legend.position = c(0.78, 0.275),
-                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5)) +
-    ggplot2::scale_color_manual(values=c(polyatree = "#6F9AF8", ppcor = "#E87D7E", spcor = "#B3A033", gcm = "#53B74C",
-                                         rcot = "#55BCC2", ccit = "#E46DDD"))
+                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5))
   for (roc in roc_data) {
     c <- roc$info
     
@@ -71,8 +69,10 @@
       plt <- plt + ggplot2::geom_point(data = roc$point, ggplot2::aes(x, y, colour = {{c}}))
     }
   }
+  colours <- list(polyatree = "#6F9AF8", polyatree_c = "blue", ppcor = "#E87D7E", spcor = "#B3A033", 
+              gcm = "#53B74C", rcot = "#55BCC2", ccit = "#E46DDD")
   
-  return(plt)
+  return(plt + ggplot2::scale_colour_manual(values = as.vector(unlist(colours[names(roc_data)]))))
 }
 
 .lcd_roc <- function(labels, CX_results, XY_results, CY_X_results, bayes, option = 0) {
