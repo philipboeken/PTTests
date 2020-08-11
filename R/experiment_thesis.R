@@ -45,7 +45,6 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
                                nrow = 4)
 
     .ggsave(paste(path, 'discrete', sep = ''), grid, 30, 30)
-
   }
 
   continuous_v_continuous <- function(m = 100, dim_C = 4, err_sd = 1 / 2,
@@ -95,7 +94,6 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
 
     .ggsave(paste(path, timestamp, sep = ''), grid, 40, 40)
     .ggsave(paste(path, 'continuous', sep = ''), grid, 40, 40)
-
   }
 
   discrete_v_continuous_ci <- function(m = 100, dim_C = 4, err_sd = 1 / 2,
@@ -142,7 +140,6 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
                                nrow = 4)
 
     .ggsave(paste(path, 'discrete_ci', sep = ''), grid, 30, 30)
-
   }
 
   do_test <- function(testnr, m = 200, dim_C = 4, err_sd = 1 / 2, Ns = c(50, 100),
@@ -268,9 +265,19 @@ experiment_thesis <- function(m = 60, dim_C = 4, err_sd = 1 / 2,
 
   }
 
-  discrete_v_continuous(m, dim_C, err_sd, Ns, save_legend = save_legend)
-  continuous_v_continuous(m, dim_C, err_sd, Ns)
-  discrete_v_continuous_ci(m, dim_C, err_sd, Ns, save_legend = save_legend)
+  lcd_aucs <- function(m = 200, dim_C = 4,
+                    Ns = c(seq(40, 100, by = 20), seq(200, 500, by = 100), 600, 800, 1000),
+                    path = 'output/thesis/compare_tests_auc/') {
+
+  }
+
+
+
+  # discrete_v_continuous(m, dim_C, err_sd, Ns, save_legend = save_legend)
+  # continuous_v_continuous(m, dim_C, err_sd, Ns)
+  # discrete_v_continuous_ci(m, dim_C, err_sd, Ns, save_legend = save_legend)
+  # experiment_lcd_roc_curves(path = 'output/thesis/compare_tests_roc/')
+  experiment_lcd_compare_tests(m = 1000, n = 400, dim_C = 4, path = 'output/thesis/compare_tests_roc/')
 }
 
 # experiment_thesis(m=20, Ns = c(50, 60))

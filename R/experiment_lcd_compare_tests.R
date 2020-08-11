@@ -1,10 +1,10 @@
 experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 5, 1 / 5, 1 / 5),
-                                          dim_C = 2, err_sd = 1 / 2, p_link = 4 / 5,
-                                          interv_options = c(mean_shift, variance_shift, mixture),
-                                          nonlin_options = c(linear, parabolic, sinusoidal),
-                                          seed = 0,
-                                          path = 'output/lcd_compare_tests/',
-                                          save_figures = TRUE) {
+                                         dim_C = 2, err_sd = 1 / 2, p_link = 4 / 5,
+                                         interv_options = c(mean_shift, variance_shift, mixture),
+                                         nonlin_options = c(linear, parabolic, sinusoidal),
+                                         seed = 0,
+                                         path = 'output/lcd_compare_tests/',
+                                         save_figures = TRUE) {
 
   # Setup test
   ##############################################
@@ -50,7 +50,7 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
   # doParallel::registerDoParallel()
 
   data <- lapply(1:m, function(i) get_data(graph_probs, n, dim_C, err_sd, p_link,
-                                            interv_options, nonlin_options))
+                                           interv_options, nonlin_options))
 
   results <- list(
     ppcor = get_results(data, .ppcor_wrapper),
@@ -91,23 +91,56 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
 
   labels_lcd <- factor(results$polyatree[, 'label_lcd'], ordered = TRUE, levels = c(1, 0))
 
-  plot_CX <- .plot_roc(CX_results[, 1], CX_results[, -1], freq_default = 0.05)
-  plot_XY <- .plot_roc(XY_results[, 1], XY_results[, -1], freq_default = 0.05)
-  plot_CY_X <- .plot_roc(CY_X_results[, 1], CY_X_results[, -1], freq_default = 0.05)
-  plot_lcd <- .plot_roc_custom(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1])
+  if (save_figures) {
+    plot_CX <- .plot_roc(CX_results[, 1], CX_results[, -1], freq_default = 0.05)
+    plot_XY <- .plot_roc(XY_results[, 1], XY_results[, -1], freq_default = 0.05)
+    plot_CY_X <- .plot_roc(CY_X_results[, 1], CY_X_results[, -1], freq_default = 0.05)
+    plot_lcd <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1])
 
-  grid <- cowplot::plot_grid(plot_CX, plot_XY, plot_CY_X, plot_lcd, nrow = 1)
+    grid <- cowplot::plot_grid(plot_CX, plot_XY, plot_CY_X, plot_lcd, nrow = 1)
 
-  plot_runtimes <- .plot_times(times)
+    plot_runtimes <- .plot_times(times)
 
-  timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
+    timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 
-  save(results, file = sprintf("%s%s.Rdata", path, timestamp))
-  .ggsave(paste(path, timestamp, sep = ''), grid, 40, 10)
-  .ggsave(paste(path, 'last', sep = ''), grid, 40, 10)
-  .ggsave(paste(path, 'two-sample', sep = ''), plot_CX, 10, 10)
-  .ggsave(paste(path, 'marginal-independence', sep = ''), plot_XY, 10, 10)
-  .ggsave(paste(path, 'conditional-independence', sep = ''), plot_CY_X, 10, 10)
-  .ggsave(paste(path, 'lcd', sep = ''), plot_lcd, 10, 10)
-  .ggsave(paste(path, 'times', sep = ''), plot_runtimes, 20, 8)
+    save(results, file = sprintf("%s%s.Rdata", path, timestamp))
+    .ggsave(paste(path, timestamp, sep = ''), grid, 40, 10)
+    .ggsave(paste(path, 'last', sep = ''), grid, 40, 10)
+    .ggsave(paste(path, 'two-sample', sep = ''), plot_CX, 10, 10)
+    .ggsave(paste(path, 'marginal-independence', sep = ''), plot_XY, 10, 10)
+    .ggsave(paste(path, 'conditional-independence', sep = ''), plot_CY_X, 10, 10)
+    .ggsave(paste(path, 'lcd', sep = ''), plot_lcd, 10, 10)
+    .ggsave(paste(path, 'times', sep = ''), plot_runtimes, 20, 8)
+  }
+
+  get_test_aucs <- function(labels, predictions) {
+    auc_data <- c()
+    predictions <- as.matrix(predictions)
+    for (i in 1:ncol(predictions)) {
+      name <- colnames(predictions)[i]
+      roc <- .get_roc(labels, -predictions[, i])
+      auc_data[[name]] <- list(roc$auc)
+    }
+    return(auc_data)
+  }
+
+  get_lcd_aucs <- function(labels, CX, XY, CY_X) {
+    auc_data <- c()
+    for (i in 1:ncol(CX)) {
+      name <- colnames(CX)[i]
+      bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c')
+      roc <- .get_lcd_roc(labels, CX[, i], XY[, i], CY_X[, i], bayes)
+      auc_data[[name]] <- list(roc$auc)
+    }
+    return(auc_data)
+  }
+
+  return(
+    list(
+      CX = get_test_aucs(CX_results[, 1], CX_results[, -1]),
+      XY = get_test_aucs(XY_results[, 1], XY_results[, -1]),
+      CY_X = get_test_aucs(CY_X_results[, 1], CY_X_results[, -1]),
+      lcd = get_lcd_aucs(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1])
+    )
+  )
 }

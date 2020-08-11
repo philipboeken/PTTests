@@ -66,11 +66,11 @@ experiment_lcd_roc_curves <- function(m = 1000, n = 400, graph_probs = c(3 / 5, 
   t0 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
   t1 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha)$')
   t2 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > 1-\\alpha)$')
-  .plot0 <- .plot_roc_custom(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
+  .plot0 <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
                              t0, option = 0, plot_point = FALSE)
-  .plot1 <- .plot_roc_custom(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
+  .plot1 <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
                              t1, option = 1, plot_point = FALSE)
-  .plot2 <- .plot_roc_custom(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
+  .plot2 <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
                              t2, option = 2, plot_point = FALSE)
 
   grid <- cowplot::plot_grid(.plot0, .plot1, .plot2, nrow = 1)
