@@ -2,13 +2,21 @@ experiment_lcd_roc_curves <- function(m = 1000, n = 400, graph_probs = c(3 / 5, 
                                        dim_C = 2, err_sd = 1 / 2, p_link = 4 / 5,
                                        interv_options = c(mean_shift, variance_shift, mixture),
                                        nonlin_options = c(linear, parabolic, sinusoidal),
-                                       seed = 0,
+                                       simulation = NULL, seed = 0,
                                        path = 'output/lcd_roc_curves/') {
 
   # Setup test
   ##############################################
 
   set.seed(seed)
+
+  if (!is.null(simulation) && simulation == 'paper') {
+    interv_options <- c(mean_shift_paper, variance_shift_paper, fixed_point_paper, mixture_paper)
+    nonlin_options <- c(linear_paper, parabolic_paper, sinusoidal_paper)
+  } else if (simulation == 'thesis') {
+    interv_options <- c(mean_shift, variance_shift, mixture)
+    nonlin_options <- c(linear, parabolic, sinusoidal)
+  }
 
   get_results <- function(dataset, test) {
     `%dopar%` <- foreach::`%dopar%`
@@ -33,9 +41,13 @@ experiment_lcd_roc_curves <- function(m = 1000, n = 400, graph_probs = c(3 / 5, 
   ##############################################
 
   doParallel::registerDoParallel()
-
-  data <- lapply(1:m, function(i) get_data(graph_probs, n, dim_C, err_sd, p_link,
-                                            interv_options, nonlin_options))
+  if (!is.null(simulation) && simulation == 'paper') {
+    data <- lapply(1:m, function(i) get_data_paper(graph_probs, n, dim_C, err_sd, p_link, 
+                                                   interv_options, nonlin_options))
+  } else {
+    data <- lapply(1:m, function(i) get_data(graph_probs, n, dim_C, err_sd, p_link,
+                                             interv_options, nonlin_options))
+  }
 
   results <- list(
     ppcor = get_results(data, .ppcor_wrapper),

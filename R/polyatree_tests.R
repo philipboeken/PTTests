@@ -1,4 +1,4 @@
-polyatree_ci_test <- function(X, Y, Z = NULL, rho = 0, c = 1,
+polyatree_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
                               max_depth = -1, qdist = qnorm, verbose = TRUE) {
   if (is.null(Z)) {
     if (verbose)
@@ -41,7 +41,7 @@ polyatree_d_sample_ci_test <- function(X, Y, Z, rho = 0.5, c = 1,
                                        c = c, rho = rho, depth = 1, max_depth, qdist)
   
   discrete_values <- if (length(unique(binary)) == 2) binary[1] else unique(binary)
-  discrete_values <- unique(binary)
+  
   p_H1 <- max(sapply(discrete_values, function(i) {
     X1Z <- matrix(data[data[, 2] == i, c(1, 3)], ncol = 2)
     X2Z <- matrix(data[data[, 2] != i, c(1, 3)], ncol = 2)
@@ -56,13 +56,17 @@ polyatree_d_sample_ci_test <- function(X, Y, Z, rho = 0.5, c = 1,
   }))
   
   n_hypotheses <- length(discrete_values)
-  bf <- exp(p_H0 - p_H1) * (n_hypotheses - 1) # Bayes Factor with a Bonferroni-type correction
+  bf <- exp(p_H0 - p_H1) * n_hypotheses # Bayes Factor with a Bonferroni-type correction
   
   options(expressions = old_expressions)
   
   return(list(bf = bf, p_H0 = 1 - 1 / (1 + bf), p_H1 = 1 / (1 + bf)))
 }
 
+# Implements a continuous conditional independence test.
+# See Teymur, O. & Filippi, S. (2020). A Bayesian 
+# nonparametric test for conditional independence.
+# https://arxiv.org/abs/1910.11219
 polyatree_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
                                          max_depth = -1, N = 10, qdist = qnorm) {
   old_expressions <- options()$expressions
@@ -130,6 +134,10 @@ polyatree_independence_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdis
   return(polyatree_continuous_independence_test(X, Y, c = c, max_depth = max_depth, qdist = qdist))
 }
 
+# Implements a continuous independence test.
+# See Filippi, S. and Holmes, C. C. (2017). A Bayesian 
+# nonparametric approach to testing for dependence 
+# between random variables. Bayesian Analysis, 12(4):919–938.
 polyatree_continuous_independence_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
@@ -154,6 +162,10 @@ polyatree_continuous_independence_test <- function(X, Y, c = 1, max_depth = -1, 
   return(list(bf = bf, p_H0 = 1 - 1 / (1 + bf), p_H1 = 1 / (1 + bf)))
 }
 
+# Implements a k-sample test, extension from:
+# Holmes, C. C., Caron, F., Griffin, J. E., and Stephens, D. A. (2015).
+# Two-sample Bayesian nonparametric hypothesis testing.
+# Bayesian Analysis, 10(2):297–320.
 polyatree_d_sample_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
@@ -169,7 +181,7 @@ polyatree_d_sample_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = 
   p_H0 <- .polyatree_marginal_likelihood(X, low = 0, up = 1, c = c, depth = 1, max_depth, qdist)
   
   discrete_values <- if (length(unique(binary)) == 2) binary[1] else unique(binary)
-  discrete_values <- unique(binary)
+  
   p_H1 <- max(sapply(discrete_values, function(i) {
     X1 <- data[data[, 2] == i, 1]
     X2 <- data[data[, 2] != i, 1]
@@ -181,7 +193,7 @@ polyatree_d_sample_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = 
   }))
   
   n_hypotheses <- length(discrete_values)
-  bf <- exp(p_H0 - p_H1) * (n_hypotheses - 1) # Bayes Factor with a Bonferroni-type correction
+  bf <- exp(p_H0 - p_H1) * n_hypotheses # Bayes Factor with a Bonferroni-type correction
   
   options(expressions = old_expressions)
   

@@ -2,14 +2,24 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
                                          dim_C = 2, err_sd = 1 / 2, p_link = 4 / 5,
                                          interv_options = c(mean_shift, variance_shift, mixture),
                                          nonlin_options = c(linear, parabolic, sinusoidal),
+                                         simulation = NULL,
                                          seed = 0,
                                          path = 'output/lcd_compare_tests/',
                                          save_figures = TRUE,
-                                         pt_c = FALSE) {
+                                         pt_continuous = FALSE) {
   
   # Setup test
   ##############################################
+  
   set.seed(seed)
+  
+  if (!is.null(simulation) && simulation == 'paper') {
+    interv_options <- c(mean_shift_paper, variance_shift_paper, fixed_point_paper, mixture_paper)
+    nonlin_options <- c(linear_paper, parabolic_paper, sinusoidal_paper)
+  } else if (!is.null(simulation) && simulation == 'thesis') {
+    interv_options <- c(mean_shift, variance_shift, mixture)
+    nonlin_options <- c(linear, parabolic, sinusoidal)
+  }
   
   get_results <- function(dataset, test) {
     `%dopar%` <- foreach::`%dopar%`
@@ -45,21 +55,22 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
   # Do test
   ##############################################
   
-  cores <- parallel::detectCores()
-  cl <- parallel::makeForkCluster(cores[1] - 1)
-  doParallel::registerDoParallel(cl)
-  # doParallel::registerDoParallel()
+  doParallel::registerDoParallel()
+
+  if (!is.null(simulation) && simulation == 'paper') {
+    data <- lapply(1:m, function(i) get_data_paper(graph_probs, n, 0.5, err_sd, p_link, 
+                                                   interv_options, nonlin_options))
+  } else {
+    data <- lapply(1:m, function(i) get_data(graph_probs, n, dim_C, err_sd, p_link,
+                                             interv_options, nonlin_options))
+  }
   
-  data <- lapply(1:m, function(i) get_data(graph_probs, n, dim_C, err_sd, p_link,
-                                           interv_options, nonlin_options))
-  
-  if (pt_c) {
+  if (pt_continuous) {
     results <- list(
       ppcor = get_results(data, .ppcor_wrapper),
       spcor = get_results(data, .spcor_wrapper),
-      # ppcor_b = get_results(data, .ppcor_b_wrapper),
       gcm = get_results(data, .gcm_wrapper),
-      ccit = get_results(data, .ccit_wrapper),
+      # ccit = get_results(data, .ccit_wrapper),
       rcot = get_results(data, .rcot_wrapper),
       polyatree_c = get_results(data, .polyatree_wrapper_continuous),
       polyatree = get_results(data, .polyatree_wrapper))
@@ -67,7 +78,6 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
     results <- list(
       ppcor = get_results(data, .ppcor_wrapper),
       spcor = get_results(data, .spcor_wrapper),
-      # ppcor_b = get_results(data, .ppcor_b_wrapper),
       gcm = get_results(data, .gcm_wrapper),
       # ccit = get_results(data, .ccit_wrapper),
       rcot = get_results(data, .rcot_wrapper),

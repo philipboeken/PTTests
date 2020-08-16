@@ -1,16 +1,17 @@
 Package: polyatreelcd
-Title: 
-Version: 0.0.0.9000
+Title: Independence testing with Pólya tree priors
+Version: 0.1.0
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Philip",
+           family = "Boeken",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "philip.boeken@gmail.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery'.
-License: What license it uses
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+BugReports: "https://github.com/philipboeken/???/issues"
 Imports:
 	cowplot,
     doParallel,
