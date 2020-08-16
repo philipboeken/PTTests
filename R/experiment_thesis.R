@@ -37,10 +37,14 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
     .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
     # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
     
-    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, results_3$data_plot, results_4$data_plot,
-                               results_1$polyatree_plot, results_2$polyatree_plot, results_3$polyatree_plot, results_4$polyatree_plot,
-                               results_1$pval_plot, results_2$pval_plot, results_3$pval_plot, results_4$pval_plot,
-                               results_1$time_plot, results_2$time_plot, results_3$time_plot, results_4$time_plot,
+    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, 
+                               results_3$data_plot, results_4$data_plot,
+                               results_1$polyatree_plot, results_2$polyatree_plot,
+                               results_3$polyatree_plot, results_4$polyatree_plot,
+                               results_1$pval_plot, results_2$pval_plot, 
+                               results_3$pval_plot, results_4$pval_plot,
+                               results_1$time_plot, results_2$time_plot, 
+                               results_3$time_plot, results_4$time_plot,
                                nrow = 4)
     
     .ggsave(paste(path, 'discrete', sep = ''), grid, 30, 30)
@@ -82,10 +86,14 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
     .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
     # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
     
-    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, results_3$data_plot, results_4$data_plot,
-                               results_1$polyatree_plot, results_2$polyatree_plot, results_3$polyatree_plot, results_4$polyatree_plot,
-                               results_1$pval_plot, results_2$pval_plot, results_3$pval_plot, results_4$pval_plot,
-                               results_1$time_plot, results_2$time_plot, results_3$time_plot, results_4$time_plot,
+    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, 
+                               results_3$data_plot, results_4$data_plot,
+                               results_1$polyatree_plot, results_2$polyatree_plot,
+                               results_3$polyatree_plot, results_4$polyatree_plot,
+                               results_1$pval_plot, results_2$pval_plot, 
+                               results_3$pval_plot, results_4$pval_plot,
+                               results_1$time_plot, results_2$time_plot, 
+                               results_3$time_plot, results_4$time_plot,
                                nrow = 4)
     
     timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
@@ -130,10 +138,14 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
     .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
     # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
     
-    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, results_3$data_plot, results_4$data_plot,
-                               results_1$polyatree_plot, results_2$polyatree_plot, results_3$polyatree_plot, results_4$polyatree_plot,
-                               results_1$pval_plot, results_2$pval_plot, results_3$pval_plot, results_4$pval_plot,
-                               results_1$time_plot, results_2$time_plot, results_3$time_plot, results_4$time_plot,
+    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, 
+                               results_3$data_plot, results_4$data_plot,
+                               results_1$polyatree_plot, results_2$polyatree_plot,
+                               results_3$polyatree_plot, results_4$polyatree_plot,
+                               results_1$pval_plot, results_2$pval_plot, 
+                               results_3$pval_plot, results_4$pval_plot,
+                               results_1$time_plot, results_2$time_plot, 
+                               results_3$time_plot, results_4$time_plot,
                                nrow = 4)
     
     .ggsave(paste(path, 'discrete_ci', sep = ''), grid, 30, 30)
@@ -178,7 +190,8 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
     
     group_colors <- c(ppcor = "#E87D7E", spcor = "#B3A033", gcm = "#53B74C",
                       rcot = "#55BCC2", ccit = "#E46DDD", polyatree = "#6F9AF8")
-    data <- get_data_transformed(1, graph_probs, 200, dim_C, err_sd, p_link, interv, link, var1, var2, var3)[[1]]
+    data <- get_data_transformed(1, graph_probs, 200, dim_C, err_sd, 
+                                 p_link, interv, link, var1, var2, var3)[[1]]
     if (is.null(var3)) {
       data_plot <- get_data_plot(data$X, data$Y, var1, var2)
     } else {
@@ -195,7 +208,8 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
     time_plot <- get_time_plot(results, Ns, group_colors, save_legend)
     pval_plot <- get_pval_plot(results, Ns, group_colors)
     
-    return(list(data_plot = data_plot, polyatree_plot = polyatree_plot, time_plot = time_plot, pval_plot = pval_plot))
+    return(list(data_plot = data_plot, polyatree_plot = polyatree_plot,
+                time_plot = time_plot, pval_plot = pval_plot))
   }
   
   get_data_transformed <- function(m, graph_probs, n, dim_C, err_sd, p_link, interv, link, var1, var2, var3) {
@@ -280,7 +294,8 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
       auc_data$n <- Ns
       auc_data <- reshape::melt(data.frame(auc_data), id.vars = 'n', variable_name = "Test:")
       ggplot2::ggplot(auc_data, ggplot2::aes(n)) +
-        ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
+        # ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
+        ggplot2::scale_x_continuous(limits = c(25, max(Ns)), trans = scales::log10_trans()) +
         ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
         ggplot2::scale_color_manual(values = group_colors) +
         ggplot2::labs(x = "n", y = "AUC") +
@@ -294,27 +309,28 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
     .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep=""), get_auc_plot(aucs$lcd, Ns), 7, 7)
   }
   
-  cat(format(Sys.time(), "%X"), "Discrete vs continuous\n")
-  discrete_v_continuous(m, dim_C, err_sd, Ns, save_legend = save_legend)
-  
-  cat(format(Sys.time(), "%X"), "Continuous vs continuous\n")
-  continuous_v_continuous(m, dim_C, err_sd, Ns)
-  
-  cat(format(Sys.time(), "%X"), "Discrete vs continuous CI\n")
-  discrete_v_continuous_ci(m, dim_C, err_sd, Ns, save_legend = save_legend)
-  
-  cat(format(Sys.time(), "%X"), "LCD ROC curves\n")
-  experiment_lcd_roc_curves(path = 'output/thesis/compare_roc_curves/')
-  
-  cat(format(Sys.time(), "%X"), "LCD compare tests\n")
-  experiment_lcd_compare_tests(m = 1000, n = 400, dim_C = 3, path = 'output/thesis/compare_tests_roc/', pt_c = TRUE)
-  
-  cat(format(Sys.time(), "%X"), "LCD AUC scores, d=2\n")
-  lcd_aucs(m, dim_C=2, Ns)
-  
-  cat(format(Sys.time(), "%X"), "LCD AUC scores, d=4\n")
-  lcd_aucs(m, dim_C=4, Ns)
+  # cat(format(Sys.time(), "%X"), "Discrete vs continuous\n")
+  # discrete_v_continuous(m, dim_C, err_sd, Ns, save_legend = save_legend)
+  # 
+  # cat(format(Sys.time(), "%X"), "Continuous vs continuous\n")
+  # continuous_v_continuous(m, dim_C, err_sd, Ns)
+  # 
+  # cat(format(Sys.time(), "%X"), "Discrete vs continuous CI\n")
+  # discrete_v_continuous_ci(m, dim_C, err_sd, Ns, save_legend = save_legend)
+  # 
+  # cat(format(Sys.time(), "%X"), "LCD ROC curves\n")
+  # experiment_lcd_roc_curves(path = 'output/thesis/compare_roc_curves/')
+  # 
+  # cat(format(Sys.time(), "%X"), "LCD compare tests\n")
+  # experiment_lcd_compare_tests(m = 1000, n = 400, dim_C = 3, 
+  #                              path = 'output/thesis/compare_tests_roc/', pt_c = TRUE)
+  # 
+  # cat(format(Sys.time(), "%X"), "LCD AUC scores, d=2\n")
+  # lcd_aucs(m, dim_C=2, Ns)
+  # 
+  # cat(format(Sys.time(), "%X"), "LCD AUC scores, d=4\n")
+  # lcd_aucs(m, dim_C=4, Ns = c(25, 30, seq(40, 100, by = 20), 150, seq(200, 500, by = 100), 600, 800, 1000))
   
   cat(format(Sys.time(), "%X"), "LCD AUC scores, d=8\n")
-  lcd_aucs(m, dim_C=8, Ns)
+  lcd_aucs(m, dim_C=8, Ns = c(25, 30, seq(40, 100, by = 20), 150, seq(200, 500, by = 100), 600, 800, 1000))
 }

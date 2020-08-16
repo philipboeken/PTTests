@@ -53,18 +53,26 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
   data <- lapply(1:m, function(i) get_data(graph_probs, n, dim_C, err_sd, p_link,
                                            interv_options, nonlin_options))
   
-  results <- list(
-    ppcor = get_results(data, .ppcor_wrapper),
-    spcor = get_results(data, .spcor_wrapper),
-    # ppcor_b = get_results(data, .ppcor_b_wrapper),
-    gcm = get_results(data, .gcm_wrapper),
-    rcot = get_results(data, .rcot_wrapper),
-    # ccit = get_results(data, .ccit_wrapper)
-  )
   if (pt_c) {
-    results <- c(results, polyatree_c = get_results(data, .polyatree_wrapper_continuous))
+    results <- list(
+      ppcor = get_results(data, .ppcor_wrapper),
+      spcor = get_results(data, .spcor_wrapper),
+      # ppcor_b = get_results(data, .ppcor_b_wrapper),
+      gcm = get_results(data, .gcm_wrapper),
+      ccit = get_results(data, .ccit_wrapper),
+      rcot = get_results(data, .rcot_wrapper),
+      polyatree_c = get_results(data, .polyatree_wrapper_continuous),
+      polyatree = get_results(data, .polyatree_wrapper))
+  } else {
+    results <- list(
+      ppcor = get_results(data, .ppcor_wrapper),
+      spcor = get_results(data, .spcor_wrapper),
+      # ppcor_b = get_results(data, .ppcor_b_wrapper),
+      gcm = get_results(data, .gcm_wrapper),
+      # ccit = get_results(data, .ccit_wrapper),
+      rcot = get_results(data, .rcot_wrapper),
+      polyatree = get_results(data, .polyatree_wrapper))
   }
-  results <- c(results, polyatree = get_results(data, .polyatree_wrapper))
   
   
   # Process results

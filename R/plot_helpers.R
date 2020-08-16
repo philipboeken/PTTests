@@ -65,10 +65,11 @@
       plt <- plt + ggplot2::geom_point(data = roc$point, ggplot2::aes(x, y, colour = {{ c }}))
     }
   }
-  colours <- list(polyatree = "#6F9AF8", polyatree_c = "blue", ppcor = "#E87D7E", spcor = "#B3A033",
-              gcm = "#53B74C", rcot = "#55BCC2", ccit = "#E46DDD")
+  # colours <- list(polyatree = "#6F9AF8", polyatree_c = "blue", ppcor = "#E87D7E", spcor = "#B3A033",
+  #             gcm = "#53B74C", rcot = "#55BCC2", ccit = "#E46DDD")
 
-  return(plt + ggplot2::scale_colour_manual(values = as.vector(unlist(colours[names(roc_data)]))))
+  return(plt)
+         # + ggplot2::scale_colour_manual(values = as.vector(unlist(colours[names(roc_data)]))))
 }
 
 .get_roc <- function(labels, predictions) {
