@@ -1,4 +1,4 @@
-# Polya Tree independence tests
+# Polya Tree independence tests (PTTests)
 
 This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery'.
 
