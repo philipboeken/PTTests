@@ -4,12 +4,12 @@ This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-s
 
 ## Installation
 
-To install this R package, make sure you have R (version >= 3.5.0) and RStudio installed. Open ``polyatreelcd.Rproj`` in RStudio and execute:
+To install this R package, make sure you have R (version >= 3.5.0) and RStudio installed. Open ``PTTests.Rproj`` in RStudio and execute:
 
 ```R
 install.packages("devtools")
 devtools::install_local("./")
-library(polyatreelcd)
+library(PTTests)
 ```
 
 ## Contents
