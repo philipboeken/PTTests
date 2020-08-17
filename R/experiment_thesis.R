@@ -18,29 +18,29 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
                          var1 = 'X', var2 = 'C', var3 = NULL)
     
     .ggsave(paste(path, '1_data', sep = ''), results_1$data_plot, 7, 7)
-    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$pt_plot, 7, 7)
     .ggsave(paste(path, '1_pval', sep = ''), results_1$pval_plot, 7, 7)
     # .ggsave(paste(path, '1_time', sep = ''), results_1$time_plot, 7, 7)
     
     .ggsave(paste(path, '2_data', sep = ''), results_2$data_plot, 7, 7)
-    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$pt_plot, 7, 7)
     .ggsave(paste(path, '2_pval', sep = ''), results_2$pval_plot, 7, 7)
     # .ggsave(paste(path, '2_time', sep = ''), results_2$time_plot, 7, 7)
     
     .ggsave(paste(path, '3_data', sep = ''), results_3$data_plot, 7, 7)
-    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$pt_plot, 7, 7)
     .ggsave(paste(path, '3_pval', sep = ''), results_3$pval_plot, 7, 7)
     # .ggsave(paste(path, '3_time', sep = ''), results_3$time_plot, 7, 7)
     
     .ggsave(paste(path, '4_data', sep = ''), results_4$data_plot, 7, 7)
-    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$pt_plot, 7, 7)
     .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
     # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
     
     grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, 
                                results_3$data_plot, results_4$data_plot,
-                               results_1$polyatree_plot, results_2$polyatree_plot,
-                               results_3$polyatree_plot, results_4$polyatree_plot,
+                               results_1$pt_plot, results_2$pt_plot,
+                               results_3$pt_plot, results_4$pt_plot,
                                results_1$pval_plot, results_2$pval_plot, 
                                results_3$pval_plot, results_4$pval_plot,
                                results_1$time_plot, results_2$time_plot, 
@@ -67,29 +67,29 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
                          var1 = 'X', var2 = 'Y', var3 = NULL)
     
     .ggsave(paste(path, '1_data', sep = ''), results_1$data_plot, 7, 7)
-    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$pt_plot, 7, 7)
     .ggsave(paste(path, '1_pval', sep = ''), results_1$pval_plot, 7, 7)
     # .ggsave(paste(path, '1_time', sep = ''), results_1$time_plot, 7, 7)
     
     .ggsave(paste(path, '2_data', sep = ''), results_2$data_plot, 7, 7)
-    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$pt_plot, 7, 7)
     .ggsave(paste(path, '2_pval', sep = ''), results_2$pval_plot, 7, 7)
     # .ggsave(paste(path, '2_time', sep = ''), results_2$time_plot, 7, 7)
     
     .ggsave(paste(path, '3_data', sep = ''), results_3$data_plot, 7, 7)
-    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$pt_plot, 7, 7)
     .ggsave(paste(path, '3_pval', sep = ''), results_3$pval_plot, 7, 7)
     # .ggsave(paste(path, '3_time', sep = ''), results_3$time_plot, 7, 7)
     
     .ggsave(paste(path, '4_data', sep = ''), results_4$data_plot, 7, 7)
-    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$pt_plot, 7, 7)
     .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
     # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
     
     grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, 
                                results_3$data_plot, results_4$data_plot,
-                               results_1$polyatree_plot, results_2$polyatree_plot,
-                               results_3$polyatree_plot, results_4$polyatree_plot,
+                               results_1$pt_plot, results_2$pt_plot,
+                               results_3$pt_plot, results_4$pt_plot,
                                results_1$pval_plot, results_2$pval_plot, 
                                results_3$pval_plot, results_4$pval_plot,
                                results_1$time_plot, results_2$time_plot, 
@@ -119,29 +119,29 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
                          var1 = 'C', var2 = 'Y', var3 = 'X')
     
     .ggsave(paste(path, '1_data', sep = ''), results_1$data_plot, 7, 7)
-    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$pt_plot, 7, 7)
     .ggsave(paste(path, '1_pval', sep = ''), results_1$pval_plot, 7, 7)
     # .ggsave(paste(path, '1_time', sep = ''), results_1$time_plot, 7, 7)
     
     .ggsave(paste(path, '2_data', sep = ''), results_2$data_plot, 7, 7)
-    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$pt_plot, 7, 7)
     .ggsave(paste(path, '2_pval', sep = ''), results_2$pval_plot, 7, 7)
     # .ggsave(paste(path, '2_time', sep = ''), results_2$time_plot, 7, 7)
     
     .ggsave(paste(path, '3_data', sep = ''), results_3$data_plot, 7, 7)
-    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$pt_plot, 7, 7)
     .ggsave(paste(path, '3_pval', sep = ''), results_3$pval_plot, 7, 7)
     # .ggsave(paste(path, '3_time', sep = ''), results_3$time_plot, 7, 7)
     
     .ggsave(paste(path, '4_data', sep = ''), results_4$data_plot, 7, 7)
-    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$polyatree_plot, 7, 7)
+    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$pt_plot, 7, 7)
     .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
     # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
     
     grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot, 
                                results_3$data_plot, results_4$data_plot,
-                               results_1$polyatree_plot, results_2$polyatree_plot,
-                               results_3$polyatree_plot, results_4$polyatree_plot,
+                               results_1$pt_plot, results_2$pt_plot,
+                               results_3$pt_plot, results_4$pt_plot,
                                results_1$pval_plot, results_2$pval_plot, 
                                results_3$pval_plot, results_4$pval_plot,
                                results_1$time_plot, results_2$time_plot, 
@@ -165,7 +165,7 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
       gcm = list(test = .gcm_wrapper, quantiles = c(), time = c()),
       rcot = list(test = .rcot_wrapper, quantiles = c(), time = c()),
       ccit = list(test = .ccit_wrapper, quantiles = c(), time = c()),
-      polyatree = list(test = .polyatree_wrapper, quantiles = c(), time = c())
+      polyatree = list(test = .pt_wrapper, quantiles = c(), time = c())
     )
     
     for (n in Ns) {
@@ -204,11 +204,11 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
       }
       data_plot <- data_plot + ggplot2::theme(legend.position = "none")
     }
-    polyatree_plot <- get_pt_plot(results, Ns, group_colors)
+    pt_plot <- get_pt_plot(results, Ns, group_colors)
     time_plot <- get_time_plot(results, Ns, group_colors, save_legend)
     pval_plot <- get_pval_plot(results, Ns, group_colors)
     
-    return(list(data_plot = data_plot, polyatree_plot = polyatree_plot,
+    return(list(data_plot = data_plot, pt_plot = pt_plot,
                 time_plot = time_plot, pval_plot = pval_plot))
   }
   
@@ -323,7 +323,7 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
   # 
   # cat(format(Sys.time(), "%X"), "LCD compare tests\n")
   # experiment_lcd_compare_tests(m = 1000, n = 400, dim_C = 3, 
-  #                              path = 'output/thesis/compare_tests_roc/', pt_c = TRUE)
+  #                              path = 'output/thesis/compare_tests_roc/', pt_continuous = TRUE)
   # 
   # cat(format(Sys.time(), "%X"), "LCD AUC scores, d=2\n")
   # lcd_aucs(m, dim_C=2, Ns)

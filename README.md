@@ -16,12 +16,12 @@ library(PTTests)
 
 This package implements the following Pólya tree-based hypothesis tests:
 
-- ``polyatree_d_sample_ci_test`` (Boeken and Mooij, 2020; Boeken, 2020)
-- ``polyatree_d_sample_test`` (Holmes et al., 2015; Boeken, 2020)
-- ``polyatree_continuous_ci_test`` (Teymur and Filippi, 2019)
-- ``polyatree_continuous_independence_test`` (Filippi and Holmes, 2017).
+- ``pt_d_sample_ci_test`` (Boeken and Mooij, 2020; Boeken, 2020)
+- ``pt_d_sample_test`` (Holmes et al., 2015; Boeken, 2020)
+- ``pt_continuous_ci_test`` (Teymur and Filippi, 2019)
+- ``pt_continuous_independence_test`` (Filippi and Holmes, 2017).
 
-These tests may be called through the wrapper method ``polyatree_ci_test``.
+These tests may be called through the wrapper method ``pt_ci_test``.
 
 The experiments from the paper (Boeken and Mooij, 2020) can be reproduced by executing the following methods:
 

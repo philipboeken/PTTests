@@ -72,8 +72,8 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
       gcm = get_results(data, .gcm_wrapper),
       # ccit = get_results(data, .ccit_wrapper),
       rcot = get_results(data, .rcot_wrapper),
-      polyatree_c = get_results(data, .polyatree_wrapper_continuous),
-      polyatree = get_results(data, .polyatree_wrapper))
+      polyatree_c = get_results(data, .pt_wrapper_continuous),
+      polyatree = get_results(data, .pt_wrapper))
   } else {
     results <- list(
       ppcor = get_results(data, .ppcor_wrapper),
@@ -81,7 +81,7 @@ experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 
       gcm = get_results(data, .gcm_wrapper),
       # ccit = get_results(data, .ccit_wrapper),
       rcot = get_results(data, .rcot_wrapper),
-      polyatree = get_results(data, .polyatree_wrapper))
+      polyatree = get_results(data, .pt_wrapper))
   }
   
   

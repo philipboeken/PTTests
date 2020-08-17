@@ -31,7 +31,7 @@ experiment_pcor_fail <- function(m = 2000, n = 400, err_sd = 0.5,
       return(data.frame(
         label = data$label,
         ppcor = .ppcor_wrapper(data$C, data$Y, data$X),
-        polyatree = .polyatree_wrapper(data$C, data$Y, data$X)
+        polyatree = .pt_wrapper(data$C, data$Y, data$X)
       ))
     }
   }
