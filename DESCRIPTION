@@ -5,7 +5,7 @@ Authors@R:
     person(given = "Philip",
            family = "Boeken",
            role = c("aut", "cre"),
-           email = "philip.boeken@gmail.com"))
+           email = "philip.boeken@gmail.com")
 Description: This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery'.
 License: MIT + file LICENSE
 Encoding: UTF-8
