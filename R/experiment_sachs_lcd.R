@@ -50,7 +50,7 @@ experiment_sachs_lcd <- function (path = 'output/sachs/', observational = 1:8) {
   
   results <- list(
     pcor = get_results(.ppcor_wrapper, sachs_data, CX_combos, lcd_triples, observational),
-    polyatree = get_results(.polyatree_wrapper, sachs_data, CX_combos, lcd_triples, observational)
+    polyatree = get_results(.pt_wrapper, sachs_data, CX_combos, lcd_triples, observational)
   )
   
   
