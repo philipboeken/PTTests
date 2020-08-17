@@ -154,10 +154,10 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
   do_test <- function(testnr, m, dim_C, err_sd, Ns,
                       graph_probs, p_link, interv, link, var1, var2, var3 = NULL, save_legend = FALSE) {
     
-    cores <- parallel::detectCores()
-    cl <- parallel::makeForkCluster(cores[1] - 1)
-    doParallel::registerDoParallel(cl)
-    # doParallel::registerDoParallel()
+    # cores <- parallel::detectCores()
+    # cl <- parallel::makeForkCluster(cores[1] - 1)
+    # doParallel::registerDoParallel(cl)
+    doParallel::registerDoParallel()
     
     results <- list(
       ppcor = list(test = .ppcor_wrapper, quantiles = c(), time = c()),
