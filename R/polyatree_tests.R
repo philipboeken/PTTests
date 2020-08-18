@@ -33,23 +33,22 @@ pt_d_sample_ci_test <- function(X, Y, Z, rho = 0.5, c = 1,
   continuous <- if (.is_discrete(X)) Y else X
 
   Z <- matrix(Z, nrow = length(X))
-  data <- cbind(scale(continuous), binary, scale(Z))
-  XZ <- data[, c(1, 3)]
+  XYZ <- cbind(scale(continuous), binary, scale(Z))
 
-  p_H0 <- .condopt_marginal_likelihood(XZ, target_idx = 1, z_idx = 2,
+  p_H0 <- .condopt_marginal_likelihood(XYZ, target_idx = 1, z_idx = 3,
                                        z_min = 0, z_max = 1,
                                        c = c, rho = rho, depth = 1, max_depth, qdist)
 
   discrete_values <- if (length(unique(binary)) == 2) binary[1] else unique(binary)
 
   p_H1 <- max(sapply(discrete_values, function(i) {
-    X1Z <- matrix(data[data[, 2] == i, c(1, 3)], ncol = 2)
-    X2Z <- matrix(data[data[, 2] != i, c(1, 3)], ncol = 2)
+    X1Z <- matrix(data[data[, 2] == i,], ncol = ncol(data))
+    X2Z <- matrix(data[data[, 2] != i,], ncol = ncol(data))
 
-    p_x1 <- .condopt_marginal_likelihood(X1Z, target_idx = 1, z_idx = 2:(1 + ncol(Z)),
+    p_x1 <- .condopt_marginal_likelihood(X1Z, target_idx = 1, z_idx = 3:(2 + ncol(Z)),
                                          z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
                                          c = c, rho = rho, depth = 1, max_depth, qdist)
-    p_x2 <- .condopt_marginal_likelihood(X2Z, target_idx = 1, z_idx = 2:(1 + ncol(Z)),
+    p_x2 <- .condopt_marginal_likelihood(X2Z, target_idx = 1, z_idx = 3:(2 + ncol(Z)),
                                          z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
                                          c = c, rho = rho, depth = 1, max_depth, qdist)
     p_x1 + p_x2
