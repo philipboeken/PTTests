@@ -83,7 +83,7 @@ pt_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
                                         c = 2 * c, rho = rho, depth = 1, max_depth, qdist)
   phi_xy_indep <- phi_x + phi_y
 
-  phi_xy_dep <- .condopt_marginal_likelihood(XYZ, target_idx = c(1, 2), z_idx = 3:(1 + ncol(Z)),
+  phi_xy_dep <- .condopt_marginal_likelihood(XYZ, target_idx = c(1, 2), z_idx = 3,
                                              z_min = 0, z_max = 1,
                                              c = 1 * c, rho = rho, depth = 1, max_depth, qdist)
 
