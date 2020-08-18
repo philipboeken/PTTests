@@ -10,7 +10,6 @@ pt_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
     if (verbose)
       cat('Performing conditional two-sample test\n')
     return(pt_d_sample_ci_test(X, Y, Z, rho, c, max_depth, qdist))
-
   }
 
   if (verbose)
@@ -42,14 +41,14 @@ pt_d_sample_ci_test <- function(X, Y, Z, rho = 0.5, c = 1,
   discrete_values <- if (length(unique(binary)) == 2) binary[1] else unique(binary)
 
   p_H1 <- max(sapply(discrete_values, function(i) {
-    X1Z <- matrix(data[data[, 2] == i,], ncol = ncol(data))
-    X2Z <- matrix(data[data[, 2] != i,], ncol = ncol(data))
+    X1Z <- matrix(XYZ[XYZ[, 2] == i,], ncol = ncol(XYZ))
+    X2Z <- matrix(XYZ[XYZ[, 2] != i,], ncol = ncol(XYZ))
 
-    p_x1 <- .condopt_marginal_likelihood(X1Z, target_idx = 1, z_idx = 3:(2 + ncol(Z)),
-                                         z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+    p_x1 <- .condopt_marginal_likelihood(X1Z, target_idx = 1, z_idx = 3,
+                                         z_min = 0, z_max = 1,
                                          c = c, rho = rho, depth = 1, max_depth, qdist)
-    p_x2 <- .condopt_marginal_likelihood(X2Z, target_idx = 1, z_idx = 3:(2 + ncol(Z)),
-                                         z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+    p_x2 <- .condopt_marginal_likelihood(X2Z, target_idx = 1, z_idx = 3,
+                                         z_min = 0, z_max = 1,
                                          c = c, rho = rho, depth = 1, max_depth, qdist)
     p_x1 + p_x2
   }))
@@ -76,16 +75,16 @@ pt_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
   Z <- matrix(Z, nrow = length(X))
   XYZ <- cbind(scale(X), scale(Y), scale(Z))
 
-  phi_x <- .condopt_marginal_likelihood(XYZ, target_idx = 1, z_idx = 3:(2 + ncol(Z)),
-                                        z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+  phi_x <- .condopt_marginal_likelihood(XYZ, target_idx = 1, z_idx = 3,
+                                        z_min = 0, z_max = 1,
                                         c = 2 * c, rho = rho, depth = 1, max_depth, qdist)
-  phi_y <- .condopt_marginal_likelihood(XYZ, target_idx = 2, z_idx = 3:(2 + ncol(Z)),
-                                        z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+  phi_y <- .condopt_marginal_likelihood(XYZ, target_idx = 2, z_idx = 3,
+                                        z_min = 0, z_max = 1,
                                         c = 2 * c, rho = rho, depth = 1, max_depth, qdist)
   phi_xy_indep <- phi_x + phi_y
 
   phi_xy_dep <- .condopt_marginal_likelihood(XYZ, target_idx = c(1, 2), z_idx = 3:(1 + ncol(Z)),
-                                             z_min = rep(0, ncol(Z)), z_max = rep(1, ncol(Z)),
+                                             z_min = 0, z_max = 1,
                                              c = 1 * c, rho = rho, depth = 1, max_depth, qdist)
 
   bf <- exp(phi_xy_indep - phi_xy_dep)
@@ -97,9 +96,8 @@ pt_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
 
 .condopt_marginal_likelihood <- function(data, target_idx, z_idx, z_min, z_max,
                                          c, rho, depth, max_depth, qdist) {
-  rows <- which(apply(qdist(z_min) < matrix(data[, c(z_idx)], ncol = length(z_idx)), 1, all) &
-                  apply(matrix(data[, z_idx], ncol = length(z_idx)) <= qdist(z_max), 1, all))
-  localData <- matrix(data[rows, target_idx], ncol = length(target_idx))
+  localData <- matrix(data[which(qdist(z_min) < data[, z_idx] & data[, z_idx] < qdist(z_max)),
+                           target_idx], ncol = length(target_idx))
   logl <- .pt_marginal_likelihood(localData, low = rep(0, ncol(localData)),
                                          up = rep(1, ncol(localData)),
                                          c = c, depth = 1, max_depth, qdist)
@@ -108,17 +106,12 @@ pt_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
     return(logl)
   }
 
-  idxs <- expand.grid(replicate(length(z_idx), 0:1, simplify = FALSE))
-  get_z_mins <- function(idx) z_min * idx + (rep(1, length(idx)) - idx) * (z_min + z_max) / 2
-  z_mins <- apply(idxs, 2, get_z_mins)
-  z_maxes <- z_mins + (z_max - z_min) / 2
+  phi_1 <- .condopt_marginal_likelihood(data, target_idx, z_idx, z_min, (z_min + z_max) / 2,
+                                        c, rho, depth + 1, max_depth, qdist)
+  phi_2 <- .condopt_marginal_likelihood(data, target_idx, z_idx, (z_min + z_max) / 2, z_max,
+                                        c, rho, depth + 1, max_depth, qdist)
 
-  phis <- sapply(1:nrow(idxs), function(i) {
-    .condopt_marginal_likelihood(data, target_idx, z_idx, z_mins[i,], z_maxes[i,],
-                                 c, rho, depth + 1, max_depth, qdist)
-  })
-
-  return(matrixStats::logSumExp(c(log(rho) + logl, log(1 - rho) + sum(phis))))
+  return(matrixStats::logSumExp(c(log(rho) + logl, log(1 - rho) + phi_1 + phi_2)))
 }
 
 pt_independence_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
@@ -257,4 +250,3 @@ pt_d_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm) {
 .is_discrete <- function(X) {
   all(X %in% 0:10)
 }
-
