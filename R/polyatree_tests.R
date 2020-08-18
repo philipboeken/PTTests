@@ -255,6 +255,6 @@ pt_d_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm) {
 }
 
 .is_discrete <- function(X) {
-  length(unique(X)) < length(X) / 4
+  all(X %in% 0:10)
 }
 
