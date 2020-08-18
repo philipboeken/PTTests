@@ -1,7 +1,7 @@
 .plot_colours <- list(polyatree = "#0072B2", polyatree_c = "#CC79A7",
                       ppcor = "#D55E00", spcor = "#56B4E9",
                       gcm = "#E69F00", rcot = "#009E73",
-                      ccit = "#F0E442", ppcor_b = "#CC79A7")
+                      ccit = "#293352", ppcor_b = "#CC79A7")
 # https://www.datanovia.com/en/blog/ggplot-colors-best-tricks-you-will-love/
 
 .plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.275),
@@ -265,7 +265,7 @@
              ggplot2::theme(legend.title = ggplot2::element_blank(), legend.position = c(0.87, 0.12)))
   } else {
     labels <- sapply(sort(unique(data$C)), function(c) paste("C = ", c, sep = ""))
-    return(plt + ggplot2::scale_colour_manual(labels = labels, values = c("#6F9AF8", "#54B74C", "#E77D72")) +
+    return(plt + ggplot2::scale_colour_manual(labels = labels, values = c("#00AFBB", "#E7B800", "#52854C")) +
              ggplot2::theme(legend.title = ggplot2::element_blank(), legend.position = c(0.50, 0.5)))
   }
 }

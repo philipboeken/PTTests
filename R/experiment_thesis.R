@@ -1,4 +1,4 @@
-experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
+experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
                               Ns = c(25, 30, seq(40, 100, by = 15), seq(120, 180, by = 30), seq(200, 500, by = 100), 600, 800, 1000, 1250, 1500),
                               save_legend = TRUE) {
   discrete_v_continuous <- function(m, dim_C, err_sd, Ns,
@@ -102,7 +102,7 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
       spcor = list(test = .spcor_wrapper, quantiles = c(), time = c()),
       gcm = list(test = .gcm_wrapper, quantiles = c(), time = c()),
       rcot = list(test = .rcot_wrapper, quantiles = c(), time = c()),
-      # ccit = list(test = .ccit_wrapper, quantiles = c(), time = c()),
+      ccit = list(test = .ccit_wrapper, quantiles = c(), time = c()),
       polyatree = list(test = .pt_wrapper, quantiles = c(), time = c())
     )
     
@@ -161,11 +161,10 @@ experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
   
   get_data_plot <- function(X, Y, var1, var2) {
     ggplot2::ggplot(data = data.frame(X = X, Y = Y)) +
-      ggplot2::geom_point(ggplot2::aes(x = X, y = Y)) +
+      ggplot2::geom_point(ggplot2::aes(x = X, y = Y), color = "#00AFBB") +
       ggplot2::theme(legend.title = ggplot2::element_blank(),
                      legend.position = c(0.87, 0.12)) +
-      ggplot2::labs(x = var1, y = var2) +
-      ggplot2::scale_colour_manual(values = c("#6F9AF8"))
+      ggplot2::labs(x = var1, y = var2)
   }
   
   get_pt_plot <- function(results, Ns) {
