@@ -1,5 +1,5 @@
-experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
-                              Ns = c(25, 30, seq(40, 100, by = 15), seq(120, 180, by = 30), seq(200, 500, by = 100), 600, 800, 1000),
+experiment_thesis <- function(m = 100, dim_C = 3, err_sd = 1 / 2,
+                              Ns = c(25, 30, seq(40, 100, by = 15), seq(120, 180, by = 30), seq(200, 500, by = 100), 600, 800, 1000, 1250, 1500),
                               save_legend = TRUE) {
   discrete_v_continuous <- function(m, dim_C, err_sd, Ns,
                                     save_legend = FALSE, seed = 1, path = 'output/thesis/discrete/') {
@@ -17,37 +17,7 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
                          p_link = 1, interv = c(mixture), link = c(linear),
                          var1 = 'X', var2 = 'C', var3 = NULL)
 
-    .ggsave(paste(path, '1_data', sep = ''), results_1$data_plot, 7, 7)
-    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$pt_plot, 7, 7)
-    .ggsave(paste(path, '1_pval', sep = ''), results_1$pval_plot, 7, 7)
-    # .ggsave(paste(path, '1_time', sep = ''), results_1$time_plot, 7, 7)
-
-    .ggsave(paste(path, '2_data', sep = ''), results_2$data_plot, 7, 7)
-    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$pt_plot, 7, 7)
-    .ggsave(paste(path, '2_pval', sep = ''), results_2$pval_plot, 7, 7)
-    # .ggsave(paste(path, '2_time', sep = ''), results_2$time_plot, 7, 7)
-
-    .ggsave(paste(path, '3_data', sep = ''), results_3$data_plot, 7, 7)
-    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$pt_plot, 7, 7)
-    .ggsave(paste(path, '3_pval', sep = ''), results_3$pval_plot, 7, 7)
-    # .ggsave(paste(path, '3_time', sep = ''), results_3$time_plot, 7, 7)
-
-    .ggsave(paste(path, '4_data', sep = ''), results_4$data_plot, 7, 7)
-    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$pt_plot, 7, 7)
-    .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
-    # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
-
-    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot,
-                               results_3$data_plot, results_4$data_plot,
-                               results_1$pt_plot, results_2$pt_plot,
-                               results_3$pt_plot, results_4$pt_plot,
-                               results_1$pval_plot, results_2$pval_plot,
-                               results_3$pval_plot, results_4$pval_plot,
-                               results_1$time_plot, results_2$time_plot,
-                               results_3$time_plot, results_4$time_plot,
-                               nrow = 4)
-
-    .ggsave(paste(path, 'discrete', sep = ''), grid, 30, 30)
+    save_results(results_1, results_2, results_3, results_4, path, 'discrete')
   }
 
   continuous_v_continuous <- function(m, dim_C, err_sd, Ns,
@@ -66,40 +36,7 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
                          p_link = 1, interv = c(no_intervention), link = c(sinusoidal),
                          var1 = 'X', var2 = 'Y', var3 = NULL)
 
-    .ggsave(paste(path, '1_data', sep = ''), results_1$data_plot, 7, 7)
-    .ggsave(paste(path, '1_p_h0', sep = ''), results_1$pt_plot, 7, 7)
-    .ggsave(paste(path, '1_pval', sep = ''), results_1$pval_plot, 7, 7)
-    # .ggsave(paste(path, '1_time', sep = ''), results_1$time_plot, 7, 7)
-
-    .ggsave(paste(path, '2_data', sep = ''), results_2$data_plot, 7, 7)
-    .ggsave(paste(path, '2_p_h0', sep = ''), results_2$pt_plot, 7, 7)
-    .ggsave(paste(path, '2_pval', sep = ''), results_2$pval_plot, 7, 7)
-    # .ggsave(paste(path, '2_time', sep = ''), results_2$time_plot, 7, 7)
-
-    .ggsave(paste(path, '3_data', sep = ''), results_3$data_plot, 7, 7)
-    .ggsave(paste(path, '3_p_h0', sep = ''), results_3$pt_plot, 7, 7)
-    .ggsave(paste(path, '3_pval', sep = ''), results_3$pval_plot, 7, 7)
-    # .ggsave(paste(path, '3_time', sep = ''), results_3$time_plot, 7, 7)
-
-    .ggsave(paste(path, '4_data', sep = ''), results_4$data_plot, 7, 7)
-    .ggsave(paste(path, '4_p_h0', sep = ''), results_4$pt_plot, 7, 7)
-    .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
-    # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
-
-    grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot,
-                               results_3$data_plot, results_4$data_plot,
-                               results_1$pt_plot, results_2$pt_plot,
-                               results_3$pt_plot, results_4$pt_plot,
-                               results_1$pval_plot, results_2$pval_plot,
-                               results_3$pval_plot, results_4$pval_plot,
-                               results_1$time_plot, results_2$time_plot,
-                               results_3$time_plot, results_4$time_plot,
-                               nrow = 4)
-
-    timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
-
-    .ggsave(paste(path, timestamp, sep = ''), grid, 40, 40)
-    .ggsave(paste(path, 'continuous', sep = ''), grid, 40, 40)
+    save_results(results_1, results_2, results_3, results_4, path, 'continuous')
   }
 
   discrete_v_continuous_ci <- function(m, dim_C, err_sd, Ns,
@@ -118,25 +55,29 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
                          p_link = 1, interv = c(mean_shift), link = c(sinusoidal),
                          var1 = 'C', var2 = 'Y', var3 = 'X')
 
+    save_results(results_1, results_2, results_3, results_4, path, 'discrete_ci')
+  }
+
+  save_results <- function(results_1, results_2, results_3, results_4, path, name) {
     .ggsave(paste(path, '1_data', sep = ''), results_1$data_plot, 7, 7)
     .ggsave(paste(path, '1_p_h0', sep = ''), results_1$pt_plot, 7, 7)
     .ggsave(paste(path, '1_pval', sep = ''), results_1$pval_plot, 7, 7)
-    # .ggsave(paste(path, '1_time', sep = ''), results_1$time_plot, 7, 7)
+    .ggsave(paste(path, '1_time', sep = ''), results_1$time_plot, 7, 7)
 
     .ggsave(paste(path, '2_data', sep = ''), results_2$data_plot, 7, 7)
     .ggsave(paste(path, '2_p_h0', sep = ''), results_2$pt_plot, 7, 7)
     .ggsave(paste(path, '2_pval', sep = ''), results_2$pval_plot, 7, 7)
-    # .ggsave(paste(path, '2_time', sep = ''), results_2$time_plot, 7, 7)
+    .ggsave(paste(path, '2_time', sep = ''), results_2$time_plot, 7, 7)
 
     .ggsave(paste(path, '3_data', sep = ''), results_3$data_plot, 7, 7)
     .ggsave(paste(path, '3_p_h0', sep = ''), results_3$pt_plot, 7, 7)
     .ggsave(paste(path, '3_pval', sep = ''), results_3$pval_plot, 7, 7)
-    # .ggsave(paste(path, '3_time', sep = ''), results_3$time_plot, 7, 7)
+    .ggsave(paste(path, '3_time', sep = ''), results_3$time_plot, 7, 7)
 
     .ggsave(paste(path, '4_data', sep = ''), results_4$data_plot, 7, 7)
     .ggsave(paste(path, '4_p_h0', sep = ''), results_4$pt_plot, 7, 7)
     .ggsave(paste(path, '4_pval', sep = ''), results_4$pval_plot, 7, 7)
-    # .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
+    .ggsave(paste(path, '4_time', sep = ''), results_4$time_plot, 7, 7)
 
     grid <- cowplot::plot_grid(results_1$data_plot, results_2$data_plot,
                                results_3$data_plot, results_4$data_plot,
@@ -148,7 +89,7 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
                                results_3$time_plot, results_4$time_plot,
                                nrow = 4)
 
-    .ggsave(paste(path, 'discrete_ci', sep = ''), grid, 30, 30)
+    .ggsave(paste(path, name, sep = ''), grid, 30, 30)
   }
 
   do_test <- function(testnr, m, dim_C, err_sd, Ns,
@@ -255,12 +196,17 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
       ggplot2::scale_color_manual(values = group_colors)
   }
 
-  get_time_plot <- function(results, Ns, group_colors, save_legend = FALSE) {
-    time_data <- lapply(results, function(result) result$time)
+  get_time_plot <- function(results, Ns, group_colors, save_legend = FALSE, lap = TRUE) {
+    if (lap) {
+      time_data <- lapply(results, function(result) result$time)
+    } else {
+      time_data <- results
+    }
     time_data$n <- Ns
     time_data <- reshape::melt(data.frame(time_data), id.vars = 'n', variable_name = "Test:")
     plt <- ggplot2::ggplot(time_data, ggplot2::aes(n)) +
       ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
+      ggplot2::scale_y_continuous(trans = scales::log10_trans()) +
       ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
       ggplot2::scale_color_manual(values = group_colors) +
       ggplot2::labs(x = "n", y = "time (s)")
@@ -271,6 +217,19 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
     }
     plt + ggplot2::theme(legend.position = "none")
 
+  }
+
+  get_auc_plot <- function(results, Ns, group_colors) {
+    auc_data <- lapply(results, function(result) unlist(result))
+    auc_data$n <- Ns
+    auc_data <- reshape::melt(data.frame(auc_data), id.vars = 'n', variable_name = "Test:")
+    ggplot2::ggplot(auc_data, ggplot2::aes(n)) +
+    ggplot2::scale_x_continuous(limits = c(25, max(Ns)), trans = scales::log10_trans()) +
+      ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
+      ggplot2::scale_color_manual(values = group_colors) +
+      ggplot2::labs(x = "n", y = "AUC") +
+      ggplot2::ylim(0, 1) +
+      ggplot2::theme(legend.position = "none")
   }
 
   lcd_aucs <- function(m, dim_C, Ns, path = 'output/thesis/compare_tests_auc/') {
@@ -284,26 +243,14 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
       }
     }
 
-    get_auc_plot <- function(results, Ns) {
-      group_colors <- c(ppcor = "#E87D7E", spcor = "#B3A033", gcm = "#53B74C",
-                        rcot = "#55BCC2", ccit = "#E46DDD", polyatree = "#6F9AF8")
-      auc_data <- lapply(results, function(result) unlist(result))
-      auc_data$n <- Ns
-      auc_data <- reshape::melt(data.frame(auc_data), id.vars = 'n', variable_name = "Test:")
-      ggplot2::ggplot(auc_data, ggplot2::aes(n)) +
-      # ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
-      ggplot2::scale_x_continuous(limits = c(25, max(Ns)), trans = scales::log10_trans()) +
-        ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
-        ggplot2::scale_color_manual(values = group_colors) +
-        ggplot2::labs(x = "n", y = "AUC") +
-        ggplot2::ylim(0, 1) +
-        ggplot2::theme(legend.position = "none")
+    group_colors <- c(ppcor = "#E87D7E", spcor = "#B3A033", gcm = "#53B74C",
+                      rcot = "#55BCC2", ccit = "#E46DDD", polyatree = "#6F9AF8")
 
-    }
-    .ggsave(paste(path, 'CX,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$CX, Ns), 7, 7)
-    .ggsave(paste(path, 'XY,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$XY, Ns), 7, 7)
-    .ggsave(paste(path, 'CY_X,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$CY_X, Ns), 7, 7)
-    .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$lcd, Ns), 7, 7)
+    .ggsave(paste(path, 'CX,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$CX, Ns, group_colors), 7, 7)
+    .ggsave(paste(path, 'XY,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$XY, Ns, group_colors), 7, 7)
+    .ggsave(paste(path, 'CY_X,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$CY_X, Ns, group_colors), 7, 7)
+    .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$lcd, Ns, group_colors), 7, 7)
+    .ggsave(paste(path, 'time,dim_C=', dim_C, sep = ""), get_time_plot(aucs$times, Ns, lap = FALSE, group_colors), 7, 7)
   }
 
   library(RCIT)

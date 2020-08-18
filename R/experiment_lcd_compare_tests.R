@@ -140,7 +140,7 @@ experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 
     for (i in 1:ncol(predictions)) {
       name <- colnames(predictions)[i]
       roc <- .get_roc(labels, - predictions[, i])
-      auc_data[[name]] <- list(roc$auc)
+      auc_data[[name]] <- roc$auc
     }
     return(auc_data)
   }
@@ -151,17 +151,19 @@ experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 
       name <- colnames(CX)[i]
       bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c')
       roc <- .get_lcd_roc(labels, CX[, i], XY[, i], CY_X[, i], bayes)
-      auc_data[[name]] <- list(roc$auc)
+      auc_data[[name]] <- roc$auc
     }
     return(auc_data)
   }
 
-  return(
-    list(
+  times_trans <- sapply(unique(times[, 'ensemble']),
+                        function(test) sum(times[times[, 'ensemble'] == test, 'time']),
+                        simplify = FALSE, USE.NAMES = TRUE)
+
+  return(list(
       CX = get_test_aucs(CX_results[, 1], CX_results[, -1]),
       XY = get_test_aucs(XY_results[, 1], XY_results[, -1]),
       CY_X = get_test_aucs(CY_X_results[, 1], CY_X_results[, -1]),
-      lcd = get_lcd_aucs(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1])
-    )
-  )
+      lcd = get_lcd_aucs(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1]),
+      times = times_trans))
 }
