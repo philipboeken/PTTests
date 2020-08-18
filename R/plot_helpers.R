@@ -1,75 +1,77 @@
+.plot_colours <- list(polyatree = "#0072B2", polyatree_c = "#CC79A7",
+                      ppcor = "#D55E00", spcor = "#56B4E9",
+                      gcm = "#E69F00", rcot = "#009E73",
+                      ccit = "#F0E442", ppcor_b = "#CC79A7")
+# https://www.datanovia.com/en/blog/ggplot-colors-best-tricks-you-will-love/
+
 .plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.275),
                       freq_default = 0.05, plot_point = TRUE) {
   predictions <- as.matrix(predictions)
-  roc_data <- c()
+  roc_data <- matrix(ncol = 3, nrow = 0, dimnames = list(NULL, c("Test", "fpr", "tpr")))
+  dot_data <- matrix(ncol = 3, nrow = 0, dimnames = list(NULL, c("Test", "fpr", "tpr")))
+  info <- list()
   for (i in 1:ncol(predictions)) {
     name <- colnames(predictions)[i]
     roc <- .get_roc(labels, - predictions[, i])
     bayes <- (name == 'polyatree' || name == 'polyatree_c' || name == 'ppcor_b')
     dot <- .get_roc_point(labels, predictions[, i], bayes, freq_default)
-    info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
-    roc_data[[name]] <- list(data = data.frame(x = roc$x, y = roc$y),
-                             point = data.frame(x = dot$fpr, y = dot$tpr),
-                             info = info)
+    info[[name]] <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
+    roc_data <- rbind(roc_data, cbind(rep(name, length(roc$x)), roc$x, roc$y))
+    dot_data <- rbind(dot_data, cbind(name, dot$fpr, dot$tpr))
   }
-
-  plt <- ggplot2::ggplot() +
-    ggplot2::labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
-    ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
-                   legend.spacing.x = ggplot2::unit(0.2, 'cm'),
-                   legend.position = legend_pos,
-                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5))
-  for (roc in roc_data) {
-    c <- roc$info
-    plt <- plt + ggplot2::geom_line(data = roc$data, ggplot2::aes(x, y, colour = {{ c }}))
-    if (plot_point) {
-      plt <- plt + ggplot2::geom_point(data = roc$point, ggplot2::aes(x, y, colour = {{ c }}))
-    }
-  }
-
-  return(plt)
+  roc_data <- data.frame(Test = roc_data[, 1], fpr = as.numeric(roc_data[, 2]),
+                         tpr = as.numeric(roc_data[, 3]))
+  dot_data <- data.frame(Test = dot_data[, 1], fpr = as.numeric(dot_data[, 2]),
+                         tpr = as.numeric(dot_data[, 3]))
+  return(ggplot2::ggplot(roc_data, ggplot2::aes(x = fpr, y = tpr, group = Test)) +
+           ggplot2::geom_line(ggplot2::aes(colour = Test)) +
+           ggplot2::scale_x_continuous("False Positive Rate", limits = c(0, 1)) +
+           ggplot2::scale_y_continuous("True Positive Rate", limits = c(0, 1)) +
+           ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
+                          legend.spacing.x = ggplot2::unit(0.2, 'cm'),
+                          legend.position = legend_pos) +
+           ggplot2::geom_point(data = dot_data, ggplot2::aes(colour = Test)) +
+           ggplot2::scale_color_manual(values = unlist(.plot_colours), labels = unlist(info)))
 }
 
 .plot_roc_lcd <- function(labels, CX_results, XY_results, CY_X_results,
-                             title = NULL, plot_point = TRUE, option = 0) {
-  roc_data <- c()
+                          title = NULL, plot_point = TRUE, option = 0) {
+  roc_data <- matrix(ncol = 3, nrow = 0, dimnames = list(NULL, c("Test", "fpr", "tpr")))
+  dot_data <- matrix(ncol = 3, nrow = 0, dimnames = list(NULL, c("Test", "fpr", "tpr")))
+  info <- list()
   for (i in 1:ncol(CX_results)) {
     name <- colnames(CX_results)[i]
     bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c')
     roc <- .get_lcd_roc(labels, CX_results[, i], XY_results[, i], CY_X_results[, i], bayes, option)
     dot <- .get_lcd_roc_point(labels, CX_results[, i], XY_results[, i], CY_X_results[, i], bayes)
-    info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
-    roc_data[[name]] <- list(data = data.frame(x = roc$fpr, y = roc$tpr),
-                             point = data.frame(x = dot$fpr, y = dot$tpr),
-                             info = info)
+    info[[name]] <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
+    roc_data <- rbind(roc_data, cbind(rep(name, length(roc$fpr)), roc$fpr, roc$tpr))
+    dot_data <- rbind(dot_data, cbind(name, dot$fpr, dot$tpr))
   }
-
-  plt <- ggplot2::ggplot() +
-    ggplot2::xlim(0, 1) +
-    ggplot2::ylim(0, 1) +
-    ggplot2::labs(x = "False Positive Rate", y = "True Positive Rate", title = title) +
+  roc_data <- data.frame(Test = roc_data[, 1], fpr = as.numeric(roc_data[, 2]),
+                         tpr = as.numeric(roc_data[, 3]))
+  dot_data <- data.frame(Test = dot_data[, 1], fpr = as.numeric(dot_data[, 2]),
+                         tpr = as.numeric(dot_data[, 3]))
+  
+  plt <- ggplot2::ggplot(roc_data, ggplot2::aes(x = fpr, y = tpr, group = Test))
+  if (option == 1) {
+    plt <- plt + ggplot2::geom_path(ggplot2::aes(colour = Test))
+  } else {
+    plt <- plt + ggplot2::geom_line(ggplot2::aes(colour = Test))
+  }
+  
+  if (plot_point) {
+    plt <- plt + ggplot2::geom_point(data = dot_data, ggplot2::aes(colour = Test))
+  }
+  
+  plt + ggplot2::ggtitle(title) +
+    ggplot2::scale_x_continuous("False Positive Rate", limits = c(0, 1)) +
+    ggplot2::scale_y_continuous("True Positive Rate", limits = c(0, 1)) +
     ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
                    legend.spacing.x = ggplot2::unit(0.2, 'cm'),
                    legend.position = c(0.78, 0.275),
-                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5))
-  for (roc in roc_data) {
-    c <- roc$info
-
-    if (option == 1) {
-      plt <- plt + ggplot2::geom_path(data = roc$data, ggplot2::aes(x, y, colour = {{ c }}))
-    } else {
-      plt <- plt + ggplot2::geom_line(data = roc$data, ggplot2::aes(x, y, colour = {{ c }}))
-    }
-
-    if (plot_point) {
-      plt <- plt + ggplot2::geom_point(data = roc$point, ggplot2::aes(x, y, colour = {{ c }}))
-    }
-  }
-  # colours <- list(polyatree = "#6F9AF8", polyatree_c = "blue", ppcor = "#E87D7E", spcor = "#B3A033",
-  #             gcm = "#53B74C", rcot = "#55BCC2", ccit = "#E46DDD")
-
-  return(plt)
-  # + ggplot2::scale_colour_manual(values = as.vector(unlist(colours[names(roc_data)]))))
+                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5)) +
+    ggplot2::scale_color_manual(values = unlist(.plot_colours), labels = unlist(info))
 }
 
 .get_roc <- function(labels, predictions) {
@@ -93,13 +95,13 @@
 .get_lcd_roc <- function(labels, CX_results, XY_results, CY_X_results, bayes, option = 0) {
   alphas <- sort(c(CX_results, XY_results, CY_X_results), TRUE)
   alphas <- alphas[alphas != 0]
-
+  
   false <- which(labels == 0)
   true <- which(labels == 1)
-
+  
   n <- length(labels)
   a0 <- ifelse(bayes, 0.5, 1 / (5 * sqrt(n)))
-
+  
   fp <- c()
   tp <- c()
   for (alpha in rev(alphas)) {
@@ -112,14 +114,14 @@
     } else if (option == 2) {
       idx <- intersect(idx, which(CY_X_results >= 1 - alpha))
     }
-
+    
     tp <- c(tp, length(intersect(idx, true)))
     fp <- c(fp, length(intersect(idx, false)))
   }
-
+  
   tpr <- tp / length(true)
   fpr <- fp / length(false)
-
+  
   if (option == 1) {
     return(list(tpr = c(0, tpr), fpr = c(0, fpr), auc = NaN))
   } else {
@@ -160,7 +162,8 @@
     plot = grid, scale = 1,
     width = width,
     height = height,
-    units = "cm", dpi = 300, limitsize = FALSE
+    units = "cm",
+    limitsize = FALSE
   )
 }
 
@@ -188,7 +191,7 @@
       "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\", style=\"dashed\"%s];",
       output, context_edges[i, 1], context_edges[i, 2], opts_context)
   }
-
+  
   return(output)
 }
 
@@ -201,7 +204,7 @@
   weak <- dplyr::filter(results, CX <= alpha1$weak, XY <= alpha1$weak, CY_X >= alpha2$weak)
   weak <- weak[, c('C', 'X', 'Y')]
   output <- "digraph G {"
-
+  
   context1 <- unique(as.character(strong[, 'C']))
   system1 <- unique(c(as.character(strong[, 'X']), as.character(strong[, 'Y'])))
   context_edges1 <- unique(strong[, c('C', 'X')])
@@ -209,7 +212,7 @@
   output <- paste(output, .graph_lines(context1, system1, context_edges1, system_edges1,
                                        "color=\"#000000\"",
                                        "color=\"#c4c4c4\""), sep = "")
-
+  
   diff <- dplyr::setdiff(substantial, strong)
   context2 <- dplyr::setdiff(unique(as.character(diff[, 'C'])), context1)
   system2 <- dplyr::setdiff(unique(c(as.character(diff[, 'X']), as.character(diff[, 'Y']))), system1)
@@ -218,7 +221,7 @@
   output <- paste(output, .graph_lines(context2, system2, context_edges2, system_edges2,
                                        "color=\"#e30505\"",
                                        "color=\"#ffa1a1\""), sep = "")
-
+  
   diff <- dplyr::setdiff(weak, substantial)
   context3 <- dplyr::setdiff(unique(as.character(diff[, 'C'])),
                              c(context1, context2))
@@ -232,7 +235,7 @@
                                        "color=\"#0032fa\"",
                                        "color=\"#a8baff\""), sep = "")
   output <- paste(output, "}", sep = "\n")
-
+  
   write(output, file = paste(path, name, ".dot", sep = ""))
 }
 
@@ -243,7 +246,7 @@
     ggplot2::labs(x = "Test ensemble", y = "Runtime (sec.)", title = title) +
     ggplot2::scale_fill_discrete(name = "",
                                  breaks = c("1_CX", "2_XY", "3_CY_X"),
-                                 labels = c("Two-sample", "Independence", "Conditional independence")) +
+                                 labels = c("C_||_X", "X_||_Y", "C_||_Y|X")) +
     ggplot2::theme(legend.position = c(0.703, 0.915),
                    legend.direction = "horizontal") +
     ggplot2::scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 10 ^ x),
@@ -262,7 +265,7 @@
              ggplot2::theme(legend.title = ggplot2::element_blank(), legend.position = c(0.87, 0.12)))
   } else {
     labels <- sapply(sort(unique(data$C)), function(c) paste("C = ", c, sep = ""))
-    return(plt + ggplot2::scale_colour_manual(labels = labels, values = .gg_color_hue(length(labels))) +
+    return(plt + ggplot2::scale_colour_manual(labels = labels, values = c("#6F9AF8", "#54B74C", "#E77D72")) +
              ggplot2::theme(legend.title = ggplot2::element_blank(), legend.position = c(0.50, 0.5)))
   }
 }
