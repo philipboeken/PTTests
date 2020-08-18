@@ -1,14 +1,14 @@
 # Test wrappers
 ##############################################
-.pt_wrapper <- function (X, Y, Z = NULL) {
+.pt_wrapper <- function(X, Y, Z = NULL) {
   pt_ci_test(X, Y, Z, verbose = FALSE)$p_H0
 }
 
-.pt_wrapper_continuous <- function (X, Y, Z = NULL) {
+.pt_wrapper_continuous <- function(X, Y, Z = NULL) {
   if (is.null(Z)) {
     return(pt_independence_test(X, Y, verbose = FALSE)$p_H0)
   }
-  
+
   return(pt_continuous_ci_test(X, Y, Z)$p_H0)
 }
 
@@ -38,12 +38,14 @@
 }
 
 .rcot_wrapper <- function(X, Y, Z = NULL) {
-  library(RCIT)
+  if (!"RCIT" %in% (.packages()))
+    library(RCIT)
   RCoT(X, Y, Z)$p
 }
 
 .kcit_wrapper <- function(X, Y, Z = NULL) {
-  library(RCIT)
+  if (!"RCIT" %in% (.packages()))
+    library(RCIT)
   KCIT(X, Y, Z)
 }
 
@@ -56,24 +58,24 @@
   reticulate::py_suppress_warnings(.ccit(matrix(X, ncol = 1), matrix(Y, ncol = 1), matrix(Z, ncol = 1)))
 }
 
-.kruskal_wrapper <- function (X, Y, Z=NULL) {
+.kruskal_wrapper <- function(X, Y, Z = NULL) {
   if (is.null(Z) || length(Z) == 0) {
     return(kruskal.test(Y, X)$p.value)
   }
   .ppcor_wrapper(X, Y, Z)
 }
 
-.kolmogorov_wrapper <- function (X, Y, Z=NULL) {
+.kolmogorov_wrapper <- function(X, Y, Z = NULL) {
   if ((is.null(Z) || length(Z) == 0) && .is_discrete(X)) {
     data <- cbind(X, Y)
-    X1 <- data[data[,1] == 0, 2]
-    X2 <- data[data[,1] == 1, 2]
+    X1 <- data[data[, 1] == 0, 2]
+    X2 <- data[data[, 1] == 1, 2]
     return(ks.test(X1, X2)$p.value)
   }
   .ppcor_wrapper(X, Y, Z)
 }
 
-.wilcoxon_wrapper <- function (X, Y, Z=NULL) {
+.wilcoxon_wrapper <- function(X, Y, Z = NULL) {
   if (is.null(Z) || length(Z) == 0) {
     return(wilcox.test(Y, X)$p.value)
   }

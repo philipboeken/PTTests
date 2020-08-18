@@ -4,7 +4,7 @@
   roc_data <- c()
   for (i in 1:ncol(predictions)) {
     name <- colnames(predictions)[i]
-    roc <- .get_roc(labels, -predictions[, i])
+    roc <- .get_roc(labels, - predictions[, i])
     bayes <- (name == 'polyatree' || name == 'polyatree_c' || name == 'ppcor_b')
     dot <- .get_roc_point(labels, predictions[, i], bayes, freq_default)
     info <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
@@ -69,7 +69,7 @@
   #             gcm = "#53B74C", rcot = "#55BCC2", ccit = "#E46DDD")
 
   return(plt)
-         # + ggplot2::scale_colour_manual(values = as.vector(unlist(colours[names(roc_data)]))))
+  # + ggplot2::scale_colour_manual(values = as.vector(unlist(colours[names(roc_data)]))))
 }
 
 .get_roc <- function(labels, predictions) {

@@ -47,9 +47,6 @@ experiment_sachs_lcd <- function(path = 'output/sachs/', observational = 1:8) {
   # Do test
   ##############################################
 
-  # cores <- parallel::detectCores()
-  # cl <- parallel::makeForkCluster(cores[1] - 1)
-  # doParallel::registerDoParallel(cl)
   doParallel::registerDoParallel()
 
   results <- list(

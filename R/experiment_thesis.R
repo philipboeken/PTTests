@@ -154,9 +154,6 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
   do_test <- function(testnr, m, dim_C, err_sd, Ns,
                       graph_probs, p_link, interv, link, var1, var2, var3 = NULL, save_legend = FALSE) {
 
-    # cores <- parallel::detectCores()
-    # cl <- parallel::makeForkCluster(cores[1] - 1)
-    # doParallel::registerDoParallel(cl)
     doParallel::registerDoParallel()
 
     results <- list(
@@ -308,6 +305,8 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
     .ggsave(paste(path, 'CY_X,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$CY_X, Ns), 7, 7)
     .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$lcd, Ns), 7, 7)
   }
+
+  library(RCIT)
 
   cat(format(Sys.time(), "%X"), "Discrete vs continuous\n")
   discrete_v_continuous(m, dim_C, err_sd, Ns, save_legend = save_legend)
