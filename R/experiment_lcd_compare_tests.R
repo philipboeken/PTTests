@@ -1,4 +1,4 @@
-experiment_lcd_compare_tests <- function(m = 1000, n = 400, graph_probs = c(3 / 5, 1 / 5, 1 / 5),
+experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 1 / 5, 1 / 5),
                                          dim_C = 2, err_sd = 1 / 2, p_link = 4 / 5,
                                          interv_options = c(mean_shift, variance_shift, mixture),
                                          nonlin_options = c(linear, parabolic, sinusoidal),

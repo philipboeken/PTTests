@@ -3,27 +3,27 @@ pt_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
   if (is.null(Z)) {
     if (verbose)
       cat('Redirecting to independence test\n')
-    return(pt_independence_test(X, Y, c, max_depth, 1, qdist, verbose))
+    return(pt_independence_test(X, Y, c, max_depth, qdist, verbose))
   }
 
   if (.is_discrete(X) || .is_discrete(Y)) {
     if (verbose)
       cat('Performing conditional two-sample test\n')
-    return(pt_d_sample_ci_test(X, Y, Z, rho, c, max_depth, 10, qdist))
+    return(pt_d_sample_ci_test(X, Y, Z, rho, c, max_depth, qdist))
 
   }
 
   if (verbose)
     cat('Performing continuous conditional independence test\n')
-  return(pt_continuous_ci_test(X, Y, Z, rho, c, max_depth, 10, qdist))
+  return(pt_continuous_ci_test(X, Y, Z, rho, c, max_depth, qdist))
 }
 
 pt_d_sample_ci_test <- function(X, Y, Z, rho = 0.5, c = 1,
-                                       max_depth = -1, N = 10, qdist = qnorm) {
+                                       max_depth = -1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
 
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X) / N))), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)) / 2)), max_depth)
 
   if (.is_discrete(X) && .is_discrete(Y) || length(X) <= 2) {
     return(list(bf = 1, p_H0 = 1 / 2, p_H1 = 1 / 2))
@@ -68,11 +68,11 @@ pt_d_sample_ci_test <- function(X, Y, Z, rho = 0.5, c = 1,
 # nonparametric test for conditional independence.
 # https://arxiv.org/abs/1910.11219
 pt_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
-                                         max_depth = -1, N = 10, qdist = qnorm) {
+                                         max_depth = -1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
 
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X) / N) / 2)), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)) / 2)), max_depth)
 
   Z <- matrix(Z, nrow = length(X))
   XYZ <- cbind(scale(X), scale(Y), scale(Z))
@@ -122,7 +122,7 @@ pt_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
   return(matrixStats::logSumExp(c(log(rho) + logl, log(1 - rho) + sum(phis))))
 }
 
-pt_independence_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm, verbose = TRUE) {
+pt_independence_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm, verbose = TRUE) {
   if (.is_discrete(X) || .is_discrete(Y)) {
     if (verbose)
       cat('Performing two-sample test\n')
@@ -138,11 +138,11 @@ pt_independence_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = qno
 # See Filippi, S. and Holmes, C. C. (2017). A Bayesian 
 # nonparametric approach to testing for dependence 
 # between random variables. Bayesian Analysis, 12(4):919–938.
-pt_continuous_independence_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm) {
+pt_continuous_independence_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
 
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X) / N) / 2)), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)) / 2)), max_depth)
 
   X <- scale(X)
   Y <- scale(Y)
@@ -166,11 +166,11 @@ pt_continuous_independence_test <- function(X, Y, c = 1, max_depth = -1, N = 1, 
 # Holmes, C. C., Caron, F., Griffin, J. E., and Stephens, D. A. (2015).
 # Two-sample Bayesian nonparametric hypothesis testing.
 # Bayesian Analysis, 10(2):297–320.
-pt_d_sample_test <- function(X, Y, c = 1, max_depth = -1, N = 1, qdist = qnorm) {
+pt_d_sample_test <- function(X, Y, c = 1, max_depth = -1, qdist = qnorm) {
   old_expressions <- options()$expressions
   options(expressions = max(max_depth, old_expressions))
 
-  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X) / N))), max_depth)
+  max_depth <- ifelse(max_depth < 0, max(1, floor(log2(length(X)) / 2)), max_depth)
 
   binary <- if (.is_discrete(X)) X else Y
   continuous <- if (.is_discrete(X)) Y else X

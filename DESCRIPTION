@@ -1,12 +1,12 @@
 Package: PTTests
-Title: Independence testing with Pólya tree priors
+Title: Nonparametric Bayesian independence testing with Pólya tree priors
 Version: 0.1.0
 Authors@R: 
     person(given = "Philip",
            family = "Boeken",
            role = c("aut", "cre"),
            email = "philip.boeken@gmail.com")
-Description: This R package accompanies the paper 'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery'.
+Description: This R package implements several nonparametric Bayesian independence tests, and accompanies the paper 'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery' (Boeken and Mooij, 2020) and the master thesis 'Conditional Independence Testing in Causal Discovery' (Boeken, 2020).
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

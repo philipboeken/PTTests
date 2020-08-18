@@ -1,4 +1,4 @@
-experiment_lcd_roc_curves <- function(m = 1000, n = 400, graph_probs = c(3 / 5, 1 / 5, 1 / 5),
+experiment_lcd_roc_curves <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 1 / 5, 1 / 5),
                                        dim_C = 2, err_sd = 1 / 2, p_link = 4 / 5,
                                        interv_options = c(mean_shift, variance_shift, mixture),
                                        nonlin_options = c(linear, parabolic, sinusoidal),
@@ -13,7 +13,7 @@ experiment_lcd_roc_curves <- function(m = 1000, n = 400, graph_probs = c(3 / 5, 
   if (!is.null(simulation) && simulation == 'paper') {
     interv_options <- c(mean_shift_paper, variance_shift_paper, fixed_point_paper, mixture_paper)
     nonlin_options <- c(linear_paper, parabolic_paper, sinusoidal_paper)
-  } else if (simulation == 'thesis') {
+  } else if (!is.null(simulation) && simulation == 'thesis') {
     interv_options <- c(mean_shift, variance_shift, mixture)
     nonlin_options <- c(linear, parabolic, sinusoidal)
   }
