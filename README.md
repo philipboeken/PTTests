@@ -36,11 +36,7 @@ The experiments from the paper (Boeken and Mooij, 2020) can be reproduced by exe
 - ``experiment_lcd_roc_curves(simulation = 'paper')``
 - ``experiment_sachs_lcd()``
 
-The experiments from the master thesis (Boeken, 2020) can be reproduced by executing the following methods:
-
-- ``experiment_lcd_compare_tests(simulation = 'thesis')``
-- ``experiment_lcd_roc_curves(simulation = 'thesis')``
-- ``experiment_sachs_lcd()``
+The experiments from the master thesis (Boeken, 2020) can be reproduced by executing the method ``experiment_thesis()``
 
 The output is saved to the ``/output`` folder. You may provide a custom output folder using the ``path`` argument when invoking one of the above methods.
 
