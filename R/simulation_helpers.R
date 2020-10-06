@@ -154,10 +154,10 @@ sinusoidal_paper <- function(X) {
   sin(6 * 2 * pi * X / (max(X) - min(X)))
 }
 
-.graph_1_paper <- function(n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+.graph_1_paper <- function(n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X -> Y
 
-  C <- rbinom(n, 1, p_C)
+  C <- sample(0:(dim_C-1), n, replace = TRUE)
 
   intervene <- rbinom(1, 1, p_link)
   X <- intervene * .do_intervention(interv_options, rnorm(n), C) + (1 - intervene) * rnorm(n)
@@ -170,10 +170,10 @@ sinusoidal_paper <- function(X) {
        label_CY_X = 1, label_lcd = intervene * link_nonlin)
 }
 
-.graph_2_paper <- function(n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+.graph_2_paper <- function(n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X <- Y
 
-  C <- rbinom(n, 1, p_C)
+  C <- sample(0:(dim_C-1), n, replace = TRUE)
 
   Y <- rnorm(n)
 
@@ -188,10 +188,10 @@ sinusoidal_paper <- function(X) {
        label_CY_X = 1 - link_nonlin * intervene, label_lcd = 0)
 }
 
-.graph_3_paper <- function(n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+.graph_3_paper <- function(n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   # C -> X <- L -> Y
 
-  C <- rbinom(n, 1, p_C)
+  C <- sample(0:(dim_C-1), n, replace = TRUE)
 
   L <- rnorm(n)
 
@@ -212,8 +212,8 @@ sinusoidal_paper <- function(X) {
        label_CY_X = 1 - link_nonlin * intervene, label_lcd = 0)
 }
 
-get_data_paper <- function(graph_probs, n, p_C, err_sd, p_link, interv_options, nonlin_options) {
+get_data_paper <- function(graph_probs, n, dim_C, err_sd, p_link, interv_options, nonlin_options) {
   graph <- sample(c(.graph_1_paper, .graph_2_paper, .graph_3_paper), 1, prob = graph_probs)[[1]]
 
-  graph(n, p_C, err_sd, p_link, interv_options, nonlin_options)
+  graph(n, dim_C, err_sd, p_link, interv_options, nonlin_options)
 }

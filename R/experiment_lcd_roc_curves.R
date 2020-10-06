@@ -42,7 +42,7 @@ experiment_lcd_roc_curves <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 
 
   doParallel::registerDoParallel()
   if (!is.null(simulation) && simulation == 'paper') {
-    data <- lapply(1:m, function(i) get_data_paper(graph_probs, n, 0.5, err_sd, p_link,
+    data <- lapply(1:m, function(i) get_data_paper(graph_probs, n, dim_C, err_sd, p_link,
                                                    interv_options, nonlin_options))
   } else {
     data <- lapply(1:m, function(i) get_data(graph_probs, n, dim_C, err_sd, p_link,
