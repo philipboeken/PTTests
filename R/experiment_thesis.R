@@ -141,7 +141,7 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
       data_plot <- data_plot + ggplot2::theme(legend.position = "none")
     }
     pt_plot <- get_pt_plot(results, Ns)
-    time_plot <- get_time_plot(results, Ns, save_legend)
+    time_plot <- .plot_auc_times(results, Ns, save_legend)
     pval_plot <- get_pval_plot(results, Ns)
     
     return(list(data_plot = data_plot, pt_plot = pt_plot,
@@ -193,60 +193,6 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
       ggplot2::scale_color_manual(values = unlist(.plot_colours))
   }
   
-  get_time_plot <- function(results, Ns, save_legend = FALSE, lap = TRUE) {
-    if (lap) {
-      time_data <- lapply(results, function(result) result$time)
-    } else {
-      time_data <- results
-    }
-    time_data$n <- Ns
-    time_data <- reshape::melt(data.frame(time_data), id.vars = 'n', variable_name = "Test:")
-    plt <- ggplot2::ggplot(time_data, ggplot2::aes(n)) +
-      ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
-      ggplot2::scale_y_continuous(trans = scales::log10_trans()) +
-      ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
-      ggplot2::scale_color_manual(values = unlist(.plot_colours)) +
-      ggplot2::labs(x = "n", y = "time (s)")
-    if (save_legend) {
-      .ggsave('output/thesis/legend', cowplot::get_legend(
-        plt + ggplot2::theme(legend.direction = "horizontal") +
-          ggplot2::guides(colour = ggplot2::guide_legend(nrow = 1))), 12, 1.2)
-    }
-    plt + ggplot2::theme(legend.position = "none")
-    
-  }
-  
-  get_auc_plot <- function(results, Ns) {
-    auc_data <- lapply(results, function(result) unlist(result))
-    auc_data$n <- Ns
-    auc_data <- reshape::melt(data.frame(auc_data), id.vars = 'n', variable_name = "Test:")
-    ggplot2::ggplot(auc_data, ggplot2::aes(n)) +
-      ggplot2::scale_x_continuous(limits = c(25, max(Ns)), trans = scales::log10_trans()) +
-      ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
-      ggplot2::scale_color_manual(values = unlist(.plot_colours)) +
-      ggplot2::labs(x = "n", y = "AUC") +
-      ggplot2::ylim(0, 1) +
-      ggplot2::theme(legend.position = "none")
-  }
-  
-  lcd_aucs <- function(m, dim_C, Ns, path = 'output/thesis/compare_tests_auc/') {
-    aucs <- experiment_lcd_compare_tests(m = m, n = Ns[[1]], dim_C = dim_C, save_figures = FALSE)
-    for (n in Ns[-1]) {
-      res <- experiment_lcd_compare_tests(m = m, n = n, dim_C = dim_C, save_figures = FALSE)
-      for (type in names(aucs)) {
-        for (test in names(aucs[[type]])) {
-          aucs[[type]][[test]] <- c(aucs[[type]][[test]], res[[type]][[test]])
-        }
-      }
-    }
-    
-    .ggsave(paste(path, 'CX,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$CX, Ns), 7, 7)
-    .ggsave(paste(path, 'XY,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$XY, Ns), 7, 7)
-    .ggsave(paste(path, 'CY_X,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$CY_X, Ns), 7, 7)
-    .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep = ""), get_auc_plot(aucs$lcd, Ns), 7, 7)
-    .ggsave(paste(path, 'time,dim_C=', dim_C, sep = ""), get_time_plot(aucs$times, Ns, lap = FALSE), 7, 7)
-  }
-  
   library(RCIT)
   
   cat(format(Sys.time(), "%X"), "Discrete vs continuous\n")
@@ -262,18 +208,18 @@ experiment_thesis <- function(m = 200, dim_C = 3, err_sd = 1 / 2,
   experiment_lcd_roc_curves(path = 'output/thesis/compare_roc_curves/')
   
   cat(format(Sys.time(), "%X"), "LCD compare tests\n")
-  experiment_lcd_compare_tests(dim_C = dim_C, path = 'output/thesis/compare_tests_roc/', pt_continuous = TRUE)
+  experiment_lcd_compare_tests_roc(dim_C = dim_C, path = 'output/thesis/compare_tests_roc/', pt_continuous = TRUE)
   
   cat(format(Sys.time(), "%X"), "LCD AUC scores, d=2\n")
-  lcd_aucs(m, dim_C = 2, Ns)
+  experiment_lcd_compare_tests_auc(m, dim_C = 2, Ns, path = 'output/thesis/compare_tests_auc/')
   
   cat(format(Sys.time(), "%X"), "LCD AUC scores, d=4\n")
-  lcd_aucs(m, dim_C = 4, Ns)
+  experiment_lcd_compare_tests_auc(m, dim_C = 4, Ns, path = 'output/thesis/compare_tests_auc/')
   
   cat(format(Sys.time(), "%X"), "LCD AUC scores, d=8\n")
-  lcd_aucs(m, dim_C = 8, Ns)
+  experiment_lcd_compare_tests_auc(m, dim_C = 8, Ns, path = 'output/thesis/compare_tests_auc/')
   
-  # cat(format(Sys.time(), "%X"), "Sachs\n")
-  # experiment_sachs_lcd()
+  cat(format(Sys.time(), "%X"), "Sachs\n")
+  experiment_sachs_lcd()
 }
 

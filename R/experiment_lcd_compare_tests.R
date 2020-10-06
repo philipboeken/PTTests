@@ -1,4 +1,4 @@
-experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 1 / 5, 1 / 5),
+experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 1 / 5, 1 / 5),
                                          dim_C = 2, err_sd = 1 / 2, p_link = 4 / 5,
                                          interv_options = c(mean_shift, variance_shift, mixture),
                                          nonlin_options = c(linear, parabolic, sinusoidal),
@@ -70,7 +70,7 @@ experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 
       ppcor = get_results(data, .ppcor_wrapper),
       spcor = get_results(data, .spcor_wrapper),
       gcm = get_results(data, .gcm_wrapper),
-    # ccit = get_results(data, .ccit_wrapper),
+      ccit = get_results(data, .ccit_wrapper),
       rcot = get_results(data, .rcot_wrapper),
       polyatree_c = get_results(data, .pt_wrapper_continuous),
       polyatree = get_results(data, .pt_wrapper))
@@ -79,7 +79,7 @@ experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 
       ppcor = get_results(data, .ppcor_wrapper),
       spcor = get_results(data, .spcor_wrapper),
       gcm = get_results(data, .gcm_wrapper),
-    # ccit = get_results(data, .ccit_wrapper),
+      ccit = get_results(data, .ccit_wrapper),
       rcot = get_results(data, .rcot_wrapper),
       polyatree = get_results(data, .pt_wrapper))
   }
@@ -120,7 +120,7 @@ experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 
 
     grid <- cowplot::plot_grid(plot_CX, plot_XY, plot_CY_X, plot_lcd, nrow = 1)
 
-    plot_runtimes <- .plot_times(times)
+    plot_runtimes <- .plot_roc_times(times)
 
     timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
 
@@ -161,9 +161,32 @@ experiment_lcd_compare_tests <- function(m = 2000, n = 400, graph_probs = c(3 / 
                         simplify = FALSE, USE.NAMES = TRUE)
 
   return(list(
-      CX = get_test_aucs(CX_results[, 1], CX_results[, -1]),
-      XY = get_test_aucs(XY_results[, 1], XY_results[, -1]),
-      CY_X = get_test_aucs(CY_X_results[, 1], CY_X_results[, -1]),
-      lcd = get_lcd_aucs(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1]),
-      times = times_trans))
+    CX = get_test_aucs(CX_results[, 1], CX_results[, -1]),
+    XY = get_test_aucs(XY_results[, 1], XY_results[, -1]),
+    CY_X = get_test_aucs(CY_X_results[, 1], CY_X_results[, -1]),
+    lcd = get_lcd_aucs(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1]),
+    times = times_trans))
+}
+
+experiment_lcd_compare_tests_auc <- function(m = 200, dim_C = 2,
+                     Ns = c(25, 30, seq(40, 100, by = 15),
+                            seq(120, 180, by = 30), seq(200, 500, by = 100),
+                            600, 800, 1000, 1250, 1500),
+                     simulation = NULL,
+                     path = 'output/lcd_compare_tests/') {
+  aucs <- experiment_lcd_compare_tests_roc(m = m, n = Ns[[1]], dim_C = dim_C, simulation = simulation, save_figures = FALSE)
+  for (n in Ns[-1]) {
+    res <- experiment_lcd_compare_tests_roc(m = m, n = n, dim_C = dim_C, simulation = simulation, save_figures = FALSE)
+    for (type in names(aucs)) {
+      for (test in names(aucs[[type]])) {
+        aucs[[type]][[test]] <- c(aucs[[type]][[test]], res[[type]][[test]])
+      }
+    }
+  }
+
+  .ggsave(paste(path, 'CX,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$CX, Ns), 7, 7)
+  .ggsave(paste(path, 'XY,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$XY, Ns), 7, 7)
+  .ggsave(paste(path, 'CY_X,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$CY_X, Ns), 7, 7)
+  .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$lcd, Ns), 7, 7)
+  .ggsave(paste(path, 'time,dim_C=', dim_C, sep = ""), .plot_auc_times(aucs$times, Ns, lap = FALSE), 7, 7)
 }

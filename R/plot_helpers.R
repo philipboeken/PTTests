@@ -52,18 +52,18 @@
                          tpr = as.numeric(roc_data[, 3]))
   dot_data <- data.frame(Test = dot_data[, 1], fpr = as.numeric(dot_data[, 2]),
                          tpr = as.numeric(dot_data[, 3]))
-  
+
   plt <- ggplot2::ggplot(roc_data, ggplot2::aes(x = fpr, y = tpr, group = Test))
   if (option == 1) {
     plt <- plt + ggplot2::geom_path(ggplot2::aes(colour = Test))
   } else {
     plt <- plt + ggplot2::geom_line(ggplot2::aes(colour = Test))
   }
-  
+
   if (plot_point) {
     plt <- plt + ggplot2::geom_point(data = dot_data, ggplot2::aes(colour = Test))
   }
-  
+
   plt + ggplot2::ggtitle(title) +
     ggplot2::scale_x_continuous("False Positive Rate", limits = c(0, 1)) +
     ggplot2::scale_y_continuous("True Positive Rate", limits = c(0, 1)) +
@@ -95,13 +95,13 @@
 .get_lcd_roc <- function(labels, CX_results, XY_results, CY_X_results, bayes, option = 0) {
   alphas <- sort(c(CX_results, XY_results, CY_X_results), TRUE)
   alphas <- alphas[alphas != 0]
-  
+
   false <- which(labels == 0)
   true <- which(labels == 1)
-  
+
   n <- length(labels)
   a0 <- ifelse(bayes, 0.5, 1 / (5 * sqrt(n)))
-  
+
   fp <- c()
   tp <- c()
   for (alpha in rev(alphas)) {
@@ -114,20 +114,33 @@
     } else if (option == 2) {
       idx <- intersect(idx, which(CY_X_results >= 1 - alpha))
     }
-    
+
     tp <- c(tp, length(intersect(idx, true)))
     fp <- c(fp, length(intersect(idx, false)))
   }
-  
+
   tpr <- tp / length(true)
   fpr <- fp / length(false)
-  
+
   if (option == 1) {
     return(list(tpr = c(0, tpr), fpr = c(0, fpr), auc = NaN))
   } else {
     auc <- .get_auc(tpr, fpr)
     return(list(tpr = c(0, tpr, 1), fpr = c(0, fpr, 1), auc = auc))
   }
+}
+
+.get_auc_plot <- function(results, Ns) {
+  auc_data <- lapply(results, function(result) unlist(result))
+  auc_data$n <- Ns
+  auc_data <- reshape::melt(data.frame(auc_data), id.vars = 'n', variable_name = "Test:")
+  ggplot2::ggplot(auc_data, ggplot2::aes(n)) +
+      ggplot2::scale_x_continuous(limits = c(25, max(Ns)), trans = scales::log10_trans()) +
+      ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
+      ggplot2::scale_color_manual(values = unlist(.plot_colours)) +
+      ggplot2::labs(x = "n", y = "AUC") +
+      ggplot2::ylim(0, 1) +
+      ggplot2::theme(legend.position = "none")
 }
 
 .get_lcd_roc_point <- function(labels, CX_results, XY_results, CY_X_results, bayes) {
@@ -167,14 +180,16 @@
   )
 }
 
-.graph_lines <- function(context, system, context_edges, system_edges, opts = "", opts_context = "") {
+.graph_lines <- function(context, system, context_edges, system_edges, opts = "", opts_context = "", plot_context = FALSE) {
   opts <- ifelse(opts != "", sprintf(", %s", opts), "")
   opts_context <- ifelse(opts_context != "", sprintf(", %s", opts_context), "")
   output <- ""
-  for (node in context) {
-    output <- sprintf(
+  if (plot_context) {
+    for (node in context) {
+      output <- sprintf(
       "%s\n\"%s\"[label = \"%s\", shape = box%s];",
       output, node, node, opts_context)
+    }
   }
   for (node in system) {
     output <- sprintf(
@@ -186,16 +201,19 @@
       "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\"%s];",
       output, system_edges[i, 1], system_edges[i, 2], opts)
   }
-  for (i in 1:nrow(context_edges)) {
-    output <- sprintf(
+  if (plot_context) {
+    for (i in 1:nrow(context_edges)) {
+      output <- sprintf(
       "%s\n\"%s\"->\"%s\"[arrowtail=\"none\", arrowhead=\"normal\", style=\"dashed\"%s];",
       output, context_edges[i, 1], context_edges[i, 2], opts_context)
+    }
   }
-  
+
   return(output)
 }
 
-.output_graph <- function(results, path, name, alpha1, alpha2) {
+.output_graph <- function(results, path, name, alpha1, alpha2, plot_context = FALSE) {
+  options(warn = 2)
   strong <- dplyr::filter(results, CX <= alpha1$strong, XY <= alpha1$strong, CY_X >= alpha2$strong)
   strong <- strong[, c('C', 'X', 'Y')]
   substantial <- dplyr::filter(results, CX <= alpha1$substantial,
@@ -204,15 +222,16 @@
   weak <- dplyr::filter(results, CX <= alpha1$weak, XY <= alpha1$weak, CY_X >= alpha2$weak)
   weak <- weak[, c('C', 'X', 'Y')]
   output <- "digraph G {"
-  
+
   context1 <- unique(as.character(strong[, 'C']))
   system1 <- unique(c(as.character(strong[, 'X']), as.character(strong[, 'Y'])))
   context_edges1 <- unique(strong[, c('C', 'X')])
   system_edges1 <- unique(strong[, c('X', 'Y')])
   output <- paste(output, .graph_lines(context1, system1, context_edges1, system_edges1,
                                        "color=\"#000000\"",
-                                       "color=\"#c4c4c4\""), sep = "")
-  
+                                       "color=\"#c4c4c4\"",
+                                       plot_context = plot_context), sep = "")
+
   diff <- dplyr::setdiff(substantial, strong)
   context2 <- dplyr::setdiff(unique(as.character(diff[, 'C'])), context1)
   system2 <- dplyr::setdiff(unique(c(as.character(diff[, 'X']), as.character(diff[, 'Y']))), system1)
@@ -220,8 +239,9 @@
   system_edges2 <- dplyr::setdiff(unique(diff[, c('X', 'Y')]), system_edges1)
   output <- paste(output, .graph_lines(context2, system2, context_edges2, system_edges2,
                                        "color=\"#e30505\"",
-                                       "color=\"#ffa1a1\""), sep = "")
-  
+                                       "color=\"#ffa1a1\"",
+                                       plot_context = plot_context), sep = "")
+
   diff <- dplyr::setdiff(weak, substantial)
   context3 <- dplyr::setdiff(unique(as.character(diff[, 'C'])),
                              c(context1, context2))
@@ -233,13 +253,14 @@
                                   rbind(system_edges1, system_edges2))
   output <- paste(output, .graph_lines(context3, system3, context_edges3, system_edges3,
                                        "color=\"#0032fa\"",
-                                       "color=\"#a8baff\""), sep = "")
+                                       "color=\"#a8baff\"",
+                                       plot_context = plot_context), sep = "")
   output <- paste(output, "}", sep = "\n")
-  
+
   write(output, file = paste(path, name, ".dot", sep = ""))
 }
 
-.plot_times <- function(times, title = NULL) {
+.plot_roc_times <- function(times, title = NULL) {
   times$time <- sapply(times$time, function(x)(x < 1.1) * 1.1 + (x >= 1.1) * x)
   ggplot2::ggplot(data = times, ggplot2::aes(x = ensemble, y = time, fill = test)) +
     ggplot2::geom_col(position = ggplot2::position_dodge()) +
@@ -251,6 +272,29 @@
                    legend.direction = "horizontal") +
     ggplot2::scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 10 ^ x),
                            labels = scales::trans_format("log10", scales::math_format(10 ^ .x)))
+}
+
+.plot_auc_times <- function(results, Ns, save_legend = FALSE, lap = TRUE) {
+  if (lap) {
+    time_data <- lapply(results, function(result) result$time)
+  } else {
+    time_data <- results
+  }
+  time_data$n <- Ns
+  time_data <- reshape::melt(data.frame(time_data), id.vars = 'n', variable_name = "Test:")
+  plt <- ggplot2::ggplot(time_data, ggplot2::aes(n)) +
+      ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
+      ggplot2::scale_y_continuous(trans = scales::log10_trans()) +
+      ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
+      ggplot2::scale_color_manual(values = unlist(.plot_colours)) +
+      ggplot2::labs(x = "n", y = "time (s)")
+  if (save_legend) {
+    .ggsave('output/thesis/legend', cowplot::get_legend(
+        plt + ggplot2::theme(legend.direction = "horizontal") +
+          ggplot2::guides(colour = ggplot2::guide_legend(nrow = 1))), 12, 1.2)
+  }
+  plt + ggplot2::theme(legend.position = "none")
+
 }
 
 .gg_color_hue <- function(n) {
