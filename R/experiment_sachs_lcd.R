@@ -1,4 +1,4 @@
-experiment_sachs_lcd <- function(path = 'output/sachs/', observational = 1:8) {
+experiment_sachs_lcd <- function(path = 'output/sachs/', observational = 1:8, plot_context = FALSE) {
   # Alternatively: observational = 1
 
   # Setup
@@ -65,12 +65,14 @@ experiment_sachs_lcd <- function(path = 'output/sachs/', observational = 1:8) {
   name <- 'sachs_pcor'
   .output_graph(results$pcor, path, name,
                 alpha1 = list(strong = 0.0001, substantial = 0.005, weak = 0.05),
-                alpha2 = list(strong = 0.05, substantial = 0.05, weak = 0.05))
+                alpha2 = list(strong = 0.05, substantial = 0.05, weak = 0.05),
+                plot_context = plot_context)
   system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', path, name, path, name))
 
   name <- 'sachs_polyatree'
   .output_graph(results$polyatree, path, name,
                 alpha1 = list(strong = 0.09, substantial = 0.2, weak = 0.5),
-                alpha2 = list(strong = 0.91, substantial = 0.8, weak = 0.5))
+                alpha2 = list(strong = 0.91, substantial = 0.8, weak = 0.5),
+                plot_context = plot_context)
   system(sprintf('dot -Tpdf %s%s.dot -o %s%s.pdf', path, name, path, name))
 }
