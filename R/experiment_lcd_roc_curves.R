@@ -75,9 +75,9 @@ experiment_lcd_roc_curves <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 
 
   labels_lcd <- factor(results$polyatree[, 'label_lcd'], ordered = TRUE, levels = c(1, 0))
 
-  t0 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
-  t1 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > \\alpha)$')
-  t2 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ and $(p_{XY} < \\alpha)$ and $(p_{CY|X} > 1-\\alpha)$')
+  t0 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ $\\vee$ $(p_{XY} < \\alpha)$ $\\vee$ $(p_{CY|X} > \\min(\\alpha_0, 1-\\alpha))$')
+  t1 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ $\\vee$ $(p_{XY} < \\alpha)$ $\\vee$ $(p_{CY|X} > \\alpha)$')
+  t2 <- latex2exp::TeX('$(p_{CX} < \\alpha)$ $\\vee$ $(p_{XY} < \\alpha)$ $\\vee$ $(p_{CY|X} > 1-\\alpha)$')
   .plot0 <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
                              t0, option = 0, plot_point = FALSE)
   .plot1 <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1],
@@ -92,7 +92,7 @@ experiment_lcd_roc_curves <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 
   save(results, file = sprintf("%s%s.Rdata", path, timestamp))
   .ggsave(paste(path, timestamp, sep = ''), grid, 30, 10)
   .ggsave(paste(path, 'last', sep = ''), grid, 30, 10)
-  .ggsave(paste(path, 'plot0', sep = ''), .plot0, 8, 8)
-  .ggsave(paste(path, 'plot1', sep = ''), .plot1, 8, 8)
-  .ggsave(paste(path, 'plot2', sep = ''), .plot2, 8, 8)
+  .ggsave(paste(path, 'plot0', sep = ''), .plot0, 8.5, 8.5)
+  .ggsave(paste(path, 'plot1', sep = ''), .plot1, 8.5, 8.5)
+  .ggsave(paste(path, 'plot2', sep = ''), .plot2, 8.5, 8.5)
 }
