@@ -187,7 +187,7 @@ experiment_lcd_compare_tests_auc <- function(m = 200, dim_C = 2,
   
   timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
   
-  save(results, file = sprintf("%s%s.Rdata", path, timestamp))
+  save(results, file = sprintf("aucs-%s%s.Rdata", path, timestamp))
 
   .ggsave(paste(path, 'CX,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$CX, Ns), 8, 8)
   .ggsave(paste(path, 'XY,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$XY, Ns), 8, 8)
