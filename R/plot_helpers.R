@@ -44,7 +44,8 @@
     bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c')
     roc <- .get_lcd_roc(labels, CX_results[, i], XY_results[, i], CY_X_results[, i], bayes, option)
     dot <- .get_lcd_roc_point(labels, CX_results[, i], XY_results[, i], CY_X_results[, i], bayes)
-    info[[name]] <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
+    info[[name]] <- name
+    # info[[name]] <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
     roc_data <- rbind(roc_data, cbind(rep(name, length(roc$fpr)), roc$fpr, roc$tpr))
     dot_data <- rbind(dot_data, cbind(name, dot$fpr, dot$tpr))
   }
@@ -70,7 +71,7 @@
     ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
                    legend.spacing.x = ggplot2::unit(0.2, 'cm'),
                    legend.position = legend_pos,
-                   plot.title = ggplot2::element_text(size = 12, hjust = 0.5)) +
+                   plot.title = ggplot2::element_text(size = 11, hjust = 0.5)) +
     ggplot2::scale_color_manual(values = unlist(.plot_colours), labels = unlist(info))
 }
 
