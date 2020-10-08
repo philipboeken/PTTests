@@ -113,10 +113,10 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
   labels_lcd <- factor(results$polyatree[, 'label_lcd'], ordered = TRUE, levels = c(1, 0))
 
   if (save_figures) {
-    plot_CX <- .plot_roc(CX_results[, 1], CX_results[, -1], freq_default = 0.05)
-    plot_XY <- .plot_roc(XY_results[, 1], XY_results[, -1], freq_default = 0.05)
-    plot_CY_X <- .plot_roc(CY_X_results[, 1], CY_X_results[, -1], freq_default = 0.05)
-    plot_lcd <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1])
+    plot_CX <- .plot_roc(CX_results[, 1], CX_results[, -1], freq_default = 0.05, legend_pos = "none")
+    plot_XY <- .plot_roc(XY_results[, 1], XY_results[, -1], freq_default = 0.05, legend_pos = "none")
+    plot_CY_X <- .plot_roc(CY_X_results[, 1], CY_X_results[, -1], freq_default = 0.05, legend_pos = "none")
+    plot_lcd <- .plot_roc_lcd(labels_lcd, CX_results[, -1], XY_results[, -1], CY_X_results[, -1], legend_pos = "none")
 
     grid <- cowplot::plot_grid(plot_CX, plot_XY, plot_CY_X, plot_lcd, nrow = 1)
 
@@ -127,11 +127,11 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
     save(results, file = sprintf("%s%s.Rdata", path, timestamp))
     .ggsave(paste(path, timestamp, sep = ''), grid, 40, 10)
     .ggsave(paste(path, 'last', sep = ''), grid, 40, 10)
-    .ggsave(paste(path, 'two-sample', sep = ''), plot_CX, 10, 10)
-    .ggsave(paste(path, 'marginal-independence', sep = ''), plot_XY, 10, 10)
-    .ggsave(paste(path, 'conditional-independence', sep = ''), plot_CY_X, 10, 10)
-    .ggsave(paste(path, 'lcd', sep = ''), plot_lcd, 10, 10)
-    .ggsave(paste(path, 'times', sep = ''), plot_runtimes, 20, 8)
+    .ggsave(paste(path, 'two-sample', timestamp, sep = ''), plot_CX, 8, 8)
+    .ggsave(paste(path, 'marginal-independence', timestamp, sep = ''), plot_XY, 8, 8)
+    .ggsave(paste(path, 'conditional-independence', timestamp, sep = ''), plot_CY_X, 8, 8)
+    .ggsave(paste(path, 'lcd', timestamp, sep = ''), plot_lcd, 8, 8)
+    .ggsave(paste(path, 'times', timestamp, sep = ''), plot_runtimes, 15, 6)
   }
 
   get_test_aucs <- function(labels, predictions) {
@@ -169,8 +169,9 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
 }
 
 experiment_lcd_compare_tests_auc <- function(m = 200, dim_C = 2,
-                     Ns = c(25, 30, seq(40, 100, by = 15),
-                            seq(120, 180, by = 30), seq(200, 500, by = 100),
+                     Ns = c(60, 80, 100,
+                            seq(120, 180, by = 30),
+                            seq(200, 500, by = 100),
                             600, 800, 1000, 1250, 1500),
                      simulation = NULL,
                      path = 'output/lcd_compare_tests/') {
@@ -183,10 +184,14 @@ experiment_lcd_compare_tests_auc <- function(m = 200, dim_C = 2,
       }
     }
   }
+  
+  timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
+  
+  save(results, file = sprintf("%s%s.Rdata", path, timestamp))
 
-  .ggsave(paste(path, 'CX,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$CX, Ns), 7, 7)
-  .ggsave(paste(path, 'XY,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$XY, Ns), 7, 7)
-  .ggsave(paste(path, 'CY_X,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$CY_X, Ns), 7, 7)
-  .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$lcd, Ns), 7, 7)
-  .ggsave(paste(path, 'time,dim_C=', dim_C, sep = ""), .plot_auc_times(aucs$times, Ns, lap = FALSE), 7, 7)
+  .ggsave(paste(path, 'CX,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$CX, Ns), 8, 8)
+  .ggsave(paste(path, 'XY,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$XY, Ns), 8, 8)
+  .ggsave(paste(path, 'CY_X,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$CY_X, Ns), 8, 8)
+  .ggsave(paste(path, 'lcd,dim_C=', dim_C, sep = ""), .get_auc_plot(aucs$lcd, Ns), 8, 8)
+  .ggsave(paste(path, 'time,dim_C=', dim_C, sep = ""), .plot_auc_times(aucs$times, Ns, lap = FALSE), 8, 8)
 }

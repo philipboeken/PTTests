@@ -92,7 +92,7 @@ experiment_lcd_roc_curves <- function(m = 2000, n = 400, graph_probs = c(3 / 5, 
   save(results, file = sprintf("%s%s.Rdata", path, timestamp))
   .ggsave(paste(path, timestamp, sep = ''), grid, 30, 10)
   .ggsave(paste(path, 'last', sep = ''), grid, 30, 10)
-  .ggsave(paste(path, 'plot0', sep = ''), .plot0, 10, 10)
-  .ggsave(paste(path, 'plot1', sep = ''), .plot1, 10, 10)
-  .ggsave(paste(path, 'plot2', sep = ''), .plot2, 10, 10)
+  .ggsave(paste(path, 'plot0', sep = ''), .plot0, 8, 8)
+  .ggsave(paste(path, 'plot1', sep = ''), .plot1, 8, 8)
+  .ggsave(paste(path, 'plot2', sep = ''), .plot2, 8, 8)
 }

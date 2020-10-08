@@ -35,7 +35,7 @@
 }
 
 .plot_roc_lcd <- function(labels, CX_results, XY_results, CY_X_results,
-                          title = NULL, plot_point = TRUE, option = 0) {
+                          title = NULL, plot_point = TRUE, option = 0, legend_pos = c(0.78, 0.275)) {
   roc_data <- matrix(ncol = 3, nrow = 0, dimnames = list(NULL, c("Test", "fpr", "tpr")))
   dot_data <- matrix(ncol = 3, nrow = 0, dimnames = list(NULL, c("Test", "fpr", "tpr")))
   info <- list()
@@ -69,7 +69,7 @@
     ggplot2::scale_y_continuous("True Positive Rate", limits = c(0, 1)) +
     ggplot2::theme(legend.title = ggplot2::element_text(size = 0),
                    legend.spacing.x = ggplot2::unit(0.2, 'cm'),
-                   legend.position = c(0.78, 0.275),
+                   legend.position = legend_pos,
                    plot.title = ggplot2::element_text(size = 12, hjust = 0.5)) +
     ggplot2::scale_color_manual(values = unlist(.plot_colours), labels = unlist(info))
 }
@@ -135,7 +135,7 @@
   auc_data$n <- Ns
   auc_data <- reshape::melt(data.frame(auc_data), id.vars = 'n', variable_name = "Test:")
   ggplot2::ggplot(auc_data, ggplot2::aes(n)) +
-      ggplot2::scale_x_continuous(limits = c(25, max(Ns)), trans = scales::log10_trans()) +
+      ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
       ggplot2::geom_line(ggplot2::aes(y = value, colour = `Test:`)) +
       ggplot2::scale_color_manual(values = unlist(.plot_colours)) +
       ggplot2::labs(x = "n", y = "AUC") +
@@ -267,7 +267,7 @@
     ggplot2::labs(x = "Test ensemble", y = "Runtime (sec.)", title = title) +
     ggplot2::scale_fill_discrete(name = "",
                                  breaks = c("1_CX", "2_XY", "3_CY_X"),
-                                 labels = c("C_||_X", "X_||_Y", "C_||_Y|X")) +
+                                 labels = c("Two-sample", "Independence", "Conditional independence")) +
     ggplot2::theme(legend.position = c(0.703, 0.915),
                    legend.direction = "horizontal") +
     ggplot2::scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 10 ^ x),
