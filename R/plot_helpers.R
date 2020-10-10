@@ -222,7 +222,7 @@
   substantial <- substantial[, c('C', 'X', 'Y')]
   weak <- dplyr::filter(results, CX <= alpha1$weak, XY <= alpha1$weak, CY_X >= alpha2$weak)
   weak <- weak[, c('C', 'X', 'Y')]
-  output <- "digraph G {"
+  output <- "digraph G {margin=0;"
 
   context1 <- unique(as.character(strong[, 'C']))
   system1 <- unique(c(as.character(strong[, 'X']), as.character(strong[, 'Y'])))
