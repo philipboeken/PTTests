@@ -79,7 +79,7 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
       ppcor = get_results(data, .ppcor_wrapper),
       spcor = get_results(data, .spcor_wrapper),
       gcm = get_results(data, .gcm_wrapper),
-      ccit = get_results(data, .ccit_wrapper),
+      # ccit = get_results(data, .ccit_wrapper),
       rcot = get_results(data, .rcot_wrapper),
       polyatree = get_results(data, .pt_wrapper))
   }
