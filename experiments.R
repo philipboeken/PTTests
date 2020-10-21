@@ -1,0 +1,8 @@
+start_time <- Sys.time()
+devtools::install_local('./', force = TRUE)
+library(PTTests)
+experiment_lcd_roc_curves(simulation = 'paper')
+experiment_lcd_compare_tests_roc(simulation = 'paper')
+experiment_lcd_compare_tests_auc(simulation = 'paper')
+experiment_sachs_lcd(plot_context = FALSE)
+cat('Time elapsed (s): ', Sys.time() - start_time)
