@@ -59,4 +59,4 @@ Filippi, S. and Holmes, C. C. (2017). A Bayesian nonparametric approach to testi
 
 Holmes, C. C., Caron, F., Griffin, J. E., and Stephens, D. A. (2015). Two-sample Bayesian nonparametric hypothesis testing. <em>Bayesian Analysis</em>, 10(2):297–320.
 
-Teymur, O. and Filippi, S. (2019). A Bayesian nonparametric test for conditional independence. <em>arXiv.org preprint</em>, arxiv:1910.11219 [stat.ME].
+Teymur, O. and Filippi, S. (2019). A Bayesian nonparametric test for conditional independence. <em>Foundations of Data Science</em>, 2(2):155–172.
