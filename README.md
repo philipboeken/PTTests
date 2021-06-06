@@ -2,7 +2,7 @@
 
 This R package accompanies the paper
 
-'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery' (Boeken and Mooij, 2020)
+'A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery' (Boeken and Mooij, 2021)
 
 and the master thesis
 
@@ -22,21 +22,20 @@ library(PTTests)
 
 This package implements the following Pólya tree-based hypothesis tests:
 
-- ``pt_d_sample_ci_test`` (Boeken and Mooij, 2020; Boeken, 2020)
-- ``pt_d_sample_test`` (Holmes et al., 2015; Boeken, 2020)
+- ``pt_d_sample_ci_test`` (Boeken and Mooij, 2021; Boeken, 2020)
+- ``pt_d_sample_test`` (Holmes et al., 2015)
 - ``pt_continuous_ci_test`` (Teymur and Filippi, 2019)
 - ``pt_continuous_independence_test`` (Filippi and Holmes, 2017).
 
 These tests may be called through the wrapper method ``pt_ci_test``.
 
-The experiments from the paper (Boeken and Mooij, 2020) can be reproduced by executing the following methods:
+The experiments from the paper can be reproduced by running the ``experiments.R`` script, or alternatively by executing the following functions:
 
-- ``experiment_pcor_fail()``
 - ``experiment_lcd_compare_tests_roc(simulation = 'paper')``
 - ``experiment_lcd_roc_curves(simulation = 'paper')``
 - ``experiment_sachs_lcd()``
 
-The experiments from the master thesis (Boeken, 2020) can be reproduced by executing the method ``experiment_thesis()``
+The experiments from the master thesis (Boeken, 2020) can be reproduced by executing the method ``experiment_thesis()``.
 
 The output is saved to the ``/output`` folder. You may provide a custom output folder using the ``path`` argument when invoking one of the above methods.
 
@@ -61,7 +60,6 @@ devtools::install_local("./", force = TRUE)
 ```
 
 ## References
-
 Boeken, P. A. (2020). Conditional independence testing in causal inference. <em>University of Amsterdam</em>, Master Thesis.
 
 Boeken, P. A. and Mooij, J. M. (2020). A bayesian nonparametric conditional two-sample test with an application to local causal discovery. <em>arXiv.org preprint</em>, arxiv:2008.07382 [math.ST].
@@ -70,4 +68,4 @@ Filippi, S. and Holmes, C. C. (2017). A Bayesian nonparametric approach to testi
 
 Holmes, C. C., Caron, F., Griffin, J. E., and Stephens, D. A. (2015). Two-sample Bayesian nonparametric hypothesis testing. <em>Bayesian Analysis</em>, 10(2):297–320.
 
-Teymur, O. and Filippi, S. (2019). A Bayesian nonparametric test for conditional independence. <em>arXiv.org preprint</em>, arxiv:1910.11219 [stat.ME].
+Teymur, O. and Filippi, S. (2019). A Bayesian nonparametric test for conditional independence. <em>Foundations of Data Science</em>, 2(2):155–172.

@@ -66,7 +66,7 @@ pt_d_sample_ci_test <- function(X, Y, Z, rho = 0.5, c = 1,
 # Implements a continuous conditional independence test.
 # See Teymur, O. & Filippi, S. (2020). A Bayesian 
 # nonparametric test for conditional independence.
-# https://arxiv.org/abs/1910.11219
+# Foundations of Data Science, 2(2):155–172.
 pt_continuous_ci_test <- function(X, Y, Z = NULL, rho = 0.5, c = 1,
                                   max_depth = -1, qdist = qnorm, log_BF = FALSE) {
   old_expressions <- options()$expressions
