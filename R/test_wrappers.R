@@ -8,7 +8,6 @@
   if (is.null(Z)) {
     return(pt_independence_test(X, Y, verbose = FALSE)$p_H0)
   }
-
   return(pt_continuous_ci_test(X, Y, Z)$p_H0)
 }
 
@@ -81,3 +80,54 @@
   }
   .ppcor_wrapper(X, Y, Z)
 }
+
+.mi_mixed_wrapper <- function(X, Y, Z = NULL) {
+  if (is.null(Z) || length(Z) == 0) {
+    if (.is_discrete(X)) {
+      return(bnlearn::ci.test(as.factor(X), Y, test='mi-cg')$p.value)
+    }
+    
+    if (.is_discrete(Y)) {
+      return(bnlearn::ci.test(X, as.factor(Y), test='mi-cg')$p.value)
+    }
+    
+    return(bnlearn::ci.test(X, Y, test='mi-g')$p.value)
+  }
+  
+  if (.is_discrete(X)) {
+    return(bnlearn::ci.test(as.factor(X), Y, Z, test='mi-cg')$p.value)
+  }
+  
+  if (.is_discrete(Y)) {
+    return(bnlearn::ci.test(X, as.factor(Y), Z, test='mi-cg')$p.value)
+  }
+  
+  bnlearn::ci.test(X, Y, Z, test='mi-g')$p.value
+}
+
+.lr_test <- function(X, Y, Z, family='gaussian') {
+  if (is.null(Z) || length(Z) == 0) {
+    dep <- glm(X ~ Y, family = family)
+    indep <- glm(X ~ 1, family = family)
+  } else {
+    dep <- glm(X ~ Y + Z, family = family)
+    indep <- glm(X ~ Z, family = family) 
+  }
+  ll <- 2*(logLik(dep) - logLik(indep))
+  dfx <- if(.is_discrete(X)) length(unique(X)) - 1 else 1
+  dfy <- if(.is_discrete(Y)) length(unique(X)) - 1 else 1
+  pchisq(ll, dfx * dfy, lower.tail = FALSE)
+}
+
+.lr_mixed_wrapper <- function(X, Y, Z = NULL) {
+  if (.is_discrete(X)) {
+    return(.lr_test(X, Y, Z, 'binomial'))
+  }
+  
+  if (.is_discrete(Y)) {
+    return(.lr_test(Y, X, Z, 'binomial'))
+  }
+  
+  .lr_test(X, Y, Z, 'gaussian')
+}
+
