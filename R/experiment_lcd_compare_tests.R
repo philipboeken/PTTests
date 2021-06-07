@@ -7,6 +7,7 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
                                              path = 'output/lcd_compare_tests/',
                                              save_figures = TRUE,
                                              pt_continuous = FALSE,
+                                             pt_sensitivity = FALSE,
                                              results_file = NULL) {
   
   # Setup test
@@ -78,6 +79,17 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
         rcot = get_results(data, .rcot_wrapper),
         polyatree_c = get_results(data, .pt_wrapper_continuous),
         polyatree = get_results(data, .pt_wrapper))
+    } else if (pt_sensitivity) {
+      results <- list(
+        pt1 = get_results(data, .pt_wrapper_sensitivity(function (depth) depth^2 / 10)),
+        pt2 = get_results(data, .pt_wrapper_sensitivity(function (depth) depth^2 / 5)),
+        pt3 = get_results(data, .pt_wrapper_sensitivity(function (depth) depth^2)),
+        pt4 = get_results(data, .pt_wrapper_sensitivity(function (depth) depth^2 * 5)),
+        pt5 = get_results(data, .pt_wrapper_sensitivity(function (depth) depth^2 * 10)),
+        pt6 = get_results(data, .pt_wrapper_sensitivity(function (depth) 2^depth)),
+        pt7 = get_results(data, .pt_wrapper_sensitivity(function (depth) 4^depth)),
+        pt8 = get_results(data, .pt_wrapper_sensitivity(function (depth) 8^depth))
+      )
     } else {
       results <- list(
         ppcor = get_results(data, .ppcor_wrapper),
@@ -95,7 +107,7 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
   ##############################################
   
   .get_results_by_type <- function(results, type) {
-    labels <- results$polyatree[, {{ paste('label_', type, sep = '') }}]
+    labels <- results[[1]][, {{ paste('label_', type, sep = '') }}]
     labels <- factor(labels, ordered = TRUE, levels = c(1, 0))
     result <- data.frame(label = labels)
     for (test in names(results)) {
@@ -116,7 +128,7 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
   XY_results <- .get_results_by_type(results, 'XY')
   CY_X_results <- .get_results_by_type(results, 'CY_X')
   
-  labels_lcd <- factor(results$polyatree[, 'label_lcd'], ordered = TRUE, levels = c(1, 0))
+  labels_lcd <- factor(results[[1]][, 'label_lcd'], ordered = TRUE, levels = c(1, 0))
   
   if (save_figures) {
     plot_CX <- .plot_roc(CX_results[, 1], CX_results[, -1], freq_default = 0.05, legend_pos = "none")
@@ -157,7 +169,7 @@ experiment_lcd_compare_tests_roc <- function(m = 2000, n = 400, graph_probs = c(
     auc_data <- c()
     for (i in 1:ncol(CX)) {
       name <- colnames(CX)[i]
-      bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c')
+      bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c' || startsWith(name, 'pt'))
       roc <- .get_lcd_roc(labels, CX[, i], XY[, i], CY_X[, i], bayes)
       auc_data[[name]] <- roc$auc
     }
@@ -183,13 +195,14 @@ experiment_lcd_compare_tests_auc <- function(m = 200, dim_C = 2,
                                                     600, 800, 1000, 1250, 1500),
                                              simulation = NULL,
                                              path = 'output/lcd_compare_tests/',
+                                             pt_sensitivity = FALSE,
                                              results_file = NULL) {
   if (!is.null(results_file)) {
     load(paste('data/', results_file, sep=""))
   } else {
-    aucs <- experiment_lcd_compare_tests_roc(m = m, n = Ns[[1]], dim_C = dim_C, simulation = simulation, save_figures = FALSE)
+    aucs <- experiment_lcd_compare_tests_roc(m = m, n = Ns[[1]], dim_C = dim_C, simulation = simulation, save_figures = FALSE, pt_sensitivity = pt_sensitivity)
     for (n in Ns[-1]) {
-      res <- experiment_lcd_compare_tests_roc(m = m, n = n, dim_C = dim_C, simulation = simulation, save_figures = FALSE)
+      res <- experiment_lcd_compare_tests_roc(m = m, n = n, dim_C = dim_C, simulation = simulation, save_figures = FALSE, pt_sensitivity = pt_sensitivity)
       for (type in names(aucs)) {
         for (test in names(aucs[[type]])) {
           aucs[[type]][[test]] <- c(aucs[[type]][[test]], res[[type]][[test]])
@@ -201,12 +214,23 @@ experiment_lcd_compare_tests_auc <- function(m = 200, dim_C = 2,
   timestamp <- format(Sys.time(), '%Y%m%d_%H%M%S')
   
   if (is.null(results_file)) {
-    save(aucs, file = sprintf("%saucs-%s.Rdata", path, timestamp))
+    save(aucs, file = sprintf("%s%saucs-%s.Rdata", path, if(pt_sensitivity) 'sens_' else '', timestamp))
   }
   
-  .ggsave(paste(path, 'CX,dim_C=', dim_C, timestamp, sep = ""), .get_auc_plot(aucs$CX, Ns), 8, 8)
-  .ggsave(paste(path, 'XY,dim_C=', dim_C, timestamp, sep = ""), .get_auc_plot(aucs$XY, Ns), 8, 8)
-  .ggsave(paste(path, 'CY_X,dim_C=', dim_C, timestamp, sep = ""), .get_auc_plot(aucs$CY_X, Ns), 8, 8)
-  .ggsave(paste(path, 'lcd,dim_C=', dim_C, timestamp, sep = ""), .get_auc_plot(aucs$lcd, Ns), 8, 8)
-  .ggsave(paste(path, 'time,dim_C=', dim_C, timestamp, sep = ""), .plot_auc_times(aucs$times, Ns, lap = FALSE), 8, 8)
+  .ggsave(paste(path, if(pt_sensitivity) 'sens_' else '', 'CX,dim_C=', dim_C, timestamp, sep = ""),
+          .get_auc_plot(aucs$CX, Ns),
+          8, 8)
+  .ggsave(paste(path, if(pt_sensitivity) 'sens_' else '', 'XY,dim_C=', dim_C, timestamp, sep = ""),
+          .get_auc_plot(aucs$XY, Ns),
+          8, 8)
+  .ggsave(paste(path, if(pt_sensitivity) 'sens_' else '', 'CY_X,dim_C=', dim_C, timestamp, sep = ""),
+          .get_auc_plot(aucs$CY_X, Ns),
+          8, 8)
+  .ggsave(paste(path, if(pt_sensitivity) 'sens_' else '', 'lcd,dim_C=', dim_C, timestamp, sep = ""),
+          .get_auc_plot(aucs$lcd, Ns),
+          8, 8)
+  .ggsave(paste(path, if(pt_sensitivity) 'sens_' else '', 'time,dim_C=', dim_C, timestamp, sep = ""),
+          .plot_auc_times(aucs$times, Ns, lap = FALSE, save_legend = TRUE,
+                          legend_title=paste(path, if(pt_sensitivity) 'sens_' else '', 'legend', sep = "")),
+          8, 8)
 }

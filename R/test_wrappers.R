@@ -4,6 +4,12 @@
   pt_ci_test(X, Y, Z, verbose = FALSE)$p_H0
 }
 
+.pt_wrapper_sensitivity <- function(aj = function(depth) depth^2) {
+  function (X, Y, Z = NULL) {
+    pt_ci_test(X, Y, Z, verbose = FALSE, aj = aj)$p_H0
+  }
+}
+
 .pt_wrapper_continuous <- function(X, Y, Z = NULL) {
   if (is.null(Z)) {
     return(pt_independence_test(X, Y, verbose = FALSE)$p_H0)

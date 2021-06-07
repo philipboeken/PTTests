@@ -1,8 +1,12 @@
-.plot_colours <- list(polyatree = "#0072B2", polyatree_c = "#CC79A7",
-                      ppcor = "#D55E00", spcor = "#56B4E9",
-                      gcm = "#E69F00", rcot = "#009E73",
-                      ccit = "#293352", ppcor_b = "#CC79A7",
-                      mi_mixed = "#0072B2", lr_mixed = "#293352")
+.plot_colours <- list(polyatree = "#000000", polyatree_c = "#CC79A7",
+                      ppcor = "#E69F00", spcor = "#56B4E9",
+                      gcm = "#009E73", rcot = "#F0E442",
+                      ccit = "#0072B2", ppcor_b = "#0072B2",
+                      mi_mixed = "#D55E00", lr_mixed = "#CC79A7",
+                      pt1 = "#D55E00", pt2 = "#CC79A7",
+                      pt3 = "#000000", pt4 = "#E69F00",
+                      pt5 = "#56B4E9", pt6 = "#009E73",
+                      pt7 = "#F0E442", pt8 = "#0072B2")
 # https://www.datanovia.com/en/blog/ggplot-colors-best-tricks-you-will-love/
 
 .plot_roc <- function(labels, predictions, title = NULL, legend_pos = c(0.78, 0.275),
@@ -14,7 +18,7 @@
   for (i in 1:ncol(predictions)) {
     name <- colnames(predictions)[i]
     roc <- .get_roc(labels, - predictions[, i])
-    bayes <- (name == 'polyatree' || name == 'polyatree_c' || name == 'ppcor_b')
+    bayes <- (name == 'polyatree' || name == 'polyatree_c' || name == 'ppcor_b' || startsWith(name, 'pt'))
     dot <- .get_roc_point(labels, predictions[, i], bayes, freq_default)
     info[[name]] <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
     roc_data <- rbind(roc_data, cbind(rep(name, length(roc$x)), roc$x, roc$y))
@@ -42,11 +46,10 @@
   info <- list()
   for (i in 1:ncol(CX_results)) {
     name <- colnames(CX_results)[i]
-    bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c')
+    bayes <- (name == 'polyatree' || name == 'ppcor_b' || name == 'polyatree_c' || startsWith(name, 'pt'))
     roc <- .get_lcd_roc(labels, CX_results[, i], XY_results[, i], CY_X_results[, i], bayes, option)
     dot <- .get_lcd_roc_point(labels, CX_results[, i], XY_results[, i], CY_X_results[, i], bayes)
     info[[name]] <- name
-    # info[[name]] <- ifelse(is.na(roc$auc), name, paste(name, ' (', roc$auc, ')', sep = ""))
     roc_data <- rbind(roc_data, cbind(rep(name, length(roc$fpr)), roc$fpr, roc$tpr))
     dot_data <- rbind(dot_data, cbind(name, dot$fpr, dot$tpr))
   }
@@ -276,14 +279,14 @@
                            labels = scales::trans_format("log10", scales::math_format(10 ^ .x)))
 }
 
-.plot_auc_times <- function(results, Ns, save_legend = FALSE, lap = TRUE) {
+.plot_auc_times <- function(results, Ns, save_legend = FALSE, legend_title = 'output/legend', lap = TRUE) {
   if (lap) {
     time_data <- lapply(results, function(result) result$time)
   } else {
     time_data <- results
   }
   time_data$n <- Ns
-  time_data <- reshape::melt(data.frame(time_data), id.vars = 'n', variable_name = "Test:")
+  time_data <- reshape::melt(data.frame(time_data), id.vars = 'n', variable_name = 'Test:')
   plt <- ggplot2::ggplot(time_data, ggplot2::aes(n)) +
     ggplot2::scale_x_continuous(limits = c(min(Ns), max(Ns)), trans = scales::log10_trans()) +
     ggplot2::scale_y_continuous(trans = scales::log10_trans()) +
@@ -291,12 +294,11 @@
     ggplot2::scale_color_manual(values = unlist(.plot_colours)) +
     ggplot2::labs(x = "n", y = "time (s)")
   if (save_legend) {
-    .ggsave('output/thesis/legend', cowplot::get_legend(
+    .ggsave(legend_title, cowplot::get_legend(
       plt + ggplot2::theme(legend.direction = "horizontal") +
-        ggplot2::guides(colour = ggplot2::guide_legend(nrow = 1))), 12, 1.2)
+        ggplot2::guides(colour = ggplot2::guide_legend(nrow = 1))), 18, 1.2)
   }
   plt + ggplot2::theme(legend.position = "none")
-  
 }
 
 .gg_color_hue <- function(n) {
