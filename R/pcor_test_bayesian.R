@@ -19,7 +19,7 @@ pcor_test_bayesian <- function(X, Y, Z) {
 .jzs_partcorbf <- function(r0, r1, p0, p1, n) {
   int <- function(r, n, p, g) {
     a <- .5 * ((n - 1 - p) * log(1 + g) - (n - 1) * log(1 + g * (1 - r ^ 2)))
-    return(exp(a) * invgamma::dinvgamma(g, shape = .5, scale = n / 2))
+    return(exp(a) * .dinvgamma(g, shape = 1 / 2, scale = n / 2))
   }
 
   bf10 <- integrate(int, lower = 0, upper = 25, r = r1, p = p1, n = n)$value /
@@ -35,10 +35,14 @@ pcor_test_bayesian <- function(X, Y, Z) {
 .jzs_corbf <- function(r, n) {
   int <- function(r, n, g) {
     a <- .5 * ((n - 2) * log(1 + g) - (n - 1) * log(1 + g * (1 - r ^ 2)))
-    return(exp(a) * invgamma::dinvgamma(g, shape = .5, scale = n / 2))
+    return(exp(a) * .dinvgamma(g, shape=1 / 2, scale=n / 2))
   }
 
   bf10 <- integrate(int, lower = 0, upper = 25, r = r, n = n)$value
 
   return(1 / bf10)
+}
+
+.dinvgamma <- function (x, shape, scale) {
+  scale^shape * (1 / x)^(shape + 1) * exp(-scale / x) / gamma(shape)
 }

@@ -20,7 +20,6 @@ Imports:
     foreach,
     GeneralisedCovarianceMeasure,
     ggplot2,
-    invgamma,
     latex2exp,
     matrixStats,
     ppcor,
