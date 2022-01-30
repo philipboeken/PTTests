@@ -62,7 +62,7 @@ devtools::install_local("./", force = TRUE)
 ## References
 Boeken, P. A. (2020). Conditional independence testing in causal inference. <em>University of Amsterdam</em>, Master Thesis.
 
-Boeken, P. A. and Mooij, J. M. (2020). A bayesian nonparametric conditional two-sample test with an application to local causal discovery. <em>arXiv.org preprint</em>, arxiv:2008.07382 [math.ST].
+Boeken, P. A. and Mooij, J. M. (2021). A Bayesian nonparametric conditional two-sample test with an application to Local Causal Discovery. <em>Proceedings of the Thirty-Seventh Conference on Uncertainty in Artificial Intelligence</em>, in <em>Proceedings of Machine Learning Research</em> 161:1565-1575. Available from https://proceedings.mlr.press/v161/boeken21a.html.
 
 Filippi, S. and Holmes, C. C. (2017). A Bayesian nonparametric approach to testing for dependence between random variables. <em>Bayesian Analysis</em>, 12(4):919–938.
 
